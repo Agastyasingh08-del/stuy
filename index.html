@@ -572,7 +572,7 @@ function renderTbActions(v){
   el.innerHTML='';
   const map={
     subjects:[{l:'+ Subject',fn:'openAddSubject'}],
-    flashcards:[{l:'+ Deck',fn:'openAddDeck'}],
+    flashcards:[{l:'✨ AI Generate',fn:'openAIGenModal'},{l:'+ Deck',fn:'openAddDeck'}],
     notes:[{l:'+ Note',fn:'openAddNote'}],
     schedule:[{l:'+ Session',fn:'openAddSession'}],
   };
@@ -1581,6 +1581,124 @@ function buildAIContext() {
   return `SUBJECTS:\n${subjs||'None'}\n\nRECENT NOTES:\n${recentNotes||'None'}\n\nFLASHCARD DECKS:\n${decks||'None'}`;
 }
 
+// ─── AI GENERATE MODAL (from Flashcards tab) ─────────────────────────────────
+function openAIGenModal() {
+  if (!S.settings?.apiKey) {
+    openModal(`<div class="modal-title">API Key Required</div>
+      <p style="color:var(--text-muted)">Add your Anthropic API key in <strong>Settings</strong> first.</p>
+      <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="closeModal();setView('settings')">Settings</button></div>`);
+    return;
+  }
+  const subjOpts = S.subjects.map(s=>`<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
+  openModal(`<div class="modal-title">✨ AI Flashcard Generator</div>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:16px">Choose how to generate flashcards — from your saved notes or by uploading a document/PDF.</p>
+
+    <div class="tabs" style="margin-bottom:16px" id="aigen-tabs">
+      <div class="tab active" onclick="switchAIGenTab(this,'aig-notes')">From My Notes</div>
+      <div class="tab" onclick="switchAIGenTab(this,'aig-upload')">Upload Document</div>
+      <div class="tab" onclick="switchAIGenTab(this,'aig-topic')">Generate by Topic</div>
+    </div>
+
+    <!-- FROM NOTES -->
+    <div id="aig-notes">
+      <div class="fg"><label class="fl">Subject</label>
+        <select class="fi" id="aig-subj" onchange="refreshAIGNotes()">${subjOpts||'<option>Add subjects first</option>'}</select></div>
+      <div class="fg"><label class="fl">Select Note</label>
+        <select class="fi" id="aig-note"><option>— pick a subject first —</option></select></div>
+    </div>
+
+    <!-- UPLOAD DOC -->
+    <div id="aig-upload" class="hidden">
+      <div class="fg"><label class="fl">Subject (for the new deck)</label>
+        <select class="fi" id="aig-upload-subj">${subjOpts||'<option>Add subjects first</option>'}</select></div>
+      <div id="aig-dropzone" class="drop-zone" style="padding:24px;margin-top:4px" onclick="triggerAIGenUpload()">
+        <div style="font-size:1.8rem;margin-bottom:6px">📄</div>
+        <div style="font-weight:600;font-size:.88rem">Click to upload a PDF, image, or text file</div>
+        <div style="font-size:.76rem;color:var(--text-muted);margin-top:4px">Also saves to your Resources</div>
+      </div>
+      <div id="aig-file-chosen" style="display:none;font-size:.83rem;color:var(--accent2);margin-top:8px"></div>
+      <input type="file" id="aig-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.md" onchange="handleAIGenFile(this)">
+    </div>
+
+    <!-- BY TOPIC -->
+    <div id="aig-topic" class="hidden">
+      <div class="fg"><label class="fl">Subject</label>
+        <select class="fi" id="aig-topic-subj">${subjOpts||'<option>Add subjects first</option>'}</select></div>
+      <div class="fg"><label class="fl">Topic / Chapter</label>
+        <input class="fi" id="aig-topic-name" placeholder="e.g. Mitosis, The French Revolution, Calculus Derivatives"></div>
+      <div style="font-size:.75rem;color:var(--text-muted)">AI will generate cards from your notes + its knowledge on this topic.</div>
+    </div>
+
+    <div class="mactions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="runAIGen()">✨ Generate Flashcards</button>
+    </div>`);
+
+  // init note dropdown
+  setTimeout(()=>refreshAIGNotes(), 50);
+}
+
+function switchAIGenTab(el, tid) {
+  document.querySelectorAll('#aigen-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['aig-notes','aig-upload','aig-topic'].forEach(id=>document.getElementById(id)?.classList.toggle('hidden', id!==tid));
+}
+
+function refreshAIGNotes() {
+  const sid = document.getElementById('aig-subj')?.value;
+  const sel = document.getElementById('aig-note');
+  if (!sel) return;
+  const notes = S.notes.filter(n=>n.subjectId===sid);
+  sel.innerHTML = notes.length
+    ? notes.map(n=>`<option value="${n.id}">${n.title}${n.topic?' ('+n.topic+')':''}</option>`).join('')
+    : '<option>No notes for this subject yet</option>';
+}
+
+function triggerAIGenUpload() { document.getElementById('aig-file-input')?.click(); }
+let aigenFile = null;
+function handleAIGenFile(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    aigenFile = {name: file.name, type: file.type, data: e.target.result, size: fmtBytes(file.size)};
+    const chosen = document.getElementById('aig-file-chosen');
+    if (chosen) { chosen.style.display='block'; chosen.textContent = fIcon(file.type)+' '+file.name+' ('+fmtBytes(file.size)+')'; }
+    const dz = document.getElementById('aig-dropzone');
+    if (dz) dz.style.borderColor = 'var(--accent)';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function runAIGen() {
+  // Figure out which tab is active
+  const activeTab = document.querySelector('#aigen-tabs .tab.active')?.textContent?.trim();
+
+  if (activeTab === 'From My Notes') {
+    const nid = document.getElementById('aig-note')?.value;
+    const note = S.notes.find(x=>x.id===nid);
+    if (!note || !note.content?.trim()) { toast('❌ Pick a note with content first'); return; }
+    closeModal();
+    await aiFlashcardsFromNote(nid);
+
+  } else if (activeTab === 'Upload Document') {
+    if (!aigenFile) { toast('❌ Upload a file first'); return; }
+    const sid = document.getElementById('aig-upload-subj')?.value;
+    // save to uploads too
+    S.uploads.push({id:uid(), name:aigenFile.name, type:aigenFile.type, size:aigenFile.size, subjectId:sid, data:aigenFile.data, uploadedAt:Date.now()});
+    save();
+    closeModal();
+    await aiFlashcardsFromFile(aigenFile, sid);
+    aigenFile = null;
+
+  } else if (activeTab === 'Generate by Topic') {
+    const sid = document.getElementById('aig-topic-subj')?.value;
+    const topic = document.getElementById('aig-topic-name')?.value?.trim();
+    if (!topic) { toast('❌ Enter a topic name'); return; }
+    closeModal();
+    await aiGenerateForTopic(sid, topic);
+  }
+}
+
 // ─── AI FLASHCARD GENERATION ─────────────────────────────────────────────────
 async function aiFlashcardsFromNote(noteId) {
   if (!S.settings?.apiKey) {
@@ -1690,6 +1808,72 @@ async function aiGenerateForTopic(subjectId, topic) {
     closeModal();
     toast(`✅ Created deck "${topic}" with ${cards.length} cards!`);
     setView('flashcards');
+  } catch(e) {
+    closeModal();
+    setTimeout(()=>openModal(`<div class="modal-title">❌ Error</div><p style="color:var(--text-muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
+  }
+}
+
+async function aiFlashcardsFromFile(fileObj, subjectId) {
+  if (!S.settings?.apiKey) { toast('❌ Add API key in Settings first'); return; }
+  openModal(`<div class="modal-title">✨ Reading Document…</div>
+    <div style="text-align:center;padding:30px"><div style="font-size:2rem;animation:spin 1s linear infinite">⚙️</div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <p style="color:var(--text-muted);margin-top:12px">AI is processing your file and creating flashcards…</p></div>`);
+
+  try {
+    const s = S.subjects.find(x=>x.id===subjectId);
+    let messages;
+    const type = fileObj.type || '';
+    const base64 = fileObj.data?.split(',')[1] || '';
+
+    if (type === 'application/pdf') {
+      messages = [{role:'user', content:[
+        {type:'document', source:{type:'base64', media_type:'application/pdf', data:base64}},
+        {type:'text', text:`Create comprehensive flashcards from this document grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}`}
+      ]}];
+    } else if (type.startsWith('image/')) {
+      messages = [{role:'user', content:[
+        {type:'image', source:{type:'base64', media_type:type, data:base64}},
+        {type:'text', text:`Create comprehensive flashcards from this image grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}`}
+      ]}];
+    } else {
+      // text file — decode base64 to text
+      const text = atob(base64);
+      messages = [{role:'user', content:`Create comprehensive flashcards from this document grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}\n\nDOCUMENT:\n${text}`}];
+    }
+
+    const extraHeaders = type === 'application/pdf' ? {'anthropic-beta':'pdfs-2024-09-25'} : {};
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true',...extraHeaders},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4096,system:'You are a study assistant. Always return only valid JSON, no markdown.',messages})
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    const raw = data.content[0].text;
+
+    let parsed;
+    try { parsed = JSON.parse(raw.replace(/```json|```/g,'')); }
+    catch { throw new Error('AI returned invalid format. Try again.'); }
+
+    const topics = parsed.topics || [];
+    const totalCards = topics.reduce((a,t)=>a+t.cards.length,0);
+
+    closeModal();
+    setTimeout(()=>openModal(`<div class="modal-title">✨ ${totalCards} Flashcards Generated!</div>
+      <p style="color:var(--text-muted);margin-bottom:16px">Found <strong>${topics.length} topic${topics.length!==1?'s':''}</strong>. Each topic becomes its own deck.</p>
+      <div style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px">
+        ${topics.map(t=>`<div style="background:var(--surface2);border-radius:8px;padding:12px">
+          <div style="font-weight:700;margin-bottom:6px">📚 ${t.topic} <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">${t.cards.length} cards</span></div>
+          ${t.cards.slice(0,2).map(c=>`<div style="font-size:.78rem;color:var(--text-muted);padding:3px 0">Q: ${c.front}</div>`).join('')}
+          ${t.cards.length>2?`<div style="font-size:.72rem;color:var(--text-muted)">+${t.cards.length-2} more…</div>`:''}
+        </div>`).join('')}
+      </div>
+      <div class="mactions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAIDecks(${JSON.stringify(topics).replace(/'/g,"&#39;")}, '${subjectId}', '${fileObj.name}')">Create ${topics.length} Deck${topics.length!==1?'s':''}</button>
+      </div>`), 50);
   } catch(e) {
     closeModal();
     setTimeout(()=>openModal(`<div class="modal-title">❌ Error</div><p style="color:var(--text-muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
