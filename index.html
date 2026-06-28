@@ -472,10 +472,10 @@ function renderSettings(){
     <div class="sect-title">AI Tutor</div>
     <div class="card mb20">
       <div class="setting-row">
-        <div><div class="setting-label">Google Gemini API Key</div><div class="setting-sub">Free tier available — enables AI Tutor + auto flashcard generation. Stored locally only.</div></div>
-        <input class="fi" style="width:230px;font-family:monospace;font-size:.76rem" type="password" id="set-apikey" value="${S.settings.apiKey||''}" placeholder="AIza..." oninput="S.settings.apiKey=this.value;save()">
+        <div><div class="setting-label">Anthropic API Key</div><div class="setting-sub">Enables AI Tutor chat + auto flashcard generation from notes. Stored locally only.</div></div>
+        <input class="fi" style="width:230px;font-family:monospace;font-size:.76rem" type="password" id="set-apikey" value="${S.settings.apiKey||''}" placeholder="sk-ant-api03-..." oninput="S.settings.apiKey=this.value;save()">
       </div>
-      <div style="font-size:.75rem;color:var(--text-muted);padding:4px 0">Get a <strong>free</strong> key at <strong>aistudio.google.com</strong> → Get API Key (no credit card needed)</div>
+      <div style="font-size:.75rem;color:var(--text-muted);padding:4px 0">Get your key at <strong>console.anthropic.com</strong> → API Keys</div>
     </div>
     <div class="sect-title">Data</div>
     <div class="card">
@@ -1352,17 +1352,29 @@ function debounce(fn,delay){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()
 
 // ─── AI HELPERS ──────────────────────────────────────────────────────────────
 async function gemini(systemPrompt, contents) {
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${S.settings.apiKey}`, {
+  // Convert Gemini-style contents to Anthropic messages format
+  const messages = contents.map(c => ({
+    role: c.role === 'model' ? 'assistant' : 'user',
+    content: c.parts[0].text
+  }));
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': S.settings.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
     body: JSON.stringify({
-      system_instruction: {parts:[{text: systemPrompt}]},
-      contents
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages
     })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-  return data.candidates[0].content.parts[0].text;
+  return data.content[0].text;
 }
 
 // ─── AI ──────────────────────────────────────────────────────────────────────
