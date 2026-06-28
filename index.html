@@ -977,7 +977,28 @@ function openAddCard(did){
       <button class="btn btn-ghost" onclick="saveCard('${did}',true)">Save & Add Another</button>
       <button class="btn btn-primary" onclick="saveCard('${did}',false)">Save</button>
     </div>`),60);
-  setTimeout(()=>document.getElementById('cf')?.focus(),100);
+  setTimeout(()=>{
+    document.getElementById('cf')?.focus();
+    ['cf','cb'].forEach((id,i)=>{
+      const side=i===0?'front':'back';
+      document.getElementById(id)?.addEventListener('paste',e=>{
+        const items=[...(e.clipboardData?.items||[])];
+        const imgItem=items.find(it=>it.type.startsWith('image/'));
+        if(!imgItem) return;
+        e.preventDefault();
+        const file=imgItem.getAsFile();
+        const reader=new FileReader();
+        reader.onload=ev=>{
+          _cardImgs[side]=ev.target.result;
+          const prev=document.getElementById('img-prev-'+side);
+          const lbl=document.getElementById('img-label-'+side);
+          if(prev){prev.src=ev.target.result;prev.style.display='block';}
+          if(lbl) lbl.textContent='Pasted image';
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  },100);
 }
 function saveCard(did,another){
   const front=document.getElementById('cf').value.trim(),back=document.getElementById('cb').value.trim();
