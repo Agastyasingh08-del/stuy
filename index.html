@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyHub</title>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a24;
+    --surface2: #22222f;
+    --border: #2e2e40;
+    --accent: #7c6af7;
+    --accent2: #a78bfa;
+    --accent-glow: rgba(124,106,247,0.25);
+    --text: #e8e8f0;
+    --text-muted: #8888aa;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --pink: #f472b6;
+    --orange: #fb923c;
+    --sidebar-w: 240px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+  }
+  .sidebar-logo { padding: 24px 20px 16px; font-size: 1.3rem; font-weight: 700; color: var(--accent2);
+    display: flex; align-items: center; gap: 10px; }
+  .sidebar-logo span { font-size: 1.5rem; }
+  .nav-section { padding: 8px 12px 4px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; margin: 2px 8px;
+    border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); transition: all .15s; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent2); }
+  .nav-item .icon { width: 18px; text-align: center; font-size: 1rem; }
+  .sidebar-subjects { padding: 4px 0; }
+  .sidebar-subject { display: flex; align-items: center; gap: 8px; padding: 7px 16px; margin: 1px 8px;
+    border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: all .15s; }
+  .sidebar-subject:hover { background: var(--surface2); color: var(--text); }
+  .subject-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* MAIN */
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { padding: 16px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface); }
+  .topbar-title { font-size: 1.15rem; font-weight: 600; }
+  .topbar-actions { display: flex; gap: 8px; }
+  .btn { padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all .15s; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+
+  #content { flex: 1; overflow-y: auto; padding: 28px; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-title { font-size: 0.95rem; font-weight: 600; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* STAT CARD */
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .stat-value { font-size: 2rem; font-weight: 700; color: var(--accent2); }
+  .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* PROGRESS BAR */
+  .progress-bar { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+
+  /* SUBJECT CARDS */
+  .subject-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all .2s; }
+  .subject-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px var(--accent-glow); }
+  .subject-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .subject-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+  .subject-name { font-size: 1rem; font-weight: 600; }
+  .subject-meta { font-size: 0.78rem; color: var(--text-muted); }
+  .tasks-list { margin-top: 12px; }
+  .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .task-item:last-child { border-bottom: none; }
+  .task-check { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all .15s; }
+  .task-check.done { background: var(--green); border-color: var(--green); }
+  .task-check.done::after { content: '✓'; color: #000; font-size: 0.7rem; font-weight: 700; }
+  .task-text { font-size: 0.88rem; flex: 1; }
+  .task-text.done { text-decoration: line-through; color: var(--text-muted); }
+  .subtasks { margin-left: 28px; }
+  .subtask-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 0.82rem; color: var(--text-muted); }
+
+  /* SCHEDULE */
+  .schedule-grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden; }
+  .schedule-header { background: var(--surface2); padding: 10px 6px; text-align: center; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+  .schedule-time { background: var(--surface); padding: 8px 6px; text-align: right; font-size: 0.72rem; color: var(--text-muted); }
+  .schedule-cell { background: var(--surface); min-height: 48px; position: relative; cursor: pointer; transition: background .15s; }
+  .schedule-cell:hover { background: var(--surface2); }
+  .session-block { position: absolute; left: 2px; right: 2px; border-radius: 6px; padding: 4px 6px; font-size: 0.72rem; font-weight: 500; cursor: pointer; overflow: hidden; z-index: 1; }
+
+  /* FLASHCARDS */
+  .deck-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all .2s; }
+  .deck-card:hover { border-color: var(--accent); }
+  .deck-count { font-size: 0.8rem; color: var(--text-muted); }
+  .due-badge { display: inline-block; background: var(--red); color: #fff; font-size: 0.7rem; border-radius: 12px; padding: 2px 8px; margin-left: 8px; }
+  .flashcard-study { max-width: 600px; margin: 0 auto; }
+  .flashcard { min-height: 260px; background: var(--surface); border: 2px solid var(--border); border-radius: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center;
+    cursor: pointer; transition: all .3s; position: relative; }
+  .flashcard:hover { border-color: var(--accent); }
+  .flashcard-front { font-size: 1.2rem; font-weight: 600; }
+  .flashcard-back { font-size: 1rem; color: var(--text-muted); margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .rating-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+  .rating-btn { padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all .15s; }
+
+  /* NOTES */
+  .note-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: all .2s; }
+  .note-card:hover { border-color: var(--accent); }
+  .note-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+  .note-preview { font-size: 0.82rem; color: var(--text-muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .note-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; }
+  .note-editor { width: 100%; min-height: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-size: 0.95rem; padding: 20px; resize: vertical; font-family: inherit; line-height: 1.7; }
+  .note-editor:focus { outline: none; border-color: var(--accent); }
+
+  /* UPLOADS */
+  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all .2s; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-glow); }
+  .upload-zone p { color: var(--text-muted); margin-top: 8px; font-size: 0.88rem; }
+  .file-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .file-icon { font-size: 1.5rem; width: 36px; text-align: center; }
+  .file-name { font-size: 0.9rem; flex: 1; font-weight: 500; }
+  .file-meta { font-size: 0.78rem; color: var(--text-muted); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 520px; max-width: 95vw; max-height: 85vh; overflow-y: auto; }
+  .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 9px 12px; font-size: 0.9rem; font-family: inherit; }
+  .form-input:focus { outline: none; border-color: var(--accent); }
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+  .color-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .color-swatch { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: .15s; }
+  .color-swatch.selected { border-color: #fff; transform: scale(1.15); }
+  .emoji-picker { display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; }
+  .emoji-opt { font-size: 1.3rem; cursor: pointer; padding: 4px; border-radius: 6px; transition: .15s; }
+  .emoji-opt:hover, .emoji-opt.selected { background: var(--accent-glow); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* SUBJECT DETAIL */
+  .back-btn { display: flex; align-items: center; gap: 6px; color: var(--text-muted); cursor: pointer; font-size: 0.88rem; margin-bottom: 20px; }
+  .back-btn:hover { color: var(--text); }
+
+  /* TAGS */
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+
+  /* MISC */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state p { margin-top: 8px; font-size: 0.88rem; }
+  .section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-16 { margin-bottom: 16px; }
+  .hidden { display: none !important; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .input-inline { background: transparent; border: none; color: var(--text); font-size: inherit; font-family: inherit; outline: none; width: 100%; }
+  .input-inline:focus { border-bottom: 1px solid var(--accent); }
+  select.form-input option { background: var(--surface2); }
+  .tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 7px; text-align: center; border-radius: 7px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: .15s; }
+  .tab.active { background: var(--surface); color: var(--text); font-weight: 600; }
+  .streak-flame { font-size: 1.2rem; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="sidebar-logo"><span>📚</span> StudyHub</div>
+
+  <div class="nav-section">Main</div>
+  <div class="nav-item active" data-view="dashboard"><span class="icon">🏠</span> Dashboard</div>
+  <div class="nav-item" data-view="schedule"><span class="icon">📅</span> Schedule</div>
+  <div class="nav-item" data-view="subjects"><span class="icon">📖</span> Subjects</div>
+
+  <div class="nav-section">Study</div>
+  <div class="nav-item" data-view="flashcards"><span class="icon">🃏</span> Flashcards</div>
+  <div class="nav-item" data-view="notes"><span class="icon">📝</span> Notes</div>
+  <div class="nav-item" data-view="uploads"><span class="icon">📎</span> Resources</div>
+
+  <div class="nav-section" style="margin-top:8px">Subjects</div>
+  <div class="sidebar-subjects" id="sidebar-subjects"></div>
+</div>
+
+<div id="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="grid-4 mb-16" id="dash-stats"></div>
+      <div class="grid-2">
+        <div>
+          <div class="section-title">Today's Sessions</div>
+          <div id="dash-today"></div>
+        </div>
+        <div>
+          <div class="section-title">Subject Progress</div>
+          <div id="dash-progress"></div>
+        </div>
+      </div>
+      <div class="mt-24">
+        <div class="section-title">Due for Review</div>
+        <div id="dash-due"></div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="view" id="view-schedule">
+      <div id="schedule-container"></div>
+    </div>
+
+    <!-- SUBJECTS -->
+    <div class="view" id="view-subjects">
+      <div id="subjects-list"></div>
+    </div>
+
+    <!-- SUBJECT DETAIL -->
+    <div class="view" id="view-subject-detail">
+      <div class="back-btn" id="back-to-subjects">← Back to Subjects</div>
+      <div id="subject-detail-content"></div>
+    </div>
+
+    <!-- FLASHCARDS -->
+    <div class="view" id="view-flashcards">
+      <div id="flashcards-content"></div>
+    </div>
+
+    <!-- FLASHCARD STUDY -->
+    <div class="view" id="view-study">
+      <div class="back-btn" id="back-to-flashcards">← Back to Decks</div>
+      <div id="study-content"></div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="view" id="view-notes">
+      <div id="notes-content"></div>
+    </div>
+
+    <!-- NOTE EDITOR -->
+    <div class="view" id="view-note-editor">
+      <div class="back-btn" id="back-to-notes">← Back to Notes</div>
+      <div id="note-editor-content"></div>
+    </div>
+
+    <!-- UPLOADS -->
+    <div class="view" id="view-uploads">
+      <div id="uploads-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal(event)">
+  <div class="modal" id="modal-content" onclick="event.stopPropagation()"></div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const COLORS = ['#7c6af7','#f472b6','#4ade80','#60a5fa','#fbbf24','#fb923c','#f87171','#a78bfa','#34d399','#38bdf8'];
+const EMOJIS = ['📚','📖','🔬','🧪','📐','✏️','🖊️','📝','💻','🎨','🎵','🏛️','🌍','🧮','⚗️','📊','🔭','🎭','📜','🧬','⚡','🌿','🏺','📡'];
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const HOURS = Array.from({length:15}, (_,i)=>i+7); // 7am-9pm
+
+let state = {
+  subjects: [],
+  schedule: [],
+  decks: [],
+  notes: [],
+  uploads: [],
+  streakDays: 0,
+  lastStudy: null
+};
+
+function save() { localStorage.setItem('studyhub', JSON.stringify(state)); }
+function load() {
+  const d = localStorage.getItem('studyhub');
+  if (d) state = JSON.parse(d);
+}
+load();
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+let currentView = 'dashboard';
+
+function setView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.nav-item[data-view="${v}"]`)?.classList.add('active');
+  currentView = v;
+  const titles = {dashboard:'Dashboard',schedule:'Schedule',subjects:'Subjects',
+    flashcards:'Flashcards',notes:'Notes',uploads:'Resources',
+    'subject-detail':'Subject Detail','study':'Study Mode','note-editor':'Note Editor'};
+  document.getElementById('topbar-title').textContent = titles[v] || '';
+  renderTopbarActions(v);
+  renderView(v);
+}
+
+function renderView(v) {
+  if (v === 'dashboard') renderDashboard();
+  else if (v === 'schedule') renderSchedule();
+  else if (v === 'subjects') renderSubjects();
+  else if (v === 'flashcards') renderFlashcards();
+  else if (v === 'notes') renderNotes();
+  else if (v === 'uploads') renderUploads();
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => setView(el.dataset.view));
+});
+document.getElementById('back-to-subjects').onclick = () => setView('subjects');
+document.getElementById('back-to-flashcards').onclick = () => setView('flashcards');
+document.getElementById('back-to-notes').onclick = () => setView('notes');
+
+function renderTopbarActions(v) {
+  const el = document.getElementById('topbar-actions');
+  el.innerHTML = '';
+  const actions = {
+    subjects: [{label:'+ Add Subject', fn:'openAddSubject'}],
+    flashcards: [{label:'+ New Deck', fn:'openAddDeck'}],
+    notes: [{label:'+ New Note', fn:'openAddNote'}],
+    schedule: [{label:'+ Add Session', fn:'openAddSession'}],
+  };
+  (actions[v]||[]).forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'btn btn-primary';
+    b.textContent = a.label;
+    b.onclick = () => window[a.fn]();
+    el.appendChild(b);
+  });
+}
+
+// ─── SIDEBAR SUBJECTS ─────────────────────────────────────────────────────────
+function renderSidebarSubjects() {
+  const el = document.getElementById('sidebar-subjects');
+  el.innerHTML = state.subjects.map(s => `
+    <div class="sidebar-subject" onclick="openSubjectDetail('${s.id}')">
+      <div class="subject-dot" style="background:${s.color}"></div>
+      <span>${s.name}</span>
+    </div>
+  `).join('');
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const today = new Date();
+  const dayIdx = (today.getDay()+6)%7;
+  const todaySessions = state.schedule.filter(s => s.day === dayIdx);
+  const totalTasks = state.subjects.flatMap(s => s.tasks||[]).length;
+  const doneTasks = state.subjects.flatMap(s => s.tasks||[]).filter(t => t.done).length;
+  const dueCards = getDueCards();
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${state.subjects.length}</div><div class="stat-label">Subjects</div></div>
+    <div class="stat-card"><div class="stat-value">${doneTasks}/${totalTasks}</div><div class="stat-label">Tasks Done</div></div>
+    <div class="stat-card"><div class="stat-value">${dueCards.length}</div><div class="stat-label">Cards Due</div></div>
+    <div class="stat-card"><div class="stat-value">${todaySessions.length}</div><div class="stat-label">Sessions Today</div></div>
+  `;
+
+  const todayEl = document.getElementById('dash-today');
+  if (!todaySessions.length) {
+    todayEl.innerHTML = '<div class="card"><p style="color:var(--text-muted);font-size:.88rem">No sessions scheduled today.</p></div>';
+  } else {
+    todayEl.innerHTML = todaySessions.map(s => {
+      const subj = state.subjects.find(x => x.id === s.subjectId);
+      return `<div class="card mb-16" style="border-left:3px solid ${subj?.color||'#7c6af7'}">
+        <div style="font-weight:600">${s.startTime} – ${s.endTime}</div>
+        <div style="font-size:.85rem;color:var(--text-muted)">${subj?.emoji||''} ${subj?.name||'Unknown'} ${s.notes?'· '+s.notes:''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  const progEl = document.getElementById('dash-progress');
+  progEl.innerHTML = state.subjects.length ? state.subjects.map(s => {
+    const tasks = s.tasks||[];
+    const done = tasks.filter(t=>t.done).length;
+    const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+    return `<div class="card mb-16">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span>${s.emoji||'📚'}</span>
+        <span style="font-weight:600;font-size:.9rem">${s.name}</span>
+        <span style="margin-left:auto;font-size:.8rem;color:var(--text-muted)">${pct}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
+    </div>`;
+  }).join('') : '<div class="card"><p style="color:var(--text-muted);font-size:.88rem">No subjects yet.</p></div>';
+
+  const dueEl = document.getElementById('dash-due');
+  if (!dueCards.length) {
+    dueEl.innerHTML = '<div class="card"><p style="color:var(--text-muted);font-size:.88rem">🎉 No cards due right now!</p></div>';
+  } else {
+    const grouped = {};
+    dueCards.forEach(({deck}) => { grouped[deck.id] = (grouped[deck.id]||0)+1; });
+    dueEl.innerHTML = `<div class="grid-3">` + Object.entries(grouped).map(([did, cnt]) => {
+      const deck = state.decks.find(d=>d.id===did);
+      const subj = state.subjects.find(s=>s.id===deck?.subjectId);
+      return `<div class="deck-card" onclick="startStudy('${did}')">
+        <div style="font-weight:600">${deck?.name}</div>
+        <div class="deck-count" style="margin-top:4px">${subj?.emoji||''} ${subj?.name||''}</div>
+        <span class="due-badge">${cnt} due</span>
+      </div>`;
+    }).join('') + '</div>';
+  }
+}
+
+// ─── SCHEDULE ────────────────────────────────────────────────────────────────
+function renderSchedule() {
+  const el = document.getElementById('schedule-container');
+  const today = (new Date().getDay()+6)%7;
+  let html = `<div class="schedule-grid">
+    <div class="schedule-header"></div>
+    ${DAYS.map((d,i)=>`<div class="schedule-header" style="${i===today?'color:var(--accent2);font-weight:700':''}">${d}</div>`).join('')}
+  `;
+  HOURS.forEach(h => {
+    html += `<div class="schedule-time">${h}:00</div>`;
+    for (let d=0; d<7; d++) {
+      const sessions = state.schedule.filter(s => s.day===d && s.startHour===h);
+      html += `<div class="schedule-cell" onclick="openAddSessionAt(${d},${h})">
+        ${sessions.map(s => {
+          const subj = state.subjects.find(x=>x.id===s.subjectId);
+          const span = (s.endHour - s.startHour) || 1;
+          return `<div class="session-block" style="background:${subj?.color||'#7c6af7'}22;border-left:3px solid ${subj?.color||'#7c6af7'};top:2px;height:calc(${span*100}% - 4px)" onclick="event.stopPropagation();editSession('${s.id}')">
+            <div style="font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${subj?.emoji||''} ${subj?.name||'Study'}</div>
+            <div style="color:var(--text-muted)">${s.startTime}–${s.endTime}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function openAddSession() { openAddSessionAt(0, 9); }
+function openAddSessionAt(day, hour) {
+  const subjectOptions = state.subjects.map(s => `<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
+  openModal(`<div class="modal-title">Add Study Session</div>
+    <div class="form-group"><label class="form-label">Subject</label>
+      <select class="form-input" id="sess-subj">${subjectOptions||'<option>Add a subject first</option>'}</select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Day</label>
+        <select class="form-input" id="sess-day">${DAYS.map((d,i)=>`<option value="${i}" ${i===day?'selected':''}>${d}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Start Time</label>
+        <input class="form-input" id="sess-start" type="time" value="${String(hour).padStart(2,'0')}:00"></div>
+      <div class="form-group"><label class="form-label">End Time</label>
+        <input class="form-input" id="sess-end" type="time" value="${String(hour+1).padStart(2,'0')}:00"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes (optional)</label>
+      <input class="form-input" id="sess-notes" placeholder="e.g. Chapter 5 revision"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSession()">Add Session</button>
+    </div>`);
+}
+
+function saveSession() {
+  const subjectId = document.getElementById('sess-subj').value;
+  const day = parseInt(document.getElementById('sess-day').value);
+  const startTime = document.getElementById('sess-start').value;
+  const endTime = document.getElementById('sess-end').value;
+  const notes = document.getElementById('sess-notes').value;
+  if (!subjectId) return;
+  const startHour = parseInt(startTime.split(':')[0]);
+  const endHour = parseInt(endTime.split(':')[0]);
+  state.schedule.push({id: uid(), subjectId, day, startTime, endTime, startHour, endHour, notes});
+  save(); closeModal(); renderSchedule();
+}
+
+function editSession(id) {
+  const s = state.schedule.find(x=>x.id===id);
+  if (!s) return;
+  const subjectOptions = state.subjects.map(sub => `<option value="${sub.id}" ${sub.id===s.subjectId?'selected':''}>${sub.emoji||''} ${sub.name}</option>`).join('');
+  openModal(`<div class="modal-title">Edit Session</div>
+    <div class="form-group"><label class="form-label">Subject</label>
+      <select class="form-input" id="sess-subj">${subjectOptions}</select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Day</label>
+        <select class="form-input" id="sess-day">${DAYS.map((d,i)=>`<option value="${i}" ${i===s.day?'selected':''}>${d}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Start</label>
+        <input class="form-input" id="sess-start" type="time" value="${s.startTime}"></div>
+      <div class="form-group"><label class="form-label">End</label>
+        <input class="form-input" id="sess-end" type="time" value="${s.endTime}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label>
+      <input class="form-input" id="sess-notes" value="${s.notes||''}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" onclick="deleteSession('${id}')">Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="updateSession('${id}')">Save</button>
+    </div>`);
+}
+
+function updateSession(id) {
+  const s = state.schedule.find(x=>x.id===id);
+  if (!s) return;
+  s.subjectId = document.getElementById('sess-subj').value;
+  s.day = parseInt(document.getElementById('sess-day').value);
+  s.startTime = document.getElementById('sess-start').value;
+  s.endTime = document.getElementById('sess-end').value;
+  s.startHour = parseInt(s.startTime.split(':')[0]);
+  s.endHour = parseInt(s.endTime.split(':')[0]);
+  s.notes = document.getElementById('sess-notes').value;
+  save(); closeModal(); renderSchedule();
+}
+
+function deleteSession(id) {
+  state.schedule = state.schedule.filter(s=>s.id!==id);
+  save(); closeModal(); renderSchedule();
+}
+
+// ─── SUBJECTS ─────────────────────────────────────────────────────────────────
+function renderSubjects() {
+  const el = document.getElementById('subjects-list');
+  if (!state.subjects.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📖</div><h3>No subjects yet</h3><p>Add your first subject to get started!</p>
+      <button class="btn btn-primary mt-16" onclick="openAddSubject()">+ Add Subject</button></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="grid-3">${state.subjects.map(s => {
+    const tasks = s.tasks||[];
+    const done = tasks.filter(t=>t.done).length;
+    const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+    return `<div class="subject-card" onclick="openSubjectDetail('${s.id}')">
+      <div class="subject-card-header">
+        <div class="subject-icon" style="background:${s.color}22">${s.emoji||'📚'}</div>
+        <div><div class="subject-name">${s.name}</div>
+          <div class="subject-meta">${tasks.length} tasks · ${done} done</div></div>
+        <div style="margin-left:auto;cursor:pointer;color:var(--text-muted)" onclick="event.stopPropagation();editSubject('${s.id}')">✏️</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">${pct}% complete</div>
+    </div>`;
+  }).join('')}</div>`;
+  renderSidebarSubjects();
+}
+
+function openAddSubject() {
+  openModal(`<div class="modal-title">Add Subject</div>
+    <div class="form-group"><label class="form-label">Subject Name</label>
+      <input class="form-input" id="subj-name" placeholder="e.g. Biology"></div>
+    <div class="form-group"><label class="form-label">Icon</label>
+      <div class="emoji-picker" id="emoji-picker">${EMOJIS.map(e=>`<span class="emoji-opt" onclick="selectEmoji(this,'${e}')">${e}</span>`).join('')}</div>
+      <input type="hidden" id="subj-emoji" value="📚"></div>
+    <div class="form-group"><label class="form-label">Color</label>
+      <div class="color-swatches">${COLORS.map(c=>`<div class="color-swatch" style="background:${c}" onclick="selectColor(this,'${c}')"></div>`).join('')}</div>
+      <input type="hidden" id="subj-color" value="${COLORS[0]}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSubject()">Add Subject</button>
+    </div>`);
+  document.querySelector('.emoji-opt').classList.add('selected');
+  document.querySelector('.color-swatch').classList.add('selected');
+}
+
+function selectEmoji(el, val) {
+  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('subj-emoji').value = val;
+}
+function selectColor(el, val) {
+  document.querySelectorAll('.color-swatch').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('subj-color').value = val;
+}
+
+function saveSubject() {
+  const name = document.getElementById('subj-name').value.trim();
+  if (!name) return;
+  state.subjects.push({id:uid(), name, emoji: document.getElementById('subj-emoji').value, color: document.getElementById('subj-color').value, tasks:[]});
+  save(); closeModal(); renderSubjects();
+}
+
+function editSubject(id) {
+  const s = state.subjects.find(x=>x.id===id);
+  if (!s) return;
+  openModal(`<div class="modal-title">Edit Subject</div>
+    <div class="form-group"><label class="form-label">Name</label>
+      <input class="form-input" id="subj-name" value="${s.name}"></div>
+    <div class="form-group"><label class="form-label">Icon</label>
+      <div class="emoji-picker">${EMOJIS.map(e=>`<span class="emoji-opt ${e===s.emoji?'selected':''}" onclick="selectEmoji(this,'${e}')">${e}</span>`).join('')}</div>
+      <input type="hidden" id="subj-emoji" value="${s.emoji||'📚'}"></div>
+    <div class="form-group"><label class="form-label">Color</label>
+      <div class="color-swatches">${COLORS.map(c=>`<div class="color-swatch ${c===s.color?'selected':''}" style="background:${c}" onclick="selectColor(this,'${c}')"></div>`).join('')}</div>
+      <input type="hidden" id="subj-color" value="${s.color}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" onclick="deleteSubject('${id}')">Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="updateSubject('${id}')">Save</button>
+    </div>`);
+}
+
+function updateSubject(id) {
+  const s = state.subjects.find(x=>x.id===id);
+  s.name = document.getElementById('subj-name').value.trim();
+  s.emoji = document.getElementById('subj-emoji').value;
+  s.color = document.getElementById('subj-color').value;
+  save(); closeModal(); renderSubjects();
+}
+
+function deleteSubject(id) {
+  if (!confirm('Delete this subject and all its data?')) return;
+  state.subjects = state.subjects.filter(s=>s.id!==id);
+  state.decks = state.decks.filter(d=>d.subjectId!==id);
+  state.notes = state.notes.filter(n=>n.subjectId!==id);
+  state.uploads = state.uploads.filter(u=>u.subjectId!==id);
+  save(); closeModal(); renderSubjects();
+}
+
+// ─── SUBJECT DETAIL ───────────────────────────────────────────────────────────
+function openSubjectDetail(id) {
+  const s = state.subjects.find(x=>x.id===id);
+  if (!s) return;
+  document.getElementById('topbar-title').textContent = s.emoji + ' ' + s.name;
+  setViewRaw('subject-detail');
+  renderSubjectDetail(s);
+}
+
+function setViewRaw(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v)?.classList.add('active');
+  currentView = v;
+  document.getElementById('topbar-actions').innerHTML = '';
+}
+
+function renderSubjectDetail(s) {
+  const tasks = s.tasks||[];
+  const done = tasks.filter(t=>t.done).length;
+  const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+  const decks = state.decks.filter(d=>d.subjectId===s.id);
+  const notes = state.notes.filter(n=>n.subjectId===s.id);
+  const uploads = state.uploads.filter(u=>u.subjectId===s.id);
+
+  document.getElementById('subject-detail-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+      <div class="subject-icon" style="background:${s.color}22;width:56px;height:56px;font-size:1.8rem;border-radius:14px;display:flex;align-items:center;justify-content:center">${s.emoji||'📚'}</div>
+      <div>
+        <h2 style="font-size:1.5rem;font-weight:700">${s.name}</h2>
+        <div style="color:var(--text-muted);font-size:.88rem">${done}/${tasks.length} tasks · ${pct}% complete</div>
+      </div>
+    </div>
+    <div class="progress-bar" style="height:12px;margin-bottom:24px"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchDetailTab(this,'tab-tasks')">Tasks</div>
+      <div class="tab" onclick="switchDetailTab(this,'tab-decks')">Flashcards</div>
+      <div class="tab" onclick="switchDetailTab(this,'tab-notes')">Notes</div>
+      <div class="tab" onclick="switchDetailTab(this,'tab-uploads')">Resources</div>
+    </div>
+
+    <div id="tab-tasks">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="openAddTask('${s.id}')">+ Add Task</button>
+      </div>
+      <div id="tasks-container">
+        ${renderTasksList(s)}
+      </div>
+    </div>
+    <div id="tab-decks" class="hidden">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="openAddDeckFor('${s.id}')">+ New Deck</button>
+      </div>
+      <div class="grid-3">${decks.length ? decks.map(d => {
+        const due = d.cards.filter(c=>isCardDue(c)).length;
+        return `<div class="deck-card" onclick="startStudy('${d.id}')">
+          <div style="font-weight:600">${d.name}</div>
+          <div class="deck-count">${d.cards.length} cards${due?`<span class="due-badge">${due} due</span>`:''}</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="event.stopPropagation();manageDeck('${d.id}')">Manage</button>
+        </div>`;
+      }).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No decks yet.</p>'}</div>
+    </div>
+    <div id="tab-notes" class="hidden">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="openAddNoteFor('${s.id}')">+ New Note</button>
+      </div>
+      <div class="grid-3">${notes.length ? notes.map(n => `
+        <div class="note-card" onclick="openNoteEditor('${n.id}')">
+          <div class="note-title">${n.title}</div>
+          <div class="note-preview">${n.content||'No content yet...'}</div>
+          <div class="note-meta">${fmtDate(n.updatedAt)}</div>
+        </div>
+      `).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No notes yet.</p>'}</div>
+    </div>
+    <div id="tab-uploads" class="hidden">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="triggerUploadFor('${s.id}')">+ Upload File</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${uploads.length ? uploads.map(u => `
+          <div class="file-item">
+            <div class="file-icon">${fileIcon(u.type)}</div>
+            <div><div class="file-name">${u.name}</div><div class="file-meta">${u.size} · ${fmtDate(u.uploadedAt)}</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="downloadFile('${u.id}')">⬇️</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteUpload('${u.id}','${s.id}')">🗑️</button>
+          </div>
+        `).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No files uploaded yet.</p>'}
+      </div>
+    </div>
+  `;
+}
+
+function switchDetailTab(el, tabId) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['tab-tasks','tab-decks','tab-notes','tab-uploads'].forEach(id => {
+    document.getElementById(id)?.classList.toggle('hidden', id !== tabId);
+  });
+}
+
+function renderTasksList(s) {
+  if (!s.tasks?.length) return '<p style="color:var(--text-muted);font-size:.88rem">No tasks yet. Add one!</p>';
+  return s.tasks.map(t => `
+    <div class="task-item">
+      <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${s.id}','${t.id}')"></div>
+      <div style="flex:1">
+        <div class="task-text ${t.done?'done':''}">${t.name}</div>
+        <div class="subtasks">
+          ${(t.subtasks||[]).map(st => `
+            <div class="subtask-item">
+              <div class="task-check ${st.done?'done':''}" style="width:14px;height:14px" onclick="toggleSubtask('${s.id}','${t.id}','${st.id}')"></div>
+              <span class="${st.done?'done':''}" style="${st.done?'text-decoration:line-through':''};">${st.name}</span>
+            </div>
+          `).join('')}
+          <div class="subtask-item" style="cursor:pointer;color:var(--accent)" onclick="openAddSubtask('${s.id}','${t.id}')">+ subtask</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span style="cursor:pointer;color:var(--text-muted);font-size:.8rem" onclick="deleteTask('${s.id}','${t.id}')">🗑️</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleTask(subjId, taskId) {
+  const s = state.subjects.find(x=>x.id===subjId);
+  const t = s.tasks.find(x=>x.id===taskId);
+  t.done = !t.done;
+  save(); refreshTasksContainer(s);
+}
+function toggleSubtask(subjId, taskId, stId) {
+  const s = state.subjects.find(x=>x.id===subjId);
+  const t = s.tasks.find(x=>x.id===taskId);
+  const st = t.subtasks.find(x=>x.id===stId);
+  st.done = !st.done;
+  save(); refreshTasksContainer(s);
+}
+function refreshTasksContainer(s) {
+  const el = document.getElementById('tasks-container');
+  if (el) el.innerHTML = renderTasksList(s);
+}
+
+function openAddTask(subjId) {
+  openModal(`<div class="modal-title">Add Task</div>
+    <div class="form-group"><label class="form-label">Task Name</label>
+      <input class="form-input" id="task-name" placeholder="e.g. Complete Chapter 3 notes"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask('${subjId}')">Add Task</button>
+    </div>`);
+}
+
+function saveTask(subjId) {
+  const name = document.getElementById('task-name').value.trim();
+  if (!name) return;
+  const s = state.subjects.find(x=>x.id===subjId);
+  s.tasks.push({id:uid(), name, done:false, subtasks:[]});
+  save(); closeModal();
+  refreshTasksContainer(s);
+  // also update progress bar
+  const tasks = s.tasks, done = tasks.filter(t=>t.done).length;
+  const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+  document.querySelector('.progress-fill') && (document.querySelector('.progress-fill').style.width = pct+'%');
+}
+
+function deleteTask(subjId, taskId) {
+  const s = state.subjects.find(x=>x.id===subjId);
+  s.tasks = s.tasks.filter(t=>t.id!==taskId);
+  save(); refreshTasksContainer(s);
+}
+
+function openAddSubtask(subjId, taskId) {
+  openModal(`<div class="modal-title">Add Subtask</div>
+    <div class="form-group"><label class="form-label">Subtask Name</label>
+      <input class="form-input" id="st-name" placeholder="e.g. Read pages 45-60"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSubtask('${subjId}','${taskId}')">Add</button>
+    </div>`);
+}
+
+function saveSubtask(subjId, taskId) {
+  const name = document.getElementById('st-name').value.trim();
+  if (!name) return;
+  const s = state.subjects.find(x=>x.id===subjId);
+  const t = s.tasks.find(x=>x.id===taskId);
+  t.subtasks.push({id:uid(), name, done:false});
+  save(); closeModal(); refreshTasksContainer(s);
+}
+
+// ─── FLASHCARDS ───────────────────────────────────────────────────────────────
+function renderFlashcards() {
+  const el = document.getElementById('flashcards-content');
+  if (!state.decks.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">🃏</div><h3>No decks yet</h3>
+      <p>Create your first flashcard deck to start studying!</p>
+      <button class="btn btn-primary mt-16" onclick="openAddDeck()">+ New Deck</button></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="grid-3">${state.decks.map(d => {
+    const subj = state.subjects.find(s=>s.id===d.subjectId);
+    const due = d.cards.filter(c=>isCardDue(c)).length;
+    return `<div class="deck-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-weight:700;font-size:1rem">${d.name}</div>
+          <div class="deck-count" style="margin-top:4px">${subj?.emoji||''} ${subj?.name||''} · ${d.topic||''}</div>
+          <div style="margin-top:8px;font-size:.8rem;color:var(--text-muted)">${d.cards.length} cards${due?` <span class="due-badge">${due} due</span>`:''}</div>
+        </div>
+        <span style="cursor:pointer;color:var(--text-muted)" onclick="manageDeck('${d.id}')">⚙️</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-primary btn-sm" onclick="startStudy('${d.id}')">Study</button>
+        <button class="btn btn-ghost btn-sm" onclick="manageDeck('${d.id}')">Cards</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function openAddDeck() {
+  const opts = state.subjects.map(s=>`<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
+  openModal(`<div class="modal-title">New Flashcard Deck</div>
+    <div class="form-group"><label class="form-label">Deck Name</label>
+      <input class="form-input" id="deck-name" placeholder="e.g. Mitosis & Meiosis"></div>
+    <div class="form-group"><label class="form-label">Subject</label>
+      <select class="form-input" id="deck-subj">${opts||'<option>Add subjects first</option>'}</select></div>
+    <div class="form-group"><label class="form-label">Topic (optional)</label>
+      <input class="form-input" id="deck-topic" placeholder="e.g. Chapter 4"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeck()">Create Deck</button>
+    </div>`);
+}
+
+function openAddDeckFor(subjId) {
+  const opts = state.subjects.map(s=>`<option value="${s.id}" ${s.id===subjId?'selected':''}>${s.emoji||''} ${s.name}</option>`).join('');
+  openModal(`<div class="modal-title">New Flashcard Deck</div>
+    <div class="form-group"><label class="form-label">Deck Name</label>
+      <input class="form-input" id="deck-name" placeholder="e.g. Key Terms"></div>
+    <div class="form-group"><label class="form-label">Subject</label>
+      <select class="form-input" id="deck-subj">${opts}</select></div>
+    <div class="form-group"><label class="form-label">Topic (optional)</label>
+      <input class="form-input" id="deck-topic" placeholder="e.g. Unit 1"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeck()">Create Deck</button>
+    </div>`);
+}
+
+function saveDeck() {
+  const name = document.getElementById('deck-name').value.trim();
+  if (!name) return;
+  state.decks.push({id:uid(), name, subjectId: document.getElementById('deck-subj').value, topic: document.getElementById('deck-topic').value, cards:[]});
+  save(); closeModal(); renderFlashcards();
+}
+
+function manageDeck(id) {
+  const d = state.decks.find(x=>x.id===id);
+  if (!d) return;
+  openModal(`<div class="modal-title">📦 ${d.name}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:.85rem;color:var(--text-muted)">${d.cards.length} cards</span>
+      <button class="btn btn-primary btn-sm" onclick="openAddCard('${id}')">+ Add Card</button>
+    </div>
+    <div id="cards-list" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
+      ${d.cards.length ? d.cards.map(c => `
+        <div style="background:var(--surface2);border-radius:8px;padding:12px;position:relative">
+          <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:2px">Front</div>
+          <div style="font-size:.9rem;font-weight:500">${c.front}</div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:8px;margin-bottom:2px">Back</div>
+          <div style="font-size:.88rem;color:var(--text-muted)">${c.back}</div>
+          <span style="position:absolute;top:8px;right:10px;cursor:pointer;color:var(--text-muted)" onclick="deleteCard('${id}','${c.id}')">🗑️</span>
+        </div>
+      `).join('') : '<p style="color:var(--text-muted);font-size:.88rem;text-align:center;padding:20px">No cards yet.</p>'}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" onclick="deleteDeck('${id}')">Delete Deck</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>`);
+}
+
+function openAddCard(deckId) {
+  closeModal();
+  setTimeout(() => openModal(`<div class="modal-title">Add Flashcard</div>
+    <div class="form-group"><label class="form-label">Front (Question/Term)</label>
+      <textarea class="form-input" id="card-front" rows="3" placeholder="What is..."></textarea></div>
+    <div class="form-group"><label class="form-label">Back (Answer/Definition)</label>
+      <textarea class="form-input" id="card-back" rows="3" placeholder="It is..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal();manageDeck('${deckId}')">Cancel</button>
+      <button class="btn btn-ghost" onclick="saveCard('${deckId}',true)">Save & Add Another</button>
+      <button class="btn btn-primary" onclick="saveCard('${deckId}',false)">Save Card</button>
+    </div>`), 50);
+}
+
+function saveCard(deckId, another) {
+  const front = document.getElementById('card-front').value.trim();
+  const back = document.getElementById('card-back').value.trim();
+  if (!front||!back) return;
+  const d = state.decks.find(x=>x.id===deckId);
+  d.cards.push({id:uid(), front, back, due: Date.now(), interval:1, ease:2.5, reviews:0});
+  save();
+  if (another) { closeModal(); setTimeout(()=>openAddCard(deckId),50); }
+  else { closeModal(); renderFlashcards(); }
+}
+
+function deleteCard(deckId, cardId) {
+  const d = state.decks.find(x=>x.id===deckId);
+  d.cards = d.cards.filter(c=>c.id!==cardId);
+  save(); manageDeck(deckId);
+}
+
+function deleteDeck(id) {
+  if (!confirm('Delete this deck and all its cards?')) return;
+  state.decks = state.decks.filter(d=>d.id!==id);
+  save(); closeModal(); renderFlashcards();
+}
+
+// SM-2 algorithm
+function isCardDue(c) { return !c.due || Date.now() >= c.due; }
+function getDueCards() {
+  const result = [];
+  state.decks.forEach(deck => {
+    deck.cards.filter(c=>isCardDue(c)).forEach(c=>result.push({deck,card:c}));
+  });
+  return result;
+}
+
+function sm2(card, rating) {
+  // rating: 0=Again, 1=Hard, 2=Good, 3=Easy
+  const q = [0,3,4,5][rating];
+  if (q < 3) {
+    card.interval = 1;
+    card.reviews = 0;
+  } else {
+    if (card.reviews === 0) card.interval = 1;
+    else if (card.reviews === 1) card.interval = 6;
+    else card.interval = Math.round(card.interval * card.ease);
+    card.ease = Math.max(1.3, card.ease + 0.1 - (5-q)*(0.08+(5-q)*0.02));
+    card.reviews++;
+  }
+  card.due = Date.now() + card.interval * 24*60*60*1000;
+}
+
+let studyState = {deckId:null, queue:[], idx:0, revealed:false};
+
+function startStudy(deckId) {
+  const d = state.decks.find(x=>x.id===deckId);
+  if (!d) return;
+  const due = d.cards.filter(c=>isCardDue(c));
+  if (!due.length) {
+    openModal(`<div class="modal-title">🎉 All caught up!</div>
+      <p style="color:var(--text-muted)">No cards due in <strong>${d.name}</strong> right now. Great work!</p>
+      <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Nice!</button></div>`);
+    return;
+  }
+  studyState = {deckId, queue: shuffle([...due]), idx:0, revealed:false};
+  setViewRaw('study');
+  document.getElementById('topbar-title').textContent = '🃏 ' + d.name;
+  renderStudyCard();
+}
+
+function renderStudyCard() {
+  const {queue, idx, revealed, deckId} = studyState;
+  const el = document.getElementById('study-content');
+  if (idx >= queue.length) {
+    el.innerHTML = `<div class="flashcard-study"><div style="text-align:center;padding:60px 20px">
+      <div style="font-size:3rem;margin-bottom:16px">🎉</div>
+      <h2 style="font-size:1.4rem;margin-bottom:8px">Session Complete!</h2>
+      <p style="color:var(--text-muted)">You reviewed ${queue.length} card${queue.length!==1?'s':''}.</p>
+      <button class="btn btn-primary" style="margin-top:20px" onclick="setView('flashcards')">Back to Decks</button>
+    </div></div>`;
+    return;
+  }
+  const card = queue[idx];
+  el.innerHTML = `<div class="flashcard-study">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:.85rem;color:var(--text-muted)">${idx+1} / ${queue.length}</span>
+      <div style="background:var(--surface2);border-radius:20px;height:6px;flex:1;margin:0 12px">
+        <div style="background:var(--accent);height:6px;border-radius:20px;width:${(idx/queue.length*100).toFixed(0)}%"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="setView('flashcards')">Exit</button>
+    </div>
+    <div class="flashcard" onclick="revealCard()">
+      <div class="flashcard-front">${card.front}</div>
+      ${revealed ? `<div class="flashcard-back">${card.back}</div>` : `<div style="color:var(--text-muted);font-size:.85rem;margin-top:16px">Click to reveal answer</div>`}
+    </div>
+    ${revealed ? `<div class="rating-btns">
+      <button class="rating-btn" style="background:#f8717122;color:var(--red)" onclick="rateCard(0)">😣 Again</button>
+      <button class="rating-btn" style="background:#fb923c22;color:var(--orange)" onclick="rateCard(1)">😓 Hard</button>
+      <button class="rating-btn" style="background:#60a5fa22;color:var(--blue)" onclick="rateCard(2)">🙂 Good</button>
+      <button class="rating-btn" style="background:#4ade8022;color:var(--green)" onclick="rateCard(3)">😄 Easy</button>
+    </div>` : `<div style="text-align:center;margin-top:12px;color:var(--text-muted);font-size:.85rem">Click card to reveal</div>`}
+  </div>`;
+}
+
+function revealCard() {
+  studyState.revealed = true;
+  renderStudyCard();
+}
+
+function rateCard(rating) {
+  const {queue, idx, deckId} = studyState;
+  const card = queue[idx];
+  const d = state.decks.find(x=>x.id===deckId);
+  const realCard = d.cards.find(c=>c.id===card.id);
+  if (realCard) sm2(realCard, rating);
+  save();
+  studyState.idx++;
+  studyState.revealed = false;
+  renderStudyCard();
+}
+
+// ─── NOTES ────────────────────────────────────────────────────────────────────
+function renderNotes() {
+  const el = document.getElementById('notes-content');
+  if (!state.notes.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📝</div><h3>No notes yet</h3>
+      <p>Start writing your study notes!</p>
+      <button class="btn btn-primary mt-16" onclick="openAddNote()">+ New Note</button></div>`;
+    return;
+  }
+  const bySubject = {};
+  state.notes.forEach(n => {
+    if (!bySubject[n.subjectId]) bySubject[n.subjectId] = [];
+    bySubject[n.subjectId].push(n);
+  });
+  let html = '';
+  Object.entries(bySubject).forEach(([sid, notes]) => {
+    const s = state.subjects.find(x=>x.id===sid);
+    html += `<div style="margin-bottom:28px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${s?.color||'#7c6af7'}"></div>
+        <span style="font-size:.95rem;font-weight:600">${s?.emoji||''} ${s?.name||'Unknown'}</span>
+      </div>
+      <div class="grid-3">${notes.map(n=>`
+        <div class="note-card" onclick="openNoteEditor('${n.id}')">
+          <div class="note-title">${n.title}</div>
+          <div class="note-preview">${n.content||'No content yet...'}</div>
+          <div class="note-meta">${n.topic?`📌 ${n.topic} · `:''} ${fmtDate(n.updatedAt)}</div>
+        </div>
+      `).join('')}</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function openAddNote() {
+  const opts = state.subjects.map(s=>`<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
+  openModal(`<div class="modal-title">New Note</div>
+    <div class="form-group"><label class="form-label">Title</label>
+      <input class="form-input" id="note-title" placeholder="Note title"></div>
+    <div class="form-group"><label class="form-label">Subject</label>
+      <select class="form-input" id="note-subj">${opts||'<option>Add subjects first</option>'}</select></div>
+    <div class="form-group"><label class="form-label">Topic (optional)</label>
+      <input class="form-input" id="note-topic" placeholder="e.g. Unit 2"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Create Note</button>
+    </div>`);
+}
+
+function openAddNoteFor(subjId) {
+  const opts = state.subjects.map(s=>`<option value="${s.id}" ${s.id===subjId?'selected':''}>${s.emoji||''} ${s.name}</option>`).join('');
+  openModal(`<div class="modal-title">New Note</div>
+    <div class="form-group"><label class="form-label">Title</label>
+      <input class="form-input" id="note-title" placeholder="Note title"></div>
+    <div class="form-group"><label class="form-label">Subject</label>
+      <select class="form-input" id="note-subj">${opts}</select></div>
+    <div class="form-group"><label class="form-label">Topic (optional)</label>
+      <input class="form-input" id="note-topic" placeholder="e.g. Unit 2"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Create Note</button>
+    </div>`);
+}
+
+function saveNote() {
+  const title = document.getElementById('note-title').value.trim();
+  if (!title) return;
+  const now = Date.now();
+  const id = uid();
+  state.notes.push({id, title, subjectId: document.getElementById('note-subj').value, topic: document.getElementById('note-topic').value, content:'', createdAt:now, updatedAt:now});
+  save(); closeModal(); openNoteEditor(id);
+}
+
+function openNoteEditor(id) {
+  const n = state.notes.find(x=>x.id===id);
+  if (!n) return;
+  const s = state.subjects.find(x=>x.id===n.subjectId);
+  document.getElementById('topbar-title').textContent = '📝 ' + n.title;
+  setViewRaw('note-editor');
+  document.getElementById('topbar-actions').innerHTML = `
+    <button class="btn btn-danger btn-sm" onclick="deleteNote('${id}')">Delete</button>
+    <button class="btn btn-primary btn-sm" onclick="saveNoteContent('${id}')">Save</button>
+  `;
+  document.getElementById('note-editor-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      ${s?`<span style="background:${s.color}22;padding:3px 10px;border-radius:20px;font-size:.8rem;color:${s.color}">${s.emoji||''} ${s.name}</span>`:''}
+      ${n.topic?`<span style="font-size:.8rem;color:var(--text-muted)">📌 ${n.topic}</span>`:''}
+      <span style="font-size:.75rem;color:var(--text-muted);margin-left:auto">Last saved: ${fmtDate(n.updatedAt)}</span>
+    </div>
+    <input class="form-input" id="note-title-edit" value="${n.title}" style="font-size:1.2rem;font-weight:700;margin-bottom:12px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:8px 0">
+    <textarea class="note-editor" id="note-content-edit" placeholder="Start writing your notes here...">${n.content||''}</textarea>
+  `;
+}
+
+function saveNoteContent(id) {
+  const n = state.notes.find(x=>x.id===id);
+  n.title = document.getElementById('note-title-edit').value;
+  n.content = document.getElementById('note-content-edit').value;
+  n.updatedAt = Date.now();
+  save();
+  document.querySelector('#note-editor-content span:last-child') && (document.querySelector('#note-editor-content [style*="Last saved"]').textContent = 'Last saved: just now');
+}
+
+function deleteNote(id) {
+  if (!confirm('Delete this note?')) return;
+  state.notes = state.notes.filter(n=>n.id!==id);
+  save(); setView('notes');
+}
+
+// ─── UPLOADS ─────────────────────────────────────────────────────────────────
+function renderUploads() {
+  const el = document.getElementById('uploads-content');
+  let html = `<div class="upload-zone" id="upload-drop" onclick="triggerUpload()">
+    <div style="font-size:2.5rem">📎</div>
+    <p>Click or drag & drop files here</p>
+    <p style="margin-top:4px;font-size:.78rem">PDFs, images, docs, anything!</p>
+  </div>
+  <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(this.files)">
+  <div style="margin-top:24px">`;
+
+  const bySubject = {};
+  state.uploads.forEach(u => {
+    const key = u.subjectId||'__none__';
+    if (!bySubject[key]) bySubject[key] = [];
+    bySubject[key].push(u);
+  });
+
+  if (!state.uploads.length) {
+    html += `<div class="empty-state"><div class="icon">📂</div><p>No files uploaded yet.</p></div>`;
+  } else {
+    Object.entries(bySubject).forEach(([sid, files]) => {
+      const s = state.subjects.find(x=>x.id===sid);
+      html += `<div style="margin-bottom:20px"><div style="font-weight:600;margin-bottom:10px">${s?`${s.emoji||''} ${s.name}`:'General'}</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+        ${files.map(u=>`<div class="file-item">
+          <div class="file-icon">${fileIcon(u.type)}</div>
+          <div><div class="file-name">${u.name}</div><div class="file-meta">${u.size} · ${fmtDate(u.uploadedAt)}</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="downloadFile('${u.id}')">⬇️</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteUpload('${u.id}',null)">🗑️</button>
+        </div>`).join('')}
+        </div></div>`;
+    });
+  }
+  html += '</div>';
+  el.innerHTML = html;
+
+  // drag and drop
+  const zone = document.getElementById('upload-drop');
+  if (zone) {
+    zone.ondragover = e => { e.preventDefault(); zone.classList.add('drag'); };
+    zone.ondragleave = () => zone.classList.remove('drag');
+    zone.ondrop = e => { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); };
+  }
+}
+
+function triggerUpload() { document.getElementById('file-input')?.click(); }
+function triggerUploadFor(subjId) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.multiple = true;
+  input.onchange = () => handleFilesFor(input.files, subjId);
+  input.click();
+}
+
+function handleFiles(files, subjId) {
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      state.uploads.push({id:uid(), name:file.name, type:file.type, size:formatBytes(file.size), subjectId:subjId||null, data:e.target.result, uploadedAt:Date.now()});
+      save();
+      if (currentView === 'uploads') renderUploads();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleFilesFor(files, subjId) {
+  handleFiles(files, subjId);
+  setTimeout(() => {
+    const s = state.subjects.find(x=>x.id===subjId);
+    if (s) { setViewRaw('subject-detail'); renderSubjectDetail(s); }
+  }, 300);
+}
+
+function downloadFile(id) {
+  const u = state.uploads.find(x=>x.id===id);
+  if (!u) return;
+  const a = document.createElement('a');
+  a.href = u.data; a.download = u.name; a.click();
+}
+
+function deleteUpload(id, subjId) {
+  state.uploads = state.uploads.filter(u=>u.id!==id);
+  save();
+  if (subjId) {
+    const s = state.subjects.find(x=>x.id===subjId);
+    if (s) renderSubjectDetail(s);
+  } else renderUploads();
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function openModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function uid() { return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr; }
+function fmtDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'});
+}
+function formatBytes(b) {
+  if (b<1024) return b+'B';
+  if (b<1024*1024) return (b/1024).toFixed(1)+'KB';
+  return (b/1024/1024).toFixed(1)+'MB';
+}
+function fileIcon(type) {
+  if (!type) return '📄';
+  if (type.includes('pdf')) return '📕';
+  if (type.includes('image')) return '🖼️';
+  if (type.includes('word')||type.includes('doc')) return '📘';
+  if (type.includes('sheet')||type.includes('excel')) return '📗';
+  if (type.includes('presentation')||type.includes('powerpoint')) return '📙';
+  if (type.includes('video')) return '🎬';
+  if (type.includes('audio')) return '🎵';
+  if (type.includes('zip')) return '🗜️';
+  return '📄';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderSidebarSubjects();
+setView('dashboard');
+</script>
+</body>
+</html>
