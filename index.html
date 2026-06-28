@@ -383,8 +383,13 @@ select.fi option{background:var(--surface2);}
       <div id="ai-chat-wrap" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 48px)">
         <div id="ai-msgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:16px"></div>
         <div style="border-top:1px solid var(--border);padding-top:14px;flex-shrink:0">
+          <div id="ai-attachment-preview" style="display:none;align-items:center;gap:8px;margin-bottom:8px;background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:.82rem">
+            <span id="ai-attach-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+            <span style="cursor:pointer;color:var(--text-muted)" onclick="clearAttachment()">✕</span>
+          </div>
           <div style="display:flex;gap:10px;align-items:flex-end">
-            <textarea id="ai-input" placeholder="Ask me anything — explain a concept, quiz me, help me understand a topic…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-family:inherit;font-size:.9rem;resize:none;max-height:140px;min-height:48px;line-height:1.5" rows="2" onkeydown="aiInputKey(event)"></textarea>
+            <button class="btn btn-ghost btn-sm" style="height:48px;width:44px;padding:0;font-size:1.1rem;flex-shrink:0" onclick="openAttachPicker()" title="Attach file or upload new">📎</button>
+            <textarea id="ai-input" placeholder="Ask me anything — attach a doc, PDF, or image and ask questions about it…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-family:inherit;font-size:.9rem;resize:none;max-height:140px;min-height:48px;line-height:1.5" rows="2" onkeydown="aiInputKey(event)"></textarea>
             <button class="btn btn-primary" style="height:48px;padding:0 18px;flex-shrink:0" onclick="sendAIMessage()" id="ai-send-btn">Send</button>
           </div>
           <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" id="ai-quick-prompts"></div>
@@ -1351,19 +1356,15 @@ function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(
 function debounce(fn,delay){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),delay);};}
 
 // ─── AI HELPERS ──────────────────────────────────────────────────────────────
-async function gemini(systemPrompt, contents) {
-  // Convert Gemini-style contents to Anthropic messages format
-  const messages = contents.map(c => ({
-    role: c.role === 'model' ? 'assistant' : 'user',
-    content: c.parts[0].text
-  }));
+async function callClaude(systemPrompt, messages, extraHeaders={}) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': S.settings.apiKey,
       'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'anthropic-dangerous-direct-browser-access': 'true',
+      ...extraHeaders
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
@@ -1377,8 +1378,18 @@ async function gemini(systemPrompt, contents) {
   return data.content[0].text;
 }
 
+// Wrapper used by flashcard generators (text-only, Gemini-style contents → Claude messages)
+async function gemini(systemPrompt, contents) {
+  const messages = contents.map(c => ({
+    role: c.role === 'model' ? 'assistant' : 'user',
+    content: c.parts[0].text
+  }));
+  return callClaude(systemPrompt, messages);
+}
+
 // ─── AI ──────────────────────────────────────────────────────────────────────
 let aiHistory = [];
+let aiAttachment = null; // {name, type, data (base64 dataURL)}
 
 const AI_QUICK = [
   'Explain this topic simply',
@@ -1417,6 +1428,64 @@ function aiInputKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
 }
 
+function openAttachPicker() {
+  const uploads = S.uploads;
+  openModal(`<div class="modal-title">📎 Attach a File</div>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:14px">Pick from your uploads, or add a new file. Supports PDFs, images, and text files.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-bottom:14px">
+      ${uploads.length ? uploads.map(u=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface2)'" onclick="attachUpload('${u.id}')">
+          <span style="font-size:1.3rem">${fIcon(u.type)}</span>
+          <div style="flex:1;min-width:0"><div style="font-size:.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.name}</div>
+          <div style="font-size:.73rem;color:var(--text-muted)">${u.size}</div></div>
+        </div>`).join('') : '<p style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:16px">No uploads yet.</p>'}
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="attachNewFile()">📤 Upload a new file</button>
+    </div>
+    <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+
+function attachUpload(id) {
+  const u = S.uploads.find(x=>x.id===id);
+  if (!u) return;
+  aiAttachment = {name: u.name, type: u.type, data: u.data};
+  showAttachmentPreview();
+  closeModal();
+}
+
+function attachNewFile() {
+  closeModal();
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.md';
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      aiAttachment = {name: file.name, type: file.type, data: e.target.result};
+      showAttachmentPreview();
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function showAttachmentPreview() {
+  const preview = document.getElementById('ai-attachment-preview');
+  const name = document.getElementById('ai-attach-name');
+  if (!preview || !name) return;
+  name.textContent = fIcon(aiAttachment.type) + ' ' + aiAttachment.name;
+  preview.style.display = 'flex';
+}
+
+function clearAttachment() {
+  aiAttachment = null;
+  const preview = document.getElementById('ai-attachment-preview');
+  if (preview) preview.style.display = 'none';
+}
+
 function appendAIMsg(role, text) {
   const el = document.getElementById('ai-msgs');
   if (!el) return;
@@ -1447,22 +1516,46 @@ async function sendAIMessage() {
   input.value = '';
   input.style.height = 'auto';
 
-  appendAIMsg('user', msg);
-  aiHistory.push({ role: 'user', content: msg });
+  // Build user message content (text + optional file)
+  let userContent;
+  if (aiAttachment) {
+    const attach = aiAttachment;
+    const base64 = attach.data.split(',')[1];
+    const isPDF = attach.type === 'application/pdf';
+    const isImage = attach.type.startsWith('image/');
+    const fileBlock = isPDF
+      ? {type:'document', source:{type:'base64', media_type:'application/pdf', data: base64}}
+      : isImage
+        ? {type:'image', source:{type:'base64', media_type: attach.type, data: base64}}
+        : {type:'text', text:`[File: ${attach.name}]\n${atob(base64)}`};
+    userContent = [fileBlock, {type:'text', text: msg}];
+    appendAIMsg('user', `📎 ${attach.name}\n\n${msg}`);
+    clearAttachment();
+  } else {
+    userContent = msg;
+    appendAIMsg('user', msg);
+  }
+
+  aiHistory.push({ role: 'user', content: userContent });
 
   const btn = document.getElementById('ai-send-btn');
   btn.disabled = true; btn.textContent = '...';
 
-  // Build context from subjects + recent notes
   const context = buildAIContext();
+  const extraHeaders = aiHistory.some(m => Array.isArray(m.content) && m.content.some(b=>b.type==='document'))
+    ? {'anthropic-beta': 'pdfs-2024-09-25'} : {};
 
   try {
-    const contents = aiHistory.slice(-10).map(m=>({role:m.role==='assistant'?'model':m.role, parts:[{text:m.content}]}));
-    const reply = await gemini(`You are a smart, friendly AI tutor helping a student study. You have access to their study data:\n\n${context}\n\nBe concise, clear, and encouraging. Use bullet points for lists. Format with **bold** for key terms.`, contents);
+    const messages = aiHistory.slice(-10).map(m => ({role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content}));
+    const reply = await callClaude(
+      `You are a smart, friendly AI tutor helping a student study. You have access to their study data:\n\n${context}\n\nWhen given a document or image, analyse it thoroughly and answer questions about it. Be concise, clear, and encouraging. Use bullet points for lists. Format with **bold** for key terms.`,
+      messages,
+      extraHeaders
+    );
     aiHistory.push({ role: 'assistant', content: reply });
     appendAIMsg('ai', reply);
   } catch (e) {
-    appendAIMsg('ai', `❌ Error: ${e.message}\n\nCheck your Gemini API key in Settings.`);
+    appendAIMsg('ai', `❌ Error: ${e.message}\n\nCheck your API key in Settings.`);
   }
 
   btn.disabled = false; btn.textContent = 'Send';
