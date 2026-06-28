@@ -5,1636 +5,1312 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StudyHub</title>
 <style>
-  :root {
-    --bg: #0f0f13;
-    --surface: #1a1a24;
-    --surface2: #22222f;
-    --border: #2e2e40;
-    --accent: #7c6af7;
-    --accent2: #a78bfa;
-    --accent-glow: rgba(124,106,247,0.25);
-    --text: #e8e8f0;
-    --text-muted: #8888aa;
-    --green: #4ade80;
-    --red: #f87171;
-    --yellow: #fbbf24;
-    --blue: #60a5fa;
-    --pink: #f472b6;
-    --orange: #fb923c;
-    --sidebar-w: 240px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+:root {
+  --bg: #0f0f13;
+  --surface: #1a1a24;
+  --surface2: #22222f;
+  --border: #2e2e40;
+  --accent: #7c6af7;
+  --accent2: #a78bfa;
+  --accent-glow: rgba(124,106,247,0.2);
+  --text: #e8e8f0;
+  --text-muted: #8888aa;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+  --pink: #f472b6;
+  --orange: #fb923c;
+  --radius: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;display:flex;height:100vh;overflow:hidden;transition:background .3s,color .3s;}
+body.light{--bg:#f0f0f8;--surface:#fff;--surface2:#f4f4fb;--border:#ddddf0;--text:#1a1a2e;--text-muted:#6666aa;}
 
-  /* SIDEBAR */
-  #sidebar {
-    width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
-  }
-  .sidebar-logo { padding: 24px 20px 16px; font-size: 1.3rem; font-weight: 700; color: var(--accent2);
-    display: flex; align-items: center; gap: 10px; }
-  .sidebar-logo span { font-size: 1.5rem; }
-  .nav-section { padding: 8px 12px 4px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; margin: 2px 8px;
-    border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); transition: all .15s; }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
-  .nav-item.active { background: var(--accent-glow); color: var(--accent2); }
-  .nav-item .icon { width: 18px; text-align: center; font-size: 1rem; }
-  .sidebar-subjects { padding: 4px 0; }
-  .sidebar-subject { display: flex; align-items: center; gap: 8px; padding: 7px 16px; margin: 1px 8px;
-    border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: all .15s; }
-  .sidebar-subject:hover { background: var(--surface2); color: var(--text); }
-  .subject-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-  /* MAIN */
-  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .topbar { padding: 16px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface); }
-  .topbar-title { font-size: 1.15rem; font-weight: 600; }
-  .topbar-actions { display: flex; gap: 8px; }
-  .btn { padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all .15s; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent2); }
-  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
-  .btn-danger { background: var(--red); color: #fff; }
-  .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+/* SIDEBAR */
+#sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;}
+.logo{padding:22px 18px 14px;display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:800;color:var(--accent2);letter-spacing:-.02em;}
+.logo-icon{font-size:1.6rem;}
+.nav-sect{padding:10px 14px 4px;font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);font-weight:600;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 14px;margin:1px 8px;border-radius:8px;cursor:pointer;font-size:.88rem;color:var(--text-muted);transition:all .15s;user-select:none;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:var(--accent-glow);color:var(--accent2);font-weight:600;}
+.nav-item .ni{width:20px;text-align:center;font-size:1rem;}
+.nav-divider{border:none;border-top:1px solid var(--border);margin:8px 14px;}
+.sidebar-subj-list{padding:2px 0 12px;}
+.sidebar-subj{display:flex;align-items:center;gap:9px;padding:7px 14px;margin:1px 8px;border-radius:8px;cursor:pointer;font-size:.83rem;color:var(--text-muted);transition:.15s;}
+.sidebar-subj:hover{background:var(--surface2);color:var(--text);}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sidebar-bottom{margin-top:auto;padding:12px 8px;border-top:1px solid var(--border);}
 
-  #content { flex: 1; overflow-y: auto; padding: 28px; }
+/* TOPBAR */
+#topbar{padding:0 24px;height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--surface);flex-shrink:0;}
+.topbar-title{font-size:1.05rem;font-weight:700;white-space:nowrap;}
+.search-pill{flex:1;max-width:300px;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:text;transition:.15s;}
+.search-pill:hover{border-color:var(--accent);}
+.search-pill input{background:none;border:none;outline:none;color:var(--text);font-size:.85rem;flex:1;font-family:inherit;}
+.search-pill input::placeholder{color:var(--text-muted);}
+.search-pill .kbd{font-size:.68rem;background:var(--border);border-radius:4px;padding:1px 5px;color:var(--text-muted);}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
 
-  /* VIEWS */
-  .view { display: none; }
-  .view.active { display: block; }
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#content{flex:1;overflow-y:auto;padding:24px 28px;}
 
-  /* CARDS */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .card-title { font-size: 0.95rem; font-weight: 600; }
+/* BUTTONS */
+.btn{padding:7px 15px;border-radius:8px;border:none;cursor:pointer;font-size:.83rem;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);}
+.btn-danger{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3);}
+.btn-danger:hover{background:rgba(248,113,113,.25);}
+.btn-sm{padding:4px 10px;font-size:.76rem;}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:8px;}
 
-  /* GRID */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+/* VIEWS */
+.view{display:none;animation:fadeIn .2s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 
-  /* STAT CARD */
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .stat-value { font-size: 2rem; font-weight: 700; color: var(--accent2); }
-  .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.card+.card{margin-top:12px;}
 
-  /* PROGRESS BAR */
-  .progress-bar { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-top: 8px; }
-  .progress-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
 
-  /* SUBJECT CARDS */
-  .subject-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all .2s; }
-  .subject-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px var(--accent-glow); }
-  .subject-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .subject-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
-  .subject-name { font-size: 1rem; font-weight: 600; }
-  .subject-meta { font-size: 0.78rem; color: var(--text-muted); }
-  .tasks-list { margin-top: 12px; }
-  .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .task-item:last-child { border-bottom: none; }
-  .task-check { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all .15s; }
-  .task-check.done { background: var(--green); border-color: var(--green); }
-  .task-check.done::after { content: '✓'; color: #000; font-size: 0.7rem; font-weight: 700; }
-  .task-text { font-size: 0.88rem; flex: 1; }
-  .task-text.done { text-decoration: line-through; color: var(--text-muted); }
-  .subtasks { margin-left: 28px; }
-  .subtask-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 0.82rem; color: var(--text-muted); }
+/* STAT CARDS */
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);}
+.stat-val{font-size:1.9rem;font-weight:800;color:var(--accent2);letter-spacing:-.03em;}
+.stat-lbl{font-size:.78rem;color:var(--text-muted);margin-top:3px;}
 
-  /* SCHEDULE */
-  .schedule-grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden; }
-  .schedule-header { background: var(--surface2); padding: 10px 6px; text-align: center; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
-  .schedule-time { background: var(--surface); padding: 8px 6px; text-align: right; font-size: 0.72rem; color: var(--text-muted); }
-  .schedule-cell { background: var(--surface); min-height: 48px; position: relative; cursor: pointer; transition: background .15s; }
-  .schedule-cell:hover { background: var(--surface2); }
-  .session-block { position: absolute; left: 2px; right: 2px; border-radius: 6px; padding: 4px 6px; font-size: 0.72rem; font-weight: 500; cursor: pointer; overflow: hidden; z-index: 1; }
+/* PROGRESS */
+.pbar{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.pfill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1);}
 
-  /* FLASHCARDS */
-  .deck-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all .2s; }
-  .deck-card:hover { border-color: var(--accent); }
-  .deck-count { font-size: 0.8rem; color: var(--text-muted); }
-  .due-badge { display: inline-block; background: var(--red); color: #fff; font-size: 0.7rem; border-radius: 12px; padding: 2px 8px; margin-left: 8px; }
-  .flashcard-study { max-width: 600px; margin: 0 auto; }
-  .flashcard { min-height: 260px; background: var(--surface); border: 2px solid var(--border); border-radius: 16px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center;
-    cursor: pointer; transition: all .3s; position: relative; }
-  .flashcard:hover { border-color: var(--accent); }
-  .flashcard-front { font-size: 1.2rem; font-weight: 600; }
-  .flashcard-back { font-size: 1rem; color: var(--text-muted); margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
-  .rating-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
-  .rating-btn { padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all .15s; }
+/* SUBJECT CARDS */
+.subj-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all .2s;position:relative;}
+.subj-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 24px var(--accent-glow);}
+.subj-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.subj-edit{position:absolute;top:14px;right:14px;opacity:0;transition:.15s;cursor:pointer;font-size:.85rem;color:var(--text-muted);}
+.subj-card:hover .subj-edit{opacity:1;}
 
-  /* NOTES */
-  .note-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: all .2s; }
-  .note-card:hover { border-color: var(--accent); }
-  .note-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
-  .note-preview { font-size: 0.82rem; color: var(--text-muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .note-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; }
-  .note-editor { width: 100%; min-height: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    color: var(--text); font-size: 0.95rem; padding: 20px; resize: vertical; font-family: inherit; line-height: 1.7; }
-  .note-editor:focus { outline: none; border-color: var(--accent); }
+/* TASKS */
+.task-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.task-row:last-child{border-bottom:none;}
+.chk{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:.15s;}
+.chk:hover{border-color:var(--accent);}
+.chk.done{background:var(--green);border-color:var(--green);}
+.chk.done::after{content:'✓';color:#000;font-size:.65rem;font-weight:800;}
+.task-text{font-size:.88rem;flex:1;line-height:1.4;}
+.task-text.done{text-decoration:line-through;color:var(--text-muted);}
+.subtask-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.8rem;color:var(--text-muted);}
+.subtask-chk{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.subtask-chk.done{background:var(--green);border-color:var(--green);}
+.subtask-chk.done::after{content:'✓';color:#000;font-size:.55rem;font-weight:800;}
 
-  /* UPLOADS */
-  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all .2s; }
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-glow); }
-  .upload-zone p { color: var(--text-muted); margin-top: 8px; font-size: 0.88rem; }
-  .file-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
-  .file-icon { font-size: 1.5rem; width: 36px; text-align: center; }
-  .file-name { font-size: 0.9rem; flex: 1; font-weight: 500; }
-  .file-meta { font-size: 0.78rem; color: var(--text-muted); }
+/* SCHEDULE */
+.sched-wrap{overflow-x:auto;}
+.sched-grid{display:grid;grid-template-columns:52px repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;min-width:600px;}
+.sched-head{background:var(--surface2);padding:9px 4px;text-align:center;font-size:.75rem;font-weight:700;color:var(--text-muted);}
+.sched-time{background:var(--surface);padding:8px 6px;text-align:right;font-size:.7rem;color:var(--text-muted);}
+.sched-cell{background:var(--surface);min-height:44px;position:relative;cursor:pointer;transition:background .1s;}
+.sched-cell:hover{background:var(--surface2);}
+.sess-block{position:absolute;left:2px;right:2px;top:2px;border-radius:5px;padding:3px 5px;font-size:.68rem;font-weight:600;cursor:pointer;overflow:hidden;z-index:1;}
+.sess-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-  /* MODAL */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 520px; max-width: 95vw; max-height: 85vh; overflow-y: auto; }
-  .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; display: block; }
-  .form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text); padding: 9px 12px; font-size: 0.9rem; font-family: inherit; }
-  .form-input:focus { outline: none; border-color: var(--accent); }
-  .form-row { display: flex; gap: 12px; }
-  .form-row .form-group { flex: 1; }
-  .color-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
-  .color-swatch { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: .15s; }
-  .color-swatch.selected { border-color: #fff; transform: scale(1.15); }
-  .emoji-picker { display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; }
-  .emoji-opt { font-size: 1.3rem; cursor: pointer; padding: 4px; border-radius: 6px; transition: .15s; }
-  .emoji-opt:hover, .emoji-opt.selected { background: var(--accent-glow); }
-  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+/* FLASHCARD DECKS */
+.deck-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:all .2s;position:relative;}
+.deck-card:hover{border-color:var(--accent);}
+.due-badge{display:inline-flex;align-items:center;background:var(--red);color:#fff;font-size:.68rem;font-weight:700;border-radius:10px;padding:2px 7px;margin-left:6px;}
 
-  /* SUBJECT DETAIL */
-  .back-btn { display: flex; align-items: center; gap: 6px; color: var(--text-muted); cursor: pointer; font-size: 0.88rem; margin-bottom: 20px; }
-  .back-btn:hover { color: var(--text); }
+/* STUDY MODE */
+.fc-wrap{max-width:560px;margin:0 auto;}
+.fc{min-height:240px;background:var(--surface);border:2px solid var(--border);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px;text-align:center;cursor:pointer;transition:all .25s;user-select:none;}
+.fc:hover{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-glow);}
+.fc.revealed{border-color:var(--accent);}
+.fc-front{font-size:1.15rem;font-weight:700;line-height:1.5;}
+.fc-sep{width:60px;height:2px;background:var(--border);margin:18px auto;}
+.fc-back{font-size:.95rem;color:var(--text-muted);line-height:1.6;}
+.rating-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px;}
+.rate-btn{padding:10px 8px;border-radius:9px;border:1.5px solid transparent;cursor:pointer;font-size:.82rem;font-weight:700;transition:.15s;text-align:center;}
+.rate-btn:hover{filter:brightness(1.15);}
 
-  /* TAGS */
-  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+/* NOTES */
+.note-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:.2s;}
+.note-card:hover{border-color:var(--accent);}
+.note-title{font-size:.92rem;font-weight:700;margin-bottom:5px;}
+.note-preview{font-size:.8rem;color:var(--text-muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5;}
+.note-editor{width:100%;min-height:420px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.93rem;padding:20px;resize:vertical;font-family:inherit;line-height:1.75;}
+.note-editor:focus{outline:none;border-color:var(--accent);}
 
-  /* MISC */
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
-  .empty-state p { margin-top: 8px; font-size: 0.88rem; }
-  .section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
-  .flex { display: flex; }
-  .items-center { align-items: center; }
-  .justify-between { justify-content: space-between; }
-  .gap-8 { gap: 8px; }
-  .gap-12 { gap: 12px; }
-  .mt-16 { margin-top: 16px; }
-  .mt-24 { margin-top: 24px; }
-  .mb-16 { margin-bottom: 16px; }
-  .hidden { display: none !important; }
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .input-inline { background: transparent; border: none; color: var(--text); font-size: inherit; font-family: inherit; outline: none; width: 100%; }
-  .input-inline:focus { border-bottom: 1px solid var(--accent); }
-  select.form-input option { background: var(--surface2); }
-  .tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
-  .tab { flex: 1; padding: 7px; text-align: center; border-radius: 7px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: .15s; }
-  .tab.active { background: var(--surface); color: var(--text); font-weight: 600; }
-  .streak-flame { font-size: 1.2rem; }
+/* UPLOADS */
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:48px;text-align:center;cursor:pointer;transition:.2s;}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--accent-glow);}
+.file-row{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
 
-  /* POMODORO */
-  .pomo-ring { position: relative; width: 220px; height: 220px; margin: 0 auto 24px; }
-  .pomo-ring svg { transform: rotate(-90deg); }
-  .pomo-ring circle { fill: none; stroke-width: 10; }
-  .pomo-ring .track { stroke: var(--surface2); }
-  .pomo-ring .fill { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .5s linear; }
-  .pomo-time { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .pomo-time .time { font-size: 2.8rem; font-weight: 700; letter-spacing: .05em; }
-  .pomo-time .label { font-size: .8rem; color: var(--text-muted); margin-top: 4px; }
-  .pomo-controls { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
-  .pomo-btn { width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem; transition: .15s; display: flex; align-items: center; justify-content: center; }
-  .pomo-sessions { display: flex; gap: 6px; justify-content: center; margin-top: 16px; }
-  .pomo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); transition: .3s; }
-  .pomo-dot.done { background: var(--accent); }
+/* POMODORO */
+.pomo-center{max-width:440px;margin:0 auto;text-align:center;}
+.pomo-ring{position:relative;width:200px;height:200px;margin:0 auto 20px;}
+.pomo-ring svg{transform:rotate(-90deg);}
+.pomo-ring circle{fill:none;stroke-width:9;}
+.ring-track{stroke:var(--surface2);}
+.ring-fill{stroke-linecap:round;transition:stroke-dashoffset .8s linear,stroke .3s;}
+.pomo-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.pomo-t{font-size:2.5rem;font-weight:800;letter-spacing:.03em;font-variant-numeric:tabular-nums;}
+.pomo-lbl{font-size:.75rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.08em;}
+.pomo-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px;}
+.pomo-dot{width:9px;height:9px;border-radius:50%;background:var(--surface2);transition:.3s;}
+.pomo-dot.lit{background:var(--accent);}
+.pomo-ctrl{display:flex;align-items:center;justify-content:center;gap:12px;}
+.pomo-btn{border:none;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:.15s;font-size:1rem;}
+.pomo-btn:hover{filter:brightness(1.15);}
 
-  /* STATS */
-  .heatmap { display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; }
-  .heatmap-cell { aspect-ratio: 1; border-radius: 2px; background: var(--surface2); transition: .15s; cursor: default; }
-  .heatmap-cell:hover { opacity: .8; }
+/* STATS */
+.hmap{display:grid;grid-template-columns:repeat(53,1fr);gap:2px;}
+.hmap-cell{aspect-ratio:1;border-radius:2px;cursor:default;transition:.15s;}
+.hmap-cell:hover{opacity:.7;}
 
-  /* SEARCH */
-  .search-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; margin-bottom: 20px; }
-  .search-bar input { background: none; border: none; outline: none; color: var(--text); font-size: .95rem; flex: 1; font-family: inherit; }
-  .search-result { padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: .15s; }
-  .search-result:hover { border-color: var(--accent); }
-  .search-result-type { font-size: .72rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .06em; }
-  .search-result-title { font-size: .95rem; font-weight: 600; }
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);animation:fadeIn .15s ease;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;width:500px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+.modal-title{font-size:1.1rem;font-weight:800;margin-bottom:20px;}
+.fg{margin-bottom:14px;}
+.fl{font-size:.78rem;color:var(--text-muted);margin-bottom:5px;display:block;font-weight:600;}
+.fi{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:.88rem;font-family:inherit;transition:.15s;}
+.fi:focus{outline:none;border-color:var(--accent);}
+.frow{display:flex;gap:10px;}
+.frow .fg{flex:1;}
+.swatches{display:flex;flex-wrap:wrap;gap:7px;}
+.swatch{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:.15s;}
+.swatch.sel{border-color:#fff;transform:scale(1.2);}
+.epick{display:flex;flex-wrap:wrap;gap:5px;max-height:110px;overflow-y:auto;}
+.eo{font-size:1.25rem;cursor:pointer;padding:3px;border-radius:5px;transition:.1s;}
+.eo:hover,.eo.sel{background:var(--accent-glow);}
+.mactions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+
+/* TABS */
+.tabs{display:flex;gap:3px;background:var(--surface2);border-radius:9px;padding:3px;margin-bottom:18px;}
+.tab{flex:1;padding:6px;text-align:center;border-radius:7px;cursor:pointer;font-size:.82rem;color:var(--text-muted);transition:.15s;font-weight:500;}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--surface);color:var(--text);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+
+/* MISC */
+.empty{text-align:center;padding:56px 20px;color:var(--text-muted);}
+.empty .ei{font-size:2.8rem;margin-bottom:12px;}
+.empty h3{font-size:1rem;margin-bottom:6px;color:var(--text);}
+.back{display:flex;align-items:center;gap:6px;color:var(--text-muted);cursor:pointer;font-size:.85rem;margin-bottom:18px;width:fit-content;}
+.back:hover{color:var(--text);}
+.sect-title{font-size:1rem;font-weight:700;margin-bottom:14px;}
+.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600;}
+.hidden{display:none!important;}
+.mt8{margin-top:8px;} .mt16{margin-top:16px;} .mt24{margin-top:24px;} .mb14{margin-bottom:14px;} .mb20{margin-bottom:20px;}
+.flex{display:flex;} .items-c{align-items:center;} .jc-b{justify-content:space-between;} .gap8{gap:8px;} .gap12{gap:12px;}
+select.fi option{background:var(--surface2);}
+
+/* SETTINGS */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:.9rem;font-weight:600;}
+.setting-sub{font-size:.78rem;color:var(--text-muted);margin-top:2px;}
+.toggle{width:44px;height:24px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;position:relative;transition:.2s;}
+.toggle.on{background:var(--accent);border-color:var(--accent);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.toggle.on::after{left:22px;}
+.accent-pick{display:flex;gap:8px;flex-wrap:wrap;}
+.accent-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.15s;}
+.accent-swatch.sel{border-color:#fff;transform:scale(1.15);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.85rem;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideUp .3s ease;display:flex;align-items:center;gap:8px;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:none;opacity:1;}}
 </style>
 </head>
 <body>
 
 <div id="sidebar">
-  <div class="sidebar-logo"><span>📚</span> StudyHub</div>
+  <div class="logo"><span class="logo-icon">📚</span> StudyHub</div>
 
-  <div class="nav-section">Main</div>
-  <div class="nav-item active" data-view="dashboard"><span class="icon">🏠</span> Dashboard</div>
-  <div class="nav-item" data-view="schedule"><span class="icon">📅</span> Schedule</div>
-  <div class="nav-item" data-view="subjects"><span class="icon">📖</span> Subjects</div>
+  <div class="nav-sect">Overview</div>
+  <div class="nav-item active" data-view="dashboard"><span class="ni">🏠</span> Dashboard</div>
+  <div class="nav-item" data-view="schedule"><span class="ni">📅</span> Schedule</div>
+  <div class="nav-item" data-view="stats"><span class="ni">📊</span> Stats</div>
 
-  <div class="nav-section">Study</div>
-  <div class="nav-item" data-view="flashcards"><span class="icon">🃏</span> Flashcards</div>
-  <div class="nav-item" data-view="notes"><span class="icon">📝</span> Notes</div>
-  <div class="nav-item" data-view="uploads"><span class="icon">📎</span> Resources</div>
-  <div class="nav-item" data-view="pomodoro"><span class="icon">⏱️</span> Pomodoro</div>
-  <div class="nav-item" data-view="stats"><span class="icon">📊</span> Stats</div>
+  <div class="nav-sect">Study</div>
+  <div class="nav-item" data-view="subjects"><span class="ni">📖</span> Subjects</div>
+  <div class="nav-item" data-view="flashcards"><span class="ni">🃏</span> Flashcards</div>
+  <div class="nav-item" data-view="notes"><span class="ni">📝</span> Notes</div>
+  <div class="nav-item" data-view="uploads"><span class="ni">📎</span> Resources</div>
+  <div class="nav-item" data-view="pomodoro"><span class="ni">⏱️</span> Pomodoro</div>
 
-  <div class="nav-section" style="margin-top:8px">Subjects</div>
-  <div class="sidebar-subjects" id="sidebar-subjects"></div>
+  <hr class="nav-divider">
+  <div class="nav-sect">My Subjects</div>
+  <div class="sidebar-subj-list" id="sb-subjects"></div>
+
+  <div class="sidebar-bottom">
+    <div class="nav-item" data-view="settings"><span class="ni">⚙️</span> Settings</div>
+  </div>
 </div>
 
 <div id="main">
-  <div class="topbar">
-    <div class="topbar-title" id="topbar-title">Dashboard</div>
-    <div style="flex:1;max-width:280px;margin:0 16px">
-      <div class="search-bar" style="margin-bottom:0;padding:6px 12px">
-        <span style="color:var(--text-muted)">🔍</span>
-        <input id="global-search" placeholder="Search notes, tasks, cards..." oninput="handleGlobalSearch(this.value)" onfocus="openSearchModal()" autocomplete="off">
-      </div>
+  <div id="topbar">
+    <div class="topbar-title" id="tb-title">Dashboard</div>
+    <div class="search-pill" onclick="openSearch()">
+      <span style="color:var(--text-muted);font-size:.9rem">🔍</span>
+      <input id="search-input" placeholder="Search everything…" readonly onclick="openSearch()" style="cursor:pointer">
+      <span class="kbd">⌘K</span>
     </div>
-    <div class="topbar-actions" id="topbar-actions"></div>
+    <div class="topbar-right" id="tb-actions"></div>
   </div>
   <div id="content">
 
     <!-- DASHBOARD -->
     <div class="view active" id="view-dashboard">
-      <div class="grid-4 mb-16" id="dash-stats"></div>
-      <div class="grid-2">
+      <div id="dash-greeting" style="font-size:1.4rem;font-weight:800;margin-bottom:20px;letter-spacing:-.02em"></div>
+      <div class="g4 mb20" id="dash-stats"></div>
+      <div class="g2">
         <div>
-          <div class="section-title">Today's Sessions</div>
+          <div class="sect-title">Today's Sessions</div>
           <div id="dash-today"></div>
         </div>
         <div>
-          <div class="section-title">Subject Progress</div>
-          <div id="dash-progress"></div>
+          <div class="sect-title">Subject Progress</div>
+          <div id="dash-prog"></div>
         </div>
       </div>
-      <div class="mt-24">
-        <div class="section-title">Due for Review</div>
+      <div class="mt24">
+        <div class="sect-title">Due for Review</div>
         <div id="dash-due"></div>
       </div>
     </div>
 
     <!-- SCHEDULE -->
     <div class="view" id="view-schedule">
-      <div id="schedule-container"></div>
+      <div class="sched-wrap"><div id="sched-inner"></div></div>
     </div>
 
     <!-- SUBJECTS -->
     <div class="view" id="view-subjects">
-      <div id="subjects-list"></div>
+      <div id="subj-list"></div>
     </div>
 
     <!-- SUBJECT DETAIL -->
     <div class="view" id="view-subject-detail">
-      <div class="back-btn" id="back-to-subjects">← Back to Subjects</div>
-      <div id="subject-detail-content"></div>
+      <div class="back" id="back-subj">← Back to Subjects</div>
+      <div id="subj-detail"></div>
     </div>
 
     <!-- FLASHCARDS -->
-    <div class="view" id="view-flashcards">
-      <div id="flashcards-content"></div>
-    </div>
+    <div class="view" id="view-flashcards"><div id="fc-list"></div></div>
 
-    <!-- FLASHCARD STUDY -->
+    <!-- STUDY -->
     <div class="view" id="view-study">
-      <div class="back-btn" id="back-to-flashcards">← Back to Decks</div>
-      <div id="study-content"></div>
+      <div class="back" id="back-study">← Back to Decks</div>
+      <div id="study-inner"></div>
     </div>
 
     <!-- NOTES -->
-    <div class="view" id="view-notes">
-      <div id="notes-content"></div>
-    </div>
+    <div class="view" id="view-notes"><div id="notes-list"></div></div>
 
     <!-- NOTE EDITOR -->
     <div class="view" id="view-note-editor">
-      <div class="back-btn" id="back-to-notes">← Back to Notes</div>
-      <div id="note-editor-content"></div>
+      <div class="back" id="back-note">← Back to Notes</div>
+      <div id="note-ed"></div>
     </div>
 
     <!-- UPLOADS -->
-    <div class="view" id="view-uploads">
-      <div id="uploads-content"></div>
-    </div>
+    <div class="view" id="view-uploads"><div id="uploads-inner"></div></div>
 
     <!-- POMODORO -->
     <div class="view" id="view-pomodoro">
-      <div style="max-width:480px;margin:0 auto;text-align:center">
-        <div class="tabs" id="pomo-mode-tabs" style="margin-bottom:28px">
+      <div class="pomo-center">
+        <div class="tabs" id="pomo-tabs">
           <div class="tab active" onclick="setPomoMode('focus',this)">Focus</div>
           <div class="tab" onclick="setPomoMode('short',this)">Short Break</div>
           <div class="tab" onclick="setPomoMode('long',this)">Long Break</div>
         </div>
         <div class="pomo-ring">
-          <svg width="220" height="220" viewBox="0 0 220 220">
-            <circle class="track" cx="110" cy="110" r="100"/>
-            <circle class="fill" id="pomo-circle" cx="110" cy="110" r="100" stroke-dasharray="628" stroke-dashoffset="0"/>
+          <svg width="200" height="200" viewBox="0 0 200 200">
+            <circle class="ring-track" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="0"/>
+            <circle class="ring-fill" id="pring" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="0"/>
           </svg>
-          <div class="pomo-time">
-            <div class="time" id="pomo-display">25:00</div>
-            <div class="label" id="pomo-label">Focus Time</div>
+          <div class="pomo-inner">
+            <div class="pomo-t" id="pomo-disp">25:00</div>
+            <div class="pomo-lbl" id="pomo-lbl">Focus</div>
           </div>
         </div>
-        <div class="pomo-sessions" id="pomo-sessions"></div>
-        <div class="pomo-controls" style="margin-top:24px">
-          <button class="pomo-btn" style="background:var(--surface2);color:var(--text)" onclick="resetPomo()">⟳</button>
-          <button class="pomo-btn" style="background:var(--accent);color:#fff;width:60px;height:60px;font-size:1.4rem" id="pomo-play-btn" onclick="togglePomo()">▶</button>
-          <button class="pomo-btn" style="background:var(--surface2);color:var(--text)" onclick="skipPomo()">⏭</button>
+        <div class="pomo-dots" id="pomo-dots"></div>
+        <div class="pomo-ctrl">
+          <button class="pomo-btn" style="width:40px;height:40px;background:var(--surface2);color:var(--text)" onclick="resetPomo()" title="Reset">⟳</button>
+          <button class="pomo-btn" style="width:58px;height:58px;background:var(--accent);color:#fff;font-size:1.3rem" id="pomo-play" onclick="togglePomo()">▶</button>
+          <button class="pomo-btn" style="width:40px;height:40px;background:var(--surface2);color:var(--text)" onclick="skipPomo()" title="Skip">⏭</button>
         </div>
-        <div style="margin-top:28px" class="card">
-          <div class="card-title" style="margin-bottom:12px">Session Settings</div>
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">Focus (min)</label>
-              <input class="form-input" type="number" id="pomo-focus-len" value="25" min="1" max="120" onchange="updatePomoSettings()"></div>
-            <div class="form-group"><label class="form-label">Short Break</label>
-              <input class="form-input" type="number" id="pomo-short-len" value="5" min="1" max="30" onchange="updatePomoSettings()"></div>
-            <div class="form-group"><label class="form-label">Long Break</label>
-              <input class="form-input" type="number" id="pomo-long-len" value="15" min="1" max="60" onchange="updatePomoSettings()"></div>
+        <div class="card mt24">
+          <div style="font-weight:700;margin-bottom:12px">Timer Settings</div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Focus (min)</label><input class="fi" type="number" id="pf" value="25" min="1" max="120" onchange="updatePomoSettings()"></div>
+            <div class="fg"><label class="fl">Short Break</label><input class="fi" type="number" id="ps" value="5" min="1" max="60" onchange="updatePomoSettings()"></div>
+            <div class="fg"><label class="fl">Long Break</label><input class="fi" type="number" id="pl" value="15" min="1" max="60" onchange="updatePomoSettings()"></div>
           </div>
+          <div class="fg mt8"><label class="fl">Sessions until long break</label><input class="fi" type="number" id="pmx" value="4" min="1" max="10" onchange="updatePomoSettings()"></div>
         </div>
       </div>
     </div>
 
     <!-- STATS -->
-    <div class="view" id="view-stats">
-      <div id="stats-content"></div>
-    </div>
+    <div class="view" id="view-stats"><div id="stats-inner"></div></div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="view-settings"><div id="settings-inner"></div></div>
 
   </div>
 </div>
 
-<!-- MODALS -->
-<div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal(event)">
-  <div class="modal" id="modal-content" onclick="event.stopPropagation()"></div>
+<!-- MODAL -->
+<div id="overlay" class="overlay hidden" onclick="maybeClose(event)">
+  <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
 </div>
 
 <script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const COLORS=['#7c6af7','#f472b6','#4ade80','#60a5fa','#fbbf24','#fb923c','#f87171','#a78bfa','#34d399','#38bdf8','#e879f9','#2dd4bf'];
+const ACCENTS=[{name:'Purple',val:'#7c6af7'},{name:'Pink',val:'#f472b6'},{name:'Blue',val:'#60a5fa'},{name:'Green',val:'#4ade80'},{name:'Orange',val:'#fb923c'},{name:'Red',val:'#f87171'}];
+const EMOJIS=['📚','📖','🔬','🧪','📐','✏️','🖊️','📝','💻','🎨','🎵','🏛️','🌍','🧮','⚗️','📊','🔭','🎭','📜','🧬','⚡','🌿','📡','🦠','🏺','💡','🔋','🌐'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const HOURS=Array.from({length:15},(_,i)=>i+7);
+const CIRC=2*Math.PI*88;
+
 // ─── STATE ───────────────────────────────────────────────────────────────────
-const COLORS = ['#7c6af7','#f472b6','#4ade80','#60a5fa','#fbbf24','#fb923c','#f87171','#a78bfa','#34d399','#38bdf8'];
-const EMOJIS = ['📚','📖','🔬','🧪','📐','✏️','🖊️','📝','💻','🎨','🎵','🏛️','🌍','🧮','⚗️','📊','🔭','🎭','📜','🧬','⚡','🌿','🏺','📡'];
-const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const HOURS = Array.from({length:15}, (_,i)=>i+7); // 7am-9pm
-
-let state = {
-  subjects: [],
-  schedule: [],
-  decks: [],
-  notes: [],
-  uploads: [],
-  streakDays: 0,
-  lastStudy: null
+let S={
+  subjects:[],schedule:[],decks:[],notes:[],uploads:[],
+  pomoLog:{},settings:{name:'',accent:'#7c6af7',light:false}
 };
-
-function save() { localStorage.setItem('studyhub', JSON.stringify(state)); }
-function load() {
-  const d = localStorage.getItem('studyhub');
-  if (d) state = JSON.parse(d);
-}
+function save(){localStorage.setItem('sh2',JSON.stringify(S));}
+function load(){const d=localStorage.getItem('sh2');if(d)S=JSON.parse(d);}
 load();
+applySettings();
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function applySettings(){
+  document.documentElement.style.setProperty('--accent',S.settings.accent||'#7c6af7');
+  document.documentElement.style.setProperty('--accent2',lighten(S.settings.accent||'#7c6af7'));
+  document.documentElement.style.setProperty('--accent-glow',S.settings.accent+'33');
+  document.body.classList.toggle('light',!!S.settings.light);
+}
+function lighten(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  const lr=Math.min(255,r+40),lg=Math.min(255,g+40),lb=Math.min(255,b+40);
+  return `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`;
+}
+
+function renderSettings(){
+  document.getElementById('settings-inner').innerHTML=`
+    <div class="sect-title">Appearance</div>
+    <div class="card mb20">
+      <div class="setting-row">
+        <div><div class="setting-label">Your Name</div><div class="setting-sub">Used in the dashboard greeting</div></div>
+        <input class="fi" style="width:180px" id="set-name" value="${S.settings.name||''}" placeholder="Your name" oninput="S.settings.name=this.value;save();renderDashboard()">
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Light Mode</div><div class="setting-sub">Switch between dark and light theme</div></div>
+        <div class="toggle ${S.settings.light?'on':''}" onclick="toggleLight(this)"></div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Accent Colour</div><div class="setting-sub">Pick your vibe</div></div>
+        <div class="accent-pick">
+          ${ACCENTS.map(a=>`<div class="accent-swatch ${a.val===S.settings.accent?'sel':''}" style="background:${a.val}" title="${a.name}" onclick="setAccent('${a.val}',this)"></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="sect-title">Data</div>
+    <div class="card">
+      <div class="setting-row">
+        <div><div class="setting-label">Export Data</div><div class="setting-sub">Download all your data as JSON</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="exportData()">Export</button>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Import Data</div><div class="setting-sub">Restore from a previous export</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="importData()">Import</button>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Clear All Data</div><div class="setting-sub">Permanently delete everything</div></div>
+        <button class="btn btn-danger btn-sm" onclick="clearData()">Clear</button>
+      </div>
+    </div>
+    <div class="sect-title mt24">Keyboard Shortcuts</div>
+    <div class="card">
+      ${[['⌘K / Ctrl+K','Open search'],['N','New note (on Notes page)'],['S','Start study (on Flashcards page)'],['Esc','Close modal']].map(([k,v])=>`
+        <div class="setting-row">
+          <div class="setting-label">${v}</div>
+          <kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:.78rem">${k}</kbd>
+        </div>`).join('')}
+    </div>`;
+}
+
+function toggleLight(el){
+  S.settings.light=!S.settings.light;
+  el.classList.toggle('on',S.settings.light);
+  save();applySettings();
+}
+function setAccent(val,el){
+  S.settings.accent=val;save();applySettings();
+  document.querySelectorAll('.accent-swatch').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function exportData(){
+  const a=document.createElement('a');
+  a.href='data:application/json,'+encodeURIComponent(JSON.stringify(S,null,2));
+  a.download='studyhub-backup.json';a.click();
+  toast('✅ Data exported!');
+}
+function importData(){
+  const i=document.createElement('input');i.type='file';i.accept='.json';
+  i.onchange=()=>{const r=new FileReader();r.onload=e=>{try{S=JSON.parse(e.target.result);save();applySettings();setView('dashboard');toast('✅ Data imported!');}catch{toast('❌ Invalid file');}};r.readAsText(i.files[0]);};
+  i.click();
+}
+function clearData(){
+  if(confirm('Delete ALL your StudyHub data? This cannot be undone.')){
+    S={subjects:[],schedule:[],decks:[],notes:[],uploads:[],pomoLog:{},settings:S.settings};
+    save();setView('dashboard');toast('🗑️ Data cleared');
+  }
+}
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-let currentView = 'dashboard';
-
-function setView(v) {
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-' + v)?.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+let curView='dashboard';
+function setView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
   document.querySelector(`.nav-item[data-view="${v}"]`)?.classList.add('active');
-  currentView = v;
-  const titles = {dashboard:'Dashboard',schedule:'Schedule',subjects:'Subjects',
-    flashcards:'Flashcards',notes:'Notes',uploads:'Resources',pomodoro:'⏱️ Pomodoro',stats:'📊 Stats',
-    'subject-detail':'Subject Detail','study':'Study Mode','note-editor':'Note Editor'};
-  document.getElementById('topbar-title').textContent = titles[v] || '';
-  renderTopbarActions(v);
-  renderView(v);
+  curView=v;
+  const titles={dashboard:'Dashboard',schedule:'Schedule',subjects:'Subjects',flashcards:'Flashcards',
+    notes:'Notes',uploads:'Resources',pomodoro:'Pomodoro',stats:'Stats',settings:'Settings',
+    'subject-detail':'Subject','study':'Study Mode','note-editor':'Note'};
+  document.getElementById('tb-title').textContent=titles[v]||'';
+  renderTbActions(v);
+  if(v==='dashboard')renderDashboard();
+  else if(v==='schedule')renderSchedule();
+  else if(v==='subjects')renderSubjects();
+  else if(v==='flashcards')renderFCList();
+  else if(v==='notes')renderNotes();
+  else if(v==='uploads')renderUploads();
+  else if(v==='pomodoro')updatePomoUI();
+  else if(v==='stats')renderStats();
+  else if(v==='settings')renderSettings();
 }
-
-function renderView(v) {
-  if (v === 'dashboard') renderDashboard();
-  else if (v === 'schedule') renderSchedule();
-  else if (v === 'subjects') renderSubjects();
-  else if (v === 'flashcards') renderFlashcards();
-  else if (v === 'notes') renderNotes();
-  else if (v === 'uploads') renderUploads();
-  else if (v === 'pomodoro') updatePomoUI();
-  else if (v === 'stats') renderStats();
+function setViewRaw(v,title){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  curView=v;
+  document.getElementById('tb-title').textContent=title||'';
+  document.getElementById('tb-actions').innerHTML='';
 }
-
-document.querySelectorAll('.nav-item').forEach(el => {
-  el.addEventListener('click', () => setView(el.dataset.view));
-});
-document.getElementById('back-to-subjects').onclick = () => setView('subjects');
-document.getElementById('back-to-flashcards').onclick = () => setView('flashcards');
-document.getElementById('back-to-notes').onclick = () => setView('notes');
-
-function renderTopbarActions(v) {
-  const el = document.getElementById('topbar-actions');
-  el.innerHTML = '';
-  const actions = {
-    subjects: [{label:'+ Add Subject', fn:'openAddSubject'}],
-    flashcards: [{label:'+ New Deck', fn:'openAddDeck'}],
-    notes: [{label:'+ New Note', fn:'openAddNote'}],
-    schedule: [{label:'+ Add Session', fn:'openAddSession'}],
+function renderTbActions(v){
+  const el=document.getElementById('tb-actions');
+  el.innerHTML='';
+  const map={
+    subjects:[{l:'+ Subject',fn:'openAddSubject'}],
+    flashcards:[{l:'+ Deck',fn:'openAddDeck'}],
+    notes:[{l:'+ Note',fn:'openAddNote'}],
+    schedule:[{l:'+ Session',fn:'openAddSession'}],
   };
-  (actions[v]||[]).forEach(a => {
-    const b = document.createElement('button');
-    b.className = 'btn btn-primary';
-    b.textContent = a.label;
-    b.onclick = () => window[a.fn]();
-    el.appendChild(b);
+  (map[v]||[]).forEach(a=>{
+    const b=document.createElement('button');
+    b.className='btn btn-primary btn-sm';b.textContent=a.l;
+    b.onclick=()=>window[a.fn]();el.appendChild(b);
   });
 }
+document.querySelectorAll('.nav-item[data-view]').forEach(el=>el.addEventListener('click',()=>setView(el.dataset.view)));
+document.getElementById('back-subj').onclick=()=>setView('subjects');
+document.getElementById('back-study').onclick=()=>setView('flashcards');
+document.getElementById('back-note').onclick=()=>setView('notes');
 
-// ─── SIDEBAR SUBJECTS ─────────────────────────────────────────────────────────
-function renderSidebarSubjects() {
-  const el = document.getElementById('sidebar-subjects');
-  el.innerHTML = state.subjects.map(s => `
-    <div class="sidebar-subject" onclick="openSubjectDetail('${s.id}')">
-      <div class="subject-dot" style="background:${s.color}"></div>
-      <span>${s.name}</span>
-    </div>
-  `).join('');
+// ─── SIDEBAR SUBJECTS ────────────────────────────────────────────────────────
+function renderSBSubjects(){
+  document.getElementById('sb-subjects').innerHTML=S.subjects.map(s=>`
+    <div class="sidebar-subj" onclick="openSubjDetail('${s.id}')">
+      <div class="sdot" style="background:${s.color}"></div>${s.name}
+    </div>`).join('');
 }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
-function renderDashboard() {
-  const today = new Date();
-  const dayIdx = (today.getDay()+6)%7;
-  const todaySessions = state.schedule.filter(s => s.day === dayIdx);
-  const totalTasks = state.subjects.flatMap(s => s.tasks||[]).length;
-  const doneTasks = state.subjects.flatMap(s => s.tasks||[]).filter(t => t.done).length;
-  const dueCards = getDueCards();
+function renderDashboard(){
+  const hr=new Date().getHours();
+  const greet=hr<12?'Good morning':'hr<17?'Good afternoon':'Good evening';
+  const name=S.settings.name?', '+S.settings.name:'';
+  document.getElementById('dash-greeting').textContent=(hr<12?'🌅':hr<17?'☀️':'🌙')+' '+greet+name+'!';
 
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-value">${state.subjects.length}</div><div class="stat-label">Subjects</div></div>
-    <div class="stat-card"><div class="stat-value">${doneTasks}/${totalTasks}</div><div class="stat-label">Tasks Done</div></div>
-    <div class="stat-card"><div class="stat-value">${dueCards.length}</div><div class="stat-label">Cards Due</div></div>
-    <div class="stat-card"><div class="stat-value">${todaySessions.length}</div><div class="stat-label">Sessions Today</div></div>
-  `;
+  const dayIdx=(new Date().getDay()+6)%7;
+  const todaySess=S.schedule.filter(s=>s.day===dayIdx);
+  const allTasks=S.subjects.flatMap(s=>s.tasks||[]);
+  const doneTasks=allTasks.filter(t=>t.done);
+  const due=getDueCards();
 
-  const todayEl = document.getElementById('dash-today');
-  if (!todaySessions.length) {
-    todayEl.innerHTML = '<div class="card"><p style="color:var(--text-muted);font-size:.88rem">No sessions scheduled today.</p></div>';
-  } else {
-    todayEl.innerHTML = todaySessions.map(s => {
-      const subj = state.subjects.find(x => x.id === s.subjectId);
-      return `<div class="card mb-16" style="border-left:3px solid ${subj?.color||'#7c6af7'}">
-        <div style="font-weight:600">${s.startTime} – ${s.endTime}</div>
-        <div style="font-size:.85rem;color:var(--text-muted)">${subj?.emoji||''} ${subj?.name||'Unknown'} ${s.notes?'· '+s.notes:''}</div>
-      </div>`;
-    }).join('');
-  }
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat"><div class="stat-val">${S.subjects.length}</div><div class="stat-lbl">Subjects</div></div>
+    <div class="stat"><div class="stat-val">${doneTasks.length}<span style="font-size:1rem;color:var(--text-muted)">/${allTasks.length}</span></div><div class="stat-lbl">Tasks Done</div></div>
+    <div class="stat"><div class="stat-val">${due.length}</div><div class="stat-lbl">Cards Due</div></div>
+    <div class="stat"><div class="stat-val">${todaySess.length}</div><div class="stat-lbl">Sessions Today</div></div>`;
 
-  const progEl = document.getElementById('dash-progress');
-  progEl.innerHTML = state.subjects.length ? state.subjects.map(s => {
-    const tasks = s.tasks||[];
-    const done = tasks.filter(t=>t.done).length;
-    const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
-    return `<div class="card mb-16">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        <span>${s.emoji||'📚'}</span>
-        <span style="font-weight:600;font-size:.9rem">${s.name}</span>
-        <span style="margin-left:auto;font-size:.8rem;color:var(--text-muted)">${pct}%</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
+  const todayEl=document.getElementById('dash-today');
+  todayEl.innerHTML=todaySess.length?todaySess.map(s=>{
+    const sub=S.subjects.find(x=>x.id===s.subjectId);
+    return `<div class="card" style="border-left:3px solid ${sub?.color||'var(--accent)'};margin-bottom:10px">
+      <div style="font-weight:700;font-size:.9rem">${s.startTime} – ${s.endTime}</div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-top:3px">${sub?.emoji||''} ${sub?.name||'Unknown'}${s.notes?' · '+s.notes:''}</div>
     </div>`;
-  }).join('') : '<div class="card"><p style="color:var(--text-muted);font-size:.88rem">No subjects yet.</p></div>';
+  }).join(''):`<div class="card"><p style="color:var(--text-muted);font-size:.85rem">No sessions today. <span style="cursor:pointer;color:var(--accent)" onclick="setView('schedule')">Add one →</span></p></div>`;
 
-  const dueEl = document.getElementById('dash-due');
-  if (!dueCards.length) {
-    dueEl.innerHTML = '<div class="card"><p style="color:var(--text-muted);font-size:.88rem">🎉 No cards due right now!</p></div>';
-  } else {
-    const grouped = {};
-    dueCards.forEach(({deck}) => { grouped[deck.id] = (grouped[deck.id]||0)+1; });
-    dueEl.innerHTML = `<div class="grid-3">` + Object.entries(grouped).map(([did, cnt]) => {
-      const deck = state.decks.find(d=>d.id===did);
-      const subj = state.subjects.find(s=>s.id===deck?.subjectId);
-      return `<div class="deck-card" onclick="startStudy('${did}')">
-        <div style="font-weight:600">${deck?.name}</div>
-        <div class="deck-count" style="margin-top:4px">${subj?.emoji||''} ${subj?.name||''}</div>
-        <span class="due-badge">${cnt} due</span>
-      </div>`;
-    }).join('') + '</div>';
-  }
+  const progEl=document.getElementById('dash-prog');
+  progEl.innerHTML=S.subjects.length?S.subjects.map(s=>{
+    const tasks=s.tasks||[],done=tasks.filter(t=>t.done).length,pct=tasks.length?Math.round(done/tasks.length*100):0;
+    return `<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openSubjDetail('${s.id}')">
+      <div class="flex items-c gap8 mb8"><span>${s.emoji||'📚'}</span><span style="font-weight:600;font-size:.88rem">${s.name}</span><span style="margin-left:auto;font-size:.75rem;color:var(--text-muted)">${pct}%</span></div>
+      <div class="pbar"><div class="pfill" style="width:${pct}%;background:${s.color}"></div></div>
+    </div>`;
+  }).join(''):`<div class="card"><p style="color:var(--text-muted);font-size:.85rem">No subjects. <span style="cursor:pointer;color:var(--accent)" onclick="setView('subjects')">Add one →</span></p></div>`;
+
+  const dueEl=document.getElementById('dash-due');
+  if(!due.length){dueEl.innerHTML=`<div class="card"><p style="color:var(--text-muted);font-size:.85rem">🎉 All caught up! No cards due.</p></div>`;return;}
+  const grouped={};
+  due.forEach(({deck})=>{grouped[deck.id]=(grouped[deck.id]||0)+1;});
+  dueEl.innerHTML=`<div class="g3">${Object.entries(grouped).map(([did,cnt])=>{
+    const d=S.decks.find(x=>x.id===did),sub=S.subjects.find(s=>s.id===d?.subjectId);
+    return `<div class="deck-card" style="cursor:pointer" onclick="startStudy('${did}')">
+      <div style="font-weight:700;font-size:.9rem">${d?.name}</div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-top:3px">${sub?.emoji||''} ${sub?.name||''}</div>
+      <span class="due-badge mt8" style="display:inline-flex">${cnt} due</span>
+    </div>`;
+  }).join('')}</div>`;
 }
 
 // ─── SCHEDULE ────────────────────────────────────────────────────────────────
-function renderSchedule() {
-  const el = document.getElementById('schedule-container');
-  const today = (new Date().getDay()+6)%7;
-  let html = `<div class="schedule-grid">
-    <div class="schedule-header"></div>
-    ${DAYS.map((d,i)=>`<div class="schedule-header" style="${i===today?'color:var(--accent2);font-weight:700':''}">${d}</div>`).join('')}
-  `;
-  HOURS.forEach(h => {
-    html += `<div class="schedule-time">${h}:00</div>`;
-    for (let d=0; d<7; d++) {
-      const sessions = state.schedule.filter(s => s.day===d && s.startHour===h);
-      html += `<div class="schedule-cell" onclick="openAddSessionAt(${d},${h})">
-        ${sessions.map(s => {
-          const subj = state.subjects.find(x=>x.id===s.subjectId);
-          const span = (s.endHour - s.startHour) || 1;
-          return `<div class="session-block" style="background:${subj?.color||'#7c6af7'}22;border-left:3px solid ${subj?.color||'#7c6af7'};top:2px;height:calc(${span*100}% - 4px)" onclick="event.stopPropagation();editSession('${s.id}')">
-            <div style="font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${subj?.emoji||''} ${subj?.name||'Study'}</div>
-            <div style="color:var(--text-muted)">${s.startTime}–${s.endTime}</div>
-          </div>`;
-        }).join('')}
-      </div>`;
+function renderSchedule(){
+  const today=(new Date().getDay()+6)%7;
+  let h=`<div class="sched-grid"><div class="sched-head"></div>${DAYS.map((d,i)=>`<div class="sched-head" style="${i===today?'color:var(--accent2)':''}">${d}</div>`).join('')}`;
+  HOURS.forEach(hr=>{
+    h+=`<div class="sched-time">${hr}:00</div>`;
+    for(let d=0;d<7;d++){
+      const sess=S.schedule.filter(s=>s.day===d&&s.startHour===hr);
+      h+=`<div class="sched-cell" onclick="openAddSessionAt(${d},${hr})">${sess.map(s=>{
+        const sub=S.subjects.find(x=>x.id===s.subjectId);
+        const span=Math.max(1,s.endHour-s.startHour);
+        return `<div class="sess-block" style="background:${sub?.color||'var(--accent)'}22;border-left:3px solid ${sub?.color||'var(--accent)'};height:calc(${span*100}% - 4px)" onclick="event.stopPropagation();editSession('${s.id}')">
+          <div class="sess-name" style="font-weight:700">${sub?.emoji||''} ${sub?.name||'Study'}</div>
+          <div style="color:var(--text-muted)">${s.startTime}–${s.endTime}</div>
+        </div>`;
+      }).join('')}</div>`;
     }
   });
-  html += '</div>';
-  el.innerHTML = html;
+  h+='</div>';
+  document.getElementById('sched-inner').innerHTML=h;
 }
 
-function openAddSession() { openAddSessionAt(0, 9); }
-function openAddSessionAt(day, hour) {
-  const subjectOptions = state.subjects.map(s => `<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
+function openAddSession(){openAddSessionAt(0,9);}
+function openAddSessionAt(day,hour){
+  const opts=S.subjects.map(s=>`<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
   openModal(`<div class="modal-title">Add Study Session</div>
-    <div class="form-group"><label class="form-label">Subject</label>
-      <select class="form-input" id="sess-subj">${subjectOptions||'<option>Add a subject first</option>'}</select></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Day</label>
-        <select class="form-input" id="sess-day">${DAYS.map((d,i)=>`<option value="${i}" ${i===day?'selected':''}>${d}</option>`).join('')}</select></div>
-      <div class="form-group"><label class="form-label">Start Time</label>
-        <input class="form-input" id="sess-start" type="time" value="${String(hour).padStart(2,'0')}:00"></div>
-      <div class="form-group"><label class="form-label">End Time</label>
-        <input class="form-input" id="sess-end" type="time" value="${String(hour+1).padStart(2,'0')}:00"></div>
+    <div class="fg"><label class="fl">Subject</label><select class="fi" id="ss-subj">${opts||'<option>Add a subject first</option>'}</select></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Day</label><select class="fi" id="ss-day">${DAYS.map((d,i)=>`<option value="${i}" ${i===day?'selected':''}>${d}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Start</label><input class="fi" id="ss-start" type="time" value="${pad(hour)}:00"></div>
+      <div class="fg"><label class="fl">End</label><input class="fi" id="ss-end" type="time" value="${pad(hour+1)}:00"></div>
     </div>
-    <div class="form-group"><label class="form-label">Notes (optional)</label>
-      <input class="form-input" id="sess-notes" placeholder="e.g. Chapter 5 revision"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSession()">Add Session</button>
-    </div>`);
+    <div class="fg"><label class="fl">Notes (optional)</label><input class="fi" id="ss-notes" placeholder="e.g. Chapter 5 review"></div>
+    <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveSession()">Add</button></div>`);
 }
-
-function saveSession() {
-  const subjectId = document.getElementById('sess-subj').value;
-  const day = parseInt(document.getElementById('sess-day').value);
-  const startTime = document.getElementById('sess-start').value;
-  const endTime = document.getElementById('sess-end').value;
-  const notes = document.getElementById('sess-notes').value;
-  if (!subjectId) return;
-  const startHour = parseInt(startTime.split(':')[0]);
-  const endHour = parseInt(endTime.split(':')[0]);
-  state.schedule.push({id: uid(), subjectId, day, startTime, endTime, startHour, endHour, notes});
-  save(); closeModal(); renderSchedule();
+function saveSession(){
+  const subjectId=document.getElementById('ss-subj').value;if(!subjectId)return;
+  const startTime=document.getElementById('ss-start').value,endTime=document.getElementById('ss-end').value;
+  S.schedule.push({id:uid(),subjectId,day:+document.getElementById('ss-day').value,startTime,endTime,startHour:+startTime.split(':')[0],endHour:+endTime.split(':')[0],notes:document.getElementById('ss-notes').value});
+  save();closeModal();renderSchedule();toast('📅 Session added');
 }
-
-function editSession(id) {
-  const s = state.schedule.find(x=>x.id===id);
-  if (!s) return;
-  const subjectOptions = state.subjects.map(sub => `<option value="${sub.id}" ${sub.id===s.subjectId?'selected':''}>${sub.emoji||''} ${sub.name}</option>`).join('');
+function editSession(id){
+  const s=S.schedule.find(x=>x.id===id);if(!s)return;
+  const opts=S.subjects.map(sub=>`<option value="${sub.id}" ${sub.id===s.subjectId?'selected':''}>${sub.emoji||''} ${sub.name}</option>`).join('');
   openModal(`<div class="modal-title">Edit Session</div>
-    <div class="form-group"><label class="form-label">Subject</label>
-      <select class="form-input" id="sess-subj">${subjectOptions}</select></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Day</label>
-        <select class="form-input" id="sess-day">${DAYS.map((d,i)=>`<option value="${i}" ${i===s.day?'selected':''}>${d}</option>`).join('')}</select></div>
-      <div class="form-group"><label class="form-label">Start</label>
-        <input class="form-input" id="sess-start" type="time" value="${s.startTime}"></div>
-      <div class="form-group"><label class="form-label">End</label>
-        <input class="form-input" id="sess-end" type="time" value="${s.endTime}"></div>
+    <div class="fg"><label class="fl">Subject</label><select class="fi" id="ss-subj">${opts}</select></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Day</label><select class="fi" id="ss-day">${DAYS.map((d,i)=>`<option value="${i}" ${i===s.day?'selected':''}>${d}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Start</label><input class="fi" id="ss-start" type="time" value="${s.startTime}"></div>
+      <div class="fg"><label class="fl">End</label><input class="fi" id="ss-end" type="time" value="${s.endTime}"></div>
     </div>
-    <div class="form-group"><label class="form-label">Notes</label>
-      <input class="form-input" id="sess-notes" value="${s.notes||''}"></div>
-    <div class="modal-actions">
-      <button class="btn btn-danger btn-sm" onclick="deleteSession('${id}')">Delete</button>
+    <div class="fg"><label class="fl">Notes</label><input class="fi" id="ss-notes" value="${s.notes||''}"></div>
+    <div class="mactions">
+      <button class="btn btn-danger btn-sm" onclick="delSession('${id}')">Delete</button>
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="updateSession('${id}')">Save</button>
+      <button class="btn btn-primary" onclick="updSession('${id}')">Save</button>
     </div>`);
 }
-
-function updateSession(id) {
-  const s = state.schedule.find(x=>x.id===id);
-  if (!s) return;
-  s.subjectId = document.getElementById('sess-subj').value;
-  s.day = parseInt(document.getElementById('sess-day').value);
-  s.startTime = document.getElementById('sess-start').value;
-  s.endTime = document.getElementById('sess-end').value;
-  s.startHour = parseInt(s.startTime.split(':')[0]);
-  s.endHour = parseInt(s.endTime.split(':')[0]);
-  s.notes = document.getElementById('sess-notes').value;
-  save(); closeModal(); renderSchedule();
+function updSession(id){
+  const s=S.schedule.find(x=>x.id===id);
+  s.subjectId=document.getElementById('ss-subj').value;
+  s.day=+document.getElementById('ss-day').value;
+  s.startTime=document.getElementById('ss-start').value;
+  s.endTime=document.getElementById('ss-end').value;
+  s.startHour=+s.startTime.split(':')[0];s.endHour=+s.endTime.split(':')[0];
+  s.notes=document.getElementById('ss-notes').value;
+  save();closeModal();renderSchedule();
 }
+function delSession(id){S.schedule=S.schedule.filter(s=>s.id!==id);save();closeModal();renderSchedule();}
 
-function deleteSession(id) {
-  state.schedule = state.schedule.filter(s=>s.id!==id);
-  save(); closeModal(); renderSchedule();
-}
-
-// ─── SUBJECTS ─────────────────────────────────────────────────────────────────
-function renderSubjects() {
-  const el = document.getElementById('subjects-list');
-  if (!state.subjects.length) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">📖</div><h3>No subjects yet</h3><p>Add your first subject to get started!</p>
-      <button class="btn btn-primary mt-16" onclick="openAddSubject()">+ Add Subject</button></div>`;
+// ─── SUBJECTS ────────────────────────────────────────────────────────────────
+function renderSubjects(){
+  const el=document.getElementById('subj-list');
+  if(!S.subjects.length){
+    el.innerHTML=`<div class="empty"><div class="ei">📖</div><h3>No subjects yet</h3><p>Add your first subject to get started</p><button class="btn btn-primary mt16" onclick="openAddSubject()">+ Add Subject</button></div>`;
     return;
   }
-  el.innerHTML = `<div class="grid-3">${state.subjects.map(s => {
-    const tasks = s.tasks||[];
-    const done = tasks.filter(t=>t.done).length;
-    const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
-    return `<div class="subject-card" onclick="openSubjectDetail('${s.id}')">
-      <div class="subject-card-header">
-        <div class="subject-icon" style="background:${s.color}22">${s.emoji||'📚'}</div>
-        <div><div class="subject-name">${s.name}</div>
-          <div class="subject-meta">${tasks.length} tasks · ${done} done</div></div>
-        <div style="margin-left:auto;cursor:pointer;color:var(--text-muted)" onclick="event.stopPropagation();editSubject('${s.id}')">✏️</div>
+  el.innerHTML=`<div class="g3">${S.subjects.map(s=>{
+    const tasks=s.tasks||[],done=tasks.filter(t=>t.done).length,pct=tasks.length?Math.round(done/tasks.length*100):0;
+    return `<div class="subj-card" onclick="openSubjDetail('${s.id}')">
+      <span class="subj-edit" onclick="event.stopPropagation();editSubj('${s.id}')">✏️</span>
+      <div class="flex items-c gap12 mb14">
+        <div class="subj-icon" style="background:${s.color}22">${s.emoji||'📚'}</div>
+        <div><div style="font-weight:700;font-size:.95rem">${s.name}</div><div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">${tasks.length} tasks · ${done} done</div></div>
       </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
-      <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">${pct}% complete</div>
+      <div class="pbar"><div class="pfill" style="width:${pct}%;background:${s.color}"></div></div>
+      <div style="font-size:.73rem;color:var(--text-muted);margin-top:5px">${pct}% complete</div>
     </div>`;
   }).join('')}</div>`;
-  renderSidebarSubjects();
+  renderSBSubjects();
 }
 
-function openAddSubject() {
+function openAddSubject(){
   openModal(`<div class="modal-title">Add Subject</div>
-    <div class="form-group"><label class="form-label">Subject Name</label>
-      <input class="form-input" id="subj-name" placeholder="e.g. Biology"></div>
-    <div class="form-group"><label class="form-label">Icon</label>
-      <div class="emoji-picker" id="emoji-picker">${EMOJIS.map(e=>`<span class="emoji-opt" onclick="selectEmoji(this,'${e}')">${e}</span>`).join('')}</div>
-      <input type="hidden" id="subj-emoji" value="📚"></div>
-    <div class="form-group"><label class="form-label">Color</label>
-      <div class="color-swatches">${COLORS.map(c=>`<div class="color-swatch" style="background:${c}" onclick="selectColor(this,'${c}')"></div>`).join('')}</div>
-      <input type="hidden" id="subj-color" value="${COLORS[0]}"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSubject()">Add Subject</button>
-    </div>`);
-  document.querySelector('.emoji-opt').classList.add('selected');
-  document.querySelector('.color-swatch').classList.add('selected');
+    <div class="fg"><label class="fl">Name</label><input class="fi" id="sn" placeholder="e.g. Biology"></div>
+    <div class="fg"><label class="fl">Icon</label><div class="epick">${EMOJIS.map(e=>`<span class="eo" onclick="pickEmoji(this,'${e}')">${e}</span>`).join('')}</div><input type="hidden" id="se" value="📚"></div>
+    <div class="fg"><label class="fl">Colour</label><div class="swatches">${COLORS.map(c=>`<div class="swatch" style="background:${c}" onclick="pickColor(this,'${c}')"></div>`).join('')}</div><input type="hidden" id="sc" value="${COLORS[0]}"></div>
+    <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveSubj()">Add</button></div>`);
+  document.querySelector('.eo').classList.add('sel');
+  document.querySelector('.swatch').classList.add('sel');
 }
-
-function selectEmoji(el, val) {
-  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('subj-emoji').value = val;
+function pickEmoji(el,v){document.querySelectorAll('.eo').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');document.getElementById('se').value=v;}
+function pickColor(el,v){document.querySelectorAll('.swatch').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');document.getElementById('sc').value=v;}
+function saveSubj(){
+  const name=document.getElementById('sn').value.trim();if(!name)return;
+  S.subjects.push({id:uid(),name,emoji:document.getElementById('se').value,color:document.getElementById('sc').value,tasks:[]});
+  save();closeModal();renderSubjects();toast('📚 Subject added');
 }
-function selectColor(el, val) {
-  document.querySelectorAll('.color-swatch').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('subj-color').value = val;
-}
-
-function saveSubject() {
-  const name = document.getElementById('subj-name').value.trim();
-  if (!name) return;
-  state.subjects.push({id:uid(), name, emoji: document.getElementById('subj-emoji').value, color: document.getElementById('subj-color').value, tasks:[]});
-  save(); closeModal(); renderSubjects();
-}
-
-function editSubject(id) {
-  const s = state.subjects.find(x=>x.id===id);
-  if (!s) return;
+function editSubj(id){
+  const s=S.subjects.find(x=>x.id===id);if(!s)return;
   openModal(`<div class="modal-title">Edit Subject</div>
-    <div class="form-group"><label class="form-label">Name</label>
-      <input class="form-input" id="subj-name" value="${s.name}"></div>
-    <div class="form-group"><label class="form-label">Icon</label>
-      <div class="emoji-picker">${EMOJIS.map(e=>`<span class="emoji-opt ${e===s.emoji?'selected':''}" onclick="selectEmoji(this,'${e}')">${e}</span>`).join('')}</div>
-      <input type="hidden" id="subj-emoji" value="${s.emoji||'📚'}"></div>
-    <div class="form-group"><label class="form-label">Color</label>
-      <div class="color-swatches">${COLORS.map(c=>`<div class="color-swatch ${c===s.color?'selected':''}" style="background:${c}" onclick="selectColor(this,'${c}')"></div>`).join('')}</div>
-      <input type="hidden" id="subj-color" value="${s.color}"></div>
-    <div class="modal-actions">
-      <button class="btn btn-danger btn-sm" onclick="deleteSubject('${id}')">Delete</button>
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="updateSubject('${id}')">Save</button>
-    </div>`);
+    <div class="fg"><label class="fl">Name</label><input class="fi" id="sn" value="${s.name}"></div>
+    <div class="fg"><label class="fl">Icon</label><div class="epick">${EMOJIS.map(e=>`<span class="eo ${e===s.emoji?'sel':''}" onclick="pickEmoji(this,'${e}')">${e}</span>`).join('')}</div><input type="hidden" id="se" value="${s.emoji||'📚'}"></div>
+    <div class="fg"><label class="fl">Colour</label><div class="swatches">${COLORS.map(c=>`<div class="swatch ${c===s.color?'sel':''}" style="background:${c}" onclick="pickColor(this,'${c}')"></div>`).join('')}</div><input type="hidden" id="sc" value="${s.color}"></div>
+    <div class="mactions"><button class="btn btn-danger btn-sm" onclick="delSubj('${id}')">Delete</button><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="updSubj('${id}')">Save</button></div>`);
 }
-
-function updateSubject(id) {
-  const s = state.subjects.find(x=>x.id===id);
-  s.name = document.getElementById('subj-name').value.trim();
-  s.emoji = document.getElementById('subj-emoji').value;
-  s.color = document.getElementById('subj-color').value;
-  save(); closeModal(); renderSubjects();
+function updSubj(id){
+  const s=S.subjects.find(x=>x.id===id);
+  s.name=document.getElementById('sn').value.trim();
+  s.emoji=document.getElementById('se').value;s.color=document.getElementById('sc').value;
+  save();closeModal();renderSubjects();renderSBSubjects();
 }
-
-function deleteSubject(id) {
-  if (!confirm('Delete this subject and all its data?')) return;
-  state.subjects = state.subjects.filter(s=>s.id!==id);
-  state.decks = state.decks.filter(d=>d.subjectId!==id);
-  state.notes = state.notes.filter(n=>n.subjectId!==id);
-  state.uploads = state.uploads.filter(u=>u.subjectId!==id);
-  save(); closeModal(); renderSubjects();
+function delSubj(id){
+  if(!confirm('Delete this subject and all its data?'))return;
+  S.subjects=S.subjects.filter(s=>s.id!==id);
+  S.decks=S.decks.filter(d=>d.subjectId!==id);
+  S.notes=S.notes.filter(n=>n.subjectId!==id);
+  S.uploads=S.uploads.filter(u=>u.subjectId!==id);
+  save();closeModal();renderSubjects();
 }
 
 // ─── SUBJECT DETAIL ───────────────────────────────────────────────────────────
-function openSubjectDetail(id) {
-  const s = state.subjects.find(x=>x.id===id);
-  if (!s) return;
-  document.getElementById('topbar-title').textContent = s.emoji + ' ' + s.name;
-  setViewRaw('subject-detail');
-  renderSubjectDetail(s);
+function openSubjDetail(id){
+  const s=S.subjects.find(x=>x.id===id);if(!s)return;
+  setViewRaw('subject-detail',s.emoji+' '+s.name);
+  const tb=document.getElementById('tb-actions');
+  tb.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="editSubj('${id}')">✏️ Edit</button>`;
+  renderSubjDetail(s);
 }
-
-function setViewRaw(v) {
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-'+v)?.classList.add('active');
-  currentView = v;
-  document.getElementById('topbar-actions').innerHTML = '';
-}
-
-function renderSubjectDetail(s) {
-  const tasks = s.tasks||[];
-  const done = tasks.filter(t=>t.done).length;
-  const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
-  const decks = state.decks.filter(d=>d.subjectId===s.id);
-  const notes = state.notes.filter(n=>n.subjectId===s.id);
-  const uploads = state.uploads.filter(u=>u.subjectId===s.id);
-
-  document.getElementById('subject-detail-content').innerHTML = `
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
-      <div class="subject-icon" style="background:${s.color}22;width:56px;height:56px;font-size:1.8rem;border-radius:14px;display:flex;align-items:center;justify-content:center">${s.emoji||'📚'}</div>
-      <div>
-        <h2 style="font-size:1.5rem;font-weight:700">${s.name}</h2>
-        <div style="color:var(--text-muted);font-size:.88rem">${done}/${tasks.length} tasks · ${pct}% complete</div>
-      </div>
+function renderSubjDetail(s){
+  const tasks=s.tasks||[],done=tasks.filter(t=>t.done).length,pct=tasks.length?Math.round(done/tasks.length*100):0;
+  const decks=S.decks.filter(d=>d.subjectId===s.id);
+  const notes=S.notes.filter(n=>n.subjectId===s.id);
+  const uploads=S.uploads.filter(u=>u.subjectId===s.id);
+  document.getElementById('subj-detail').innerHTML=`
+    <div class="flex items-c gap12 mb20">
+      <div class="subj-icon" style="background:${s.color}22;width:52px;height:52px;font-size:1.6rem;border-radius:12px">${s.emoji||'📚'}</div>
+      <div><div style="font-size:1.3rem;font-weight:800">${s.name}</div><div style="color:var(--text-muted);font-size:.82rem">${done}/${tasks.length} tasks complete</div></div>
+      <div style="margin-left:auto;font-size:1.5rem;font-weight:800;color:var(--accent2)">${pct}%</div>
     </div>
-    <div class="progress-bar" style="height:12px;margin-bottom:24px"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
-
+    <div class="pbar" style="height:10px;margin-bottom:22px"><div class="pfill" style="width:${pct}%;background:${s.color}"></div></div>
     <div class="tabs">
-      <div class="tab active" onclick="switchDetailTab(this,'tab-tasks')">Tasks</div>
-      <div class="tab" onclick="switchDetailTab(this,'tab-decks')">Flashcards</div>
-      <div class="tab" onclick="switchDetailTab(this,'tab-notes')">Notes</div>
-      <div class="tab" onclick="switchDetailTab(this,'tab-uploads')">Resources</div>
+      <div class="tab active" onclick="sdTab(this,'sd-tasks')">Tasks</div>
+      <div class="tab" onclick="sdTab(this,'sd-decks')">Flashcards</div>
+      <div class="tab" onclick="sdTab(this,'sd-notes')">Notes</div>
+      <div class="tab" onclick="sdTab(this,'sd-files')">Resources</div>
     </div>
-
-    <div id="tab-tasks">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-        <button class="btn btn-primary btn-sm" onclick="openAddTask('${s.id}')">+ Add Task</button>
-      </div>
-      <div id="tasks-container">
-        ${renderTasksList(s)}
-      </div>
-    </div>
-    <div id="tab-decks" class="hidden">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-        <button class="btn btn-primary btn-sm" onclick="openAddDeckFor('${s.id}')">+ New Deck</button>
-      </div>
-      <div class="grid-3">${decks.length ? decks.map(d => {
-        const due = d.cards.filter(c=>isCardDue(c)).length;
-        return `<div class="deck-card" onclick="startStudy('${d.id}')">
-          <div style="font-weight:600">${d.name}</div>
-          <div class="deck-count">${d.cards.length} cards${due?`<span class="due-badge">${due} due</span>`:''}</div>
-          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="event.stopPropagation();manageDeck('${d.id}')">Manage</button>
+    <div id="sd-tasks">${renderTasksHTML(s)}<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="openAddTask('${s.id}')">+ Add Task</button></div></div>
+    <div id="sd-decks" class="hidden">
+      <div style="margin-bottom:12px;text-align:right"><button class="btn btn-primary btn-sm" onclick="openAddDeckFor('${s.id}')">+ New Deck</button></div>
+      <div class="g3">${decks.length?decks.map(d=>{
+        const due=d.cards.filter(c=>cardDue(c)).length;
+        return `<div class="deck-card"><div style="font-weight:700">${d.name}</div><div style="font-size:.75rem;color:var(--text-muted);margin-top:3px">${d.topic||'No topic'}</div>
+          <div style="font-size:.8rem;margin-top:8px">${d.cards.length} cards${due?`<span class="due-badge">${due} due</span>`:''}</div>
+          <div class="flex gap8 mt8"><button class="btn btn-primary btn-sm" onclick="startStudy('${d.id}')">Study</button><button class="btn btn-ghost btn-sm" onclick="manageDeck('${d.id}')">Cards</button></div>
         </div>`;
-      }).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No decks yet.</p>'}</div>
+      }).join(''):'<p style="color:var(--text-muted);font-size:.85rem">No decks yet.</p>'}</div>
     </div>
-    <div id="tab-notes" class="hidden">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-        <button class="btn btn-primary btn-sm" onclick="openAddNoteFor('${s.id}')">+ New Note</button>
-      </div>
-      <div class="grid-3">${notes.length ? notes.map(n => `
-        <div class="note-card" onclick="openNoteEditor('${n.id}')">
-          <div class="note-title">${n.title}</div>
-          <div class="note-preview">${n.content||'No content yet...'}</div>
-          <div class="note-meta">${fmtDate(n.updatedAt)}</div>
-        </div>
-      `).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No notes yet.</p>'}</div>
+    <div id="sd-notes" class="hidden">
+      <div style="margin-bottom:12px;text-align:right"><button class="btn btn-primary btn-sm" onclick="openAddNoteFor('${s.id}')">+ New Note</button></div>
+      <div class="g3">${notes.length?notes.map(n=>`<div class="note-card" onclick="openNoteEditor('${n.id}')"><div class="note-title">${n.title}</div><div class="note-preview">${n.content||'Empty note…'}</div><div style="font-size:.72rem;color:var(--text-muted);margin-top:8px">${fmtDate(n.updatedAt)}</div></div>`).join(''):'<p style="color:var(--text-muted);font-size:.85rem">No notes yet.</p>'}</div>
     </div>
-    <div id="tab-uploads" class="hidden">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-        <button class="btn btn-primary btn-sm" onclick="triggerUploadFor('${s.id}')">+ Upload File</button>
+    <div id="sd-files" class="hidden">
+      <div style="margin-bottom:12px;text-align:right"><button class="btn btn-primary btn-sm" onclick="uploadFor('${s.id}')">+ Upload</button></div>
+      <div style="display:flex;flex-direction:column;gap:8px">${uploads.length?uploads.map(u=>`
+        <div class="file-row"><span style="font-size:1.4rem">${fIcon(u.type)}</span>
+          <div style="flex:1"><div style="font-weight:600;font-size:.88rem">${u.name}</div><div style="font-size:.75rem;color:var(--text-muted)">${u.size} · ${fmtDate(u.uploadedAt)}</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="dlFile('${u.id}')">⬇️</button>
+          <button class="btn btn-ghost btn-sm" onclick="delUpload('${u.id}','${s.id}')">🗑️</button>
+        </div>`).join(''):'<p style="color:var(--text-muted);font-size:.85rem">No files yet.</p>'}
       </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        ${uploads.length ? uploads.map(u => `
-          <div class="file-item">
-            <div class="file-icon">${fileIcon(u.type)}</div>
-            <div><div class="file-name">${u.name}</div><div class="file-meta">${u.size} · ${fmtDate(u.uploadedAt)}</div></div>
-            <button class="btn btn-ghost btn-sm" onclick="downloadFile('${u.id}')">⬇️</button>
-            <button class="btn btn-ghost btn-sm" onclick="deleteUpload('${u.id}','${s.id}')">🗑️</button>
-          </div>
-        `).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No files uploaded yet.</p>'}
-      </div>
-    </div>
-  `;
+    </div>`;
 }
-
-function switchDetailTab(el, tabId) {
-  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['tab-tasks','tab-decks','tab-notes','tab-uploads'].forEach(id => {
-    document.getElementById(id)?.classList.toggle('hidden', id !== tabId);
-  });
+function sdTab(el,tid){
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  ['sd-tasks','sd-decks','sd-notes','sd-files'].forEach(id=>document.getElementById(id)?.classList.toggle('hidden',id!==tid));
 }
-
-function renderTasksList(s) {
-  if (!s.tasks?.length) return '<p style="color:var(--text-muted);font-size:.88rem">No tasks yet. Add one!</p>';
-  return s.tasks.map(t => `
-    <div class="task-item">
-      <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${s.id}','${t.id}')"></div>
+function renderTasksHTML(s){
+  if(!s.tasks?.length)return '<p style="color:var(--text-muted);font-size:.85rem;padding:12px 0">No tasks yet.</p>';
+  return `<div id="tasks-box">`+s.tasks.map(t=>`
+    <div class="task-row">
+      <div class="chk ${t.done?'done':''}" onclick="toggleTask('${s.id}','${t.id}')"></div>
       <div style="flex:1">
         <div class="task-text ${t.done?'done':''}">${t.name}</div>
-        <div class="subtasks">
-          ${(t.subtasks||[]).map(st => `
-            <div class="subtask-item">
-              <div class="task-check ${st.done?'done':''}" style="width:14px;height:14px" onclick="toggleSubtask('${s.id}','${t.id}','${st.id}')"></div>
-              <span class="${st.done?'done':''}" style="${st.done?'text-decoration:line-through':''};">${st.name}</span>
-            </div>
-          `).join('')}
-          <div class="subtask-item" style="cursor:pointer;color:var(--accent)" onclick="openAddSubtask('${s.id}','${t.id}')">+ subtask</div>
+        <div style="padding-left:4px">
+          ${(t.subtasks||[]).map(st=>`<div class="subtask-row">
+            <div class="subtask-chk ${st.done?'done':''}" onclick="toggleSub('${s.id}','${t.id}','${st.id}')"></div>
+            <span style="${st.done?'text-decoration:line-through;opacity:.5':''}">${st.name}</span>
+          </div>`).join('')}
+          <div class="subtask-row" style="cursor:pointer;color:var(--accent)" onclick="openAddSub('${s.id}','${t.id}')">+ subtask</div>
         </div>
       </div>
-      <div style="display:flex;gap:6px">
-        <span style="cursor:pointer;color:var(--text-muted);font-size:.8rem" onclick="deleteTask('${s.id}','${t.id}')">🗑️</span>
-      </div>
-    </div>
-  `).join('');
+      <span style="cursor:pointer;opacity:.4;font-size:.8rem;padding:4px" onclick="delTask('${s.id}','${t.id}')">🗑️</span>
+    </div>`).join('')+'</div>';
 }
-
-function toggleTask(subjId, taskId) {
-  const s = state.subjects.find(x=>x.id===subjId);
-  const t = s.tasks.find(x=>x.id===taskId);
-  t.done = !t.done;
-  save(); refreshTasksContainer(s);
-}
-function toggleSubtask(subjId, taskId, stId) {
-  const s = state.subjects.find(x=>x.id===subjId);
-  const t = s.tasks.find(x=>x.id===taskId);
-  const st = t.subtasks.find(x=>x.id===stId);
-  st.done = !st.done;
-  save(); refreshTasksContainer(s);
-}
-function refreshTasksContainer(s) {
-  const el = document.getElementById('tasks-container');
-  if (el) el.innerHTML = renderTasksList(s);
-}
-
-function openAddTask(subjId) {
+function refreshTasks(s){const b=document.getElementById('tasks-box');if(b){const w=b.closest('[id]');b.outerHTML=renderTasksHTML(s);}}
+function toggleTask(sid,tid){const s=S.subjects.find(x=>x.id===sid),t=s.tasks.find(x=>x.id===tid);t.done=!t.done;save();const el=document.getElementById('subj-detail');if(el){const s2=S.subjects.find(x=>x.id===sid);renderSubjDetail(s2);}}
+function toggleSub(sid,tid,stid){const s=S.subjects.find(x=>x.id===sid),t=s.tasks.find(x=>x.id===tid),st=t.subtasks.find(x=>x.id===stid);st.done=!st.done;save();renderSubjDetail(S.subjects.find(x=>x.id===sid));}
+function openAddTask(sid){
   openModal(`<div class="modal-title">Add Task</div>
-    <div class="form-group"><label class="form-label">Task Name</label>
-      <input class="form-input" id="task-name" placeholder="e.g. Complete Chapter 3 notes"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveTask('${subjId}')">Add Task</button>
-    </div>`);
+    <div class="fg"><label class="fl">Task Name</label><input class="fi" id="tn" placeholder="e.g. Complete Chapter 3 notes"></div>
+    <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveTask('${sid}')">Add</button></div>`);
+  setTimeout(()=>document.getElementById('tn')?.focus(),50);
 }
-
-function saveTask(subjId) {
-  const name = document.getElementById('task-name').value.trim();
-  if (!name) return;
-  const s = state.subjects.find(x=>x.id===subjId);
-  s.tasks.push({id:uid(), name, done:false, subtasks:[]});
-  save(); closeModal();
-  refreshTasksContainer(s);
-  // also update progress bar
-  const tasks = s.tasks, done = tasks.filter(t=>t.done).length;
-  const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
-  document.querySelector('.progress-fill') && (document.querySelector('.progress-fill').style.width = pct+'%');
+function saveTask(sid){
+  const name=document.getElementById('tn').value.trim();if(!name)return;
+  const s=S.subjects.find(x=>x.id===sid);s.tasks.push({id:uid(),name,done:false,subtasks:[]});
+  save();closeModal();renderSubjDetail(s);toast('✅ Task added');
 }
-
-function deleteTask(subjId, taskId) {
-  const s = state.subjects.find(x=>x.id===subjId);
-  s.tasks = s.tasks.filter(t=>t.id!==taskId);
-  save(); refreshTasksContainer(s);
-}
-
-function openAddSubtask(subjId, taskId) {
+function delTask(sid,tid){const s=S.subjects.find(x=>x.id===sid);s.tasks=s.tasks.filter(t=>t.id!==tid);save();renderSubjDetail(s);}
+function openAddSub(sid,tid){
   openModal(`<div class="modal-title">Add Subtask</div>
-    <div class="form-group"><label class="form-label">Subtask Name</label>
-      <input class="form-input" id="st-name" placeholder="e.g. Read pages 45-60"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSubtask('${subjId}','${taskId}')">Add</button>
-    </div>`);
+    <div class="fg"><label class="fl">Subtask</label><input class="fi" id="stn" placeholder="e.g. Read pages 45–60"></div>
+    <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveSub('${sid}','${tid}')">Add</button></div>`);
+  setTimeout(()=>document.getElementById('stn')?.focus(),50);
 }
-
-function saveSubtask(subjId, taskId) {
-  const name = document.getElementById('st-name').value.trim();
-  if (!name) return;
-  const s = state.subjects.find(x=>x.id===subjId);
-  const t = s.tasks.find(x=>x.id===taskId);
-  t.subtasks.push({id:uid(), name, done:false});
-  save(); closeModal(); refreshTasksContainer(s);
+function saveSub(sid,tid){
+  const name=document.getElementById('stn').value.trim();if(!name)return;
+  const s=S.subjects.find(x=>x.id===sid),t=s.tasks.find(x=>x.id===tid);
+  t.subtasks.push({id:uid(),name,done:false});save();closeModal();renderSubjDetail(s);
 }
 
 // ─── FLASHCARDS ───────────────────────────────────────────────────────────────
-function renderFlashcards() {
-  const el = document.getElementById('flashcards-content');
-  if (!state.decks.length) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">🃏</div><h3>No decks yet</h3>
-      <p>Create your first flashcard deck to start studying!</p>
-      <button class="btn btn-primary mt-16" onclick="openAddDeck()">+ New Deck</button></div>`;
+function renderFCList(){
+  const el=document.getElementById('fc-list');
+  if(!S.decks.length){
+    el.innerHTML=`<div class="empty"><div class="ei">🃏</div><h3>No decks yet</h3><p>Create flashcard decks for spaced repetition study</p><button class="btn btn-primary mt16" onclick="openAddDeck()">+ New Deck</button></div>`;
     return;
   }
-  el.innerHTML = `<div class="grid-3">${state.decks.map(d => {
-    const subj = state.subjects.find(s=>s.id===d.subjectId);
-    const due = d.cards.filter(c=>isCardDue(c)).length;
+  el.innerHTML=`<div class="g3">${S.decks.map(d=>{
+    const sub=S.subjects.find(s=>s.id===d.subjectId);
+    const due=d.cards.filter(c=>cardDue(c)).length;
+    const mastered=d.cards.filter(c=>c.interval>=21).length;
+    const pct=d.cards.length?Math.round(mastered/d.cards.length*100):0;
     return `<div class="deck-card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div class="flex jc-b items-c">
         <div>
-          <div style="font-weight:700;font-size:1rem">${d.name}</div>
-          <div class="deck-count" style="margin-top:4px">${subj?.emoji||''} ${subj?.name||''} · ${d.topic||''}</div>
-          <div style="margin-top:8px;font-size:.8rem;color:var(--text-muted)">${d.cards.length} cards${due?` <span class="due-badge">${due} due</span>`:''}</div>
+          <div style="font-weight:700;font-size:.95rem">${d.name}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:3px">${sub?.emoji||''} ${sub?.name||''} ${d.topic?'· '+d.topic:''}</div>
         </div>
-        <span style="cursor:pointer;color:var(--text-muted)" onclick="manageDeck('${d.id}')">⚙️</span>
+        <span style="cursor:pointer;color:var(--text-muted);font-size:.85rem" onclick="manageDeck('${d.id}')">⚙️</span>
       </div>
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="btn btn-primary btn-sm" onclick="startStudy('${d.id}')">Study</button>
-        <button class="btn btn-ghost btn-sm" onclick="manageDeck('${d.id}')">Cards</button>
+      <div style="font-size:.8rem;margin-top:10px;margin-bottom:8px">${d.cards.length} cards${due?`<span class="due-badge">${due} due</span>`:''}</div>
+      <div class="pbar"><div class="pfill" style="width:${pct}%;background:var(--green)"></div></div>
+      <div style="font-size:.7rem;color:var(--text-muted);margin-top:4px">${pct}% mastered</div>
+      <div class="flex gap8 mt16">
+        <button class="btn btn-primary btn-sm" onclick="startStudy('${d.id}')">${due?`Study (${due} due)`:'Review All'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="manageDeck('${d.id}')">Manage</button>
       </div>
     </div>`;
   }).join('')}</div>`;
 }
 
-function openAddDeck() {
-  const opts = state.subjects.map(s=>`<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
+function openAddDeck(){_openAddDeckModal(null);}
+function openAddDeckFor(sid){_openAddDeckModal(sid);}
+function _openAddDeckModal(prefixSid){
+  const opts=S.subjects.map(s=>`<option value="${s.id}" ${s.id===prefixSid?'selected':''}>${s.emoji||''} ${s.name}</option>`).join('');
   openModal(`<div class="modal-title">New Flashcard Deck</div>
-    <div class="form-group"><label class="form-label">Deck Name</label>
-      <input class="form-input" id="deck-name" placeholder="e.g. Mitosis & Meiosis"></div>
-    <div class="form-group"><label class="form-label">Subject</label>
-      <select class="form-input" id="deck-subj">${opts||'<option>Add subjects first</option>'}</select></div>
-    <div class="form-group"><label class="form-label">Topic (optional)</label>
-      <input class="form-input" id="deck-topic" placeholder="e.g. Chapter 4"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveDeck()">Create Deck</button>
-    </div>`);
+    <div class="fg"><label class="fl">Deck Name</label><input class="fi" id="dn" placeholder="e.g. Mitosis & Meiosis"></div>
+    <div class="fg"><label class="fl">Subject</label><select class="fi" id="ds">${opts||'<option>Add subjects first</option>'}</select></div>
+    <div class="fg"><label class="fl">Topic (optional)</label><input class="fi" id="dt" placeholder="e.g. Chapter 4"></div>
+    <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveDeck()">Create</button></div>`);
+  setTimeout(()=>document.getElementById('dn')?.focus(),50);
 }
-
-function openAddDeckFor(subjId) {
-  const opts = state.subjects.map(s=>`<option value="${s.id}" ${s.id===subjId?'selected':''}>${s.emoji||''} ${s.name}</option>`).join('');
-  openModal(`<div class="modal-title">New Flashcard Deck</div>
-    <div class="form-group"><label class="form-label">Deck Name</label>
-      <input class="form-input" id="deck-name" placeholder="e.g. Key Terms"></div>
-    <div class="form-group"><label class="form-label">Subject</label>
-      <select class="form-input" id="deck-subj">${opts}</select></div>
-    <div class="form-group"><label class="form-label">Topic (optional)</label>
-      <input class="form-input" id="deck-topic" placeholder="e.g. Unit 1"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveDeck()">Create Deck</button>
-    </div>`);
+function saveDeck(){
+  const name=document.getElementById('dn').value.trim();if(!name)return;
+  S.decks.push({id:uid(),name,subjectId:document.getElementById('ds').value,topic:document.getElementById('dt').value,cards:[]});
+  save();closeModal();renderFCList();toast('🃏 Deck created');
 }
-
-function saveDeck() {
-  const name = document.getElementById('deck-name').value.trim();
-  if (!name) return;
-  state.decks.push({id:uid(), name, subjectId: document.getElementById('deck-subj').value, topic: document.getElementById('deck-topic').value, cards:[]});
-  save(); closeModal(); renderFlashcards();
-}
-
-function manageDeck(id) {
-  const d = state.decks.find(x=>x.id===id);
-  if (!d) return;
+function manageDeck(id){
+  const d=S.decks.find(x=>x.id===id);if(!d)return;
   openModal(`<div class="modal-title">📦 ${d.name}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-size:.85rem;color:var(--text-muted)">${d.cards.length} cards</span>
+    <div class="flex jc-b items-c mb14">
+      <span style="font-size:.82rem;color:var(--text-muted)">${d.cards.length} cards · ${d.cards.filter(c=>cardDue(c)).length} due</span>
       <button class="btn btn-primary btn-sm" onclick="openAddCard('${id}')">+ Add Card</button>
     </div>
-    <div id="cards-list" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
-      ${d.cards.length ? d.cards.map(c => `
-        <div style="background:var(--surface2);border-radius:8px;padding:12px;position:relative">
-          <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:2px">Front</div>
-          <div style="font-size:.9rem;font-weight:500">${c.front}</div>
-          <div style="font-size:.8rem;color:var(--text-muted);margin-top:8px;margin-bottom:2px">Back</div>
-          <div style="font-size:.88rem;color:var(--text-muted)">${c.back}</div>
-          <span style="position:absolute;top:8px;right:10px;cursor:pointer;color:var(--text-muted)" onclick="deleteCard('${id}','${c.id}')">🗑️</span>
-        </div>
-      `).join('') : '<p style="color:var(--text-muted);font-size:.88rem;text-align:center;padding:20px">No cards yet.</p>'}
+    <div id="cards-list" style="max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
+      ${d.cards.length?d.cards.map(c=>`<div style="background:var(--surface2);border-radius:8px;padding:12px;position:relative">
+        <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Front</div>
+        <div style="font-size:.9rem;font-weight:600">${c.front}</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin:8px 0 3px;text-transform:uppercase;letter-spacing:.06em">Back</div>
+        <div style="font-size:.85rem;color:var(--text-muted)">${c.back}</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:6px">Interval: ${c.interval}d · Reviews: ${c.reviews}</div>
+        <span style="position:absolute;top:10px;right:10px;cursor:pointer;opacity:.5" onclick="delCard('${id}','${c.id}')">🗑️</span>
+      </div>`).join(''):'<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:.85rem">No cards yet. Add one!</p>'}
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-danger btn-sm" onclick="deleteDeck('${id}')">Delete Deck</button>
-      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-    </div>`);
+    <div class="mactions"><button class="btn btn-danger btn-sm" onclick="delDeck('${id}')">Delete Deck</button><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`);
 }
-
-function openAddCard(deckId) {
+function openAddCard(did){
   closeModal();
-  setTimeout(() => openModal(`<div class="modal-title">Add Flashcard</div>
-    <div class="form-group"><label class="form-label">Front (Question/Term)</label>
-      <textarea class="form-input" id="card-front" rows="3" placeholder="What is..."></textarea></div>
-    <div class="form-group"><label class="form-label">Back (Answer/Definition)</label>
-      <textarea class="form-input" id="card-back" rows="3" placeholder="It is..."></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal();manageDeck('${deckId}')">Cancel</button>
-      <button class="btn btn-ghost" onclick="saveCard('${deckId}',true)">Save & Add Another</button>
-      <button class="btn btn-primary" onclick="saveCard('${deckId}',false)">Save Card</button>
-    </div>`), 50);
+  setTimeout(()=>openModal(`<div class="modal-title">Add Flashcard</div>
+    <div class="fg"><label class="fl">Front (Question / Term)</label><textarea class="fi" id="cf" rows="3" placeholder="What is...?"></textarea></div>
+    <div class="fg"><label class="fl">Back (Answer / Definition)</label><textarea class="fi" id="cb" rows="3" placeholder="It is..."></textarea></div>
+    <div class="mactions">
+      <button class="btn btn-ghost" onclick="closeModal();manageDeck('${did}')">Cancel</button>
+      <button class="btn btn-ghost" onclick="saveCard('${did}',true)">Save & Add Another</button>
+      <button class="btn btn-primary" onclick="saveCard('${did}',false)">Save</button>
+    </div>`),60);
+  setTimeout(()=>document.getElementById('cf')?.focus(),100);
 }
-
-function saveCard(deckId, another) {
-  const front = document.getElementById('card-front').value.trim();
-  const back = document.getElementById('card-back').value.trim();
-  if (!front||!back) return;
-  const d = state.decks.find(x=>x.id===deckId);
-  d.cards.push({id:uid(), front, back, due: Date.now(), interval:1, ease:2.5, reviews:0});
-  save();
-  if (another) { closeModal(); setTimeout(()=>openAddCard(deckId),50); }
-  else { closeModal(); renderFlashcards(); }
+function saveCard(did,another){
+  const front=document.getElementById('cf').value.trim(),back=document.getElementById('cb').value.trim();
+  if(!front||!back)return;
+  S.decks.find(x=>x.id===did).cards.push({id:uid(),front,back,due:Date.now(),interval:1,ease:2.5,reviews:0});
+  save();toast('🃏 Card added');
+  if(another){closeModal();setTimeout(()=>openAddCard(did),60);}
+  else{closeModal();renderFCList();}
 }
+function delCard(did,cid){S.decks.find(x=>x.id===did).cards=S.decks.find(x=>x.id===did).cards.filter(c=>c.id!==cid);save();manageDeck(did);}
+function delDeck(id){if(!confirm('Delete this deck and all cards?'))return;S.decks=S.decks.filter(d=>d.id!==id);save();closeModal();renderFCList();}
 
-function deleteCard(deckId, cardId) {
-  const d = state.decks.find(x=>x.id===deckId);
-  d.cards = d.cards.filter(c=>c.id!==cardId);
-  save(); manageDeck(deckId);
-}
-
-function deleteDeck(id) {
-  if (!confirm('Delete this deck and all its cards?')) return;
-  state.decks = state.decks.filter(d=>d.id!==id);
-  save(); closeModal(); renderFlashcards();
-}
-
-// SM-2 algorithm
-function isCardDue(c) { return !c.due || Date.now() >= c.due; }
-function getDueCards() {
-  const result = [];
-  state.decks.forEach(deck => {
-    deck.cards.filter(c=>isCardDue(c)).forEach(c=>result.push({deck,card:c}));
-  });
-  return result;
-}
-
-function sm2(card, rating) {
-  // rating: 0=Again, 1=Hard, 2=Good, 3=Easy
-  const q = [0,3,4,5][rating];
-  if (q < 3) {
-    card.interval = 1;
-    card.reviews = 0;
-  } else {
-    if (card.reviews === 0) card.interval = 1;
-    else if (card.reviews === 1) card.interval = 6;
-    else card.interval = Math.round(card.interval * card.ease);
-    card.ease = Math.max(1.3, card.ease + 0.1 - (5-q)*(0.08+(5-q)*0.02));
+// SM-2
+function cardDue(c){return !c.due||Date.now()>=c.due;}
+function getDueCards(){const r=[];S.decks.forEach(d=>d.cards.filter(c=>cardDue(c)).forEach(c=>r.push({deck:d,card:c})));return r;}
+function sm2(card,q){
+  if(q<3){card.interval=1;card.reviews=0;}
+  else{
+    if(card.reviews===0)card.interval=1;
+    else if(card.reviews===1)card.interval=6;
+    else card.interval=Math.round(card.interval*card.ease);
+    card.ease=Math.max(1.3,card.ease+0.1-(5-q)*(0.08+(5-q)*0.02));
     card.reviews++;
   }
-  card.due = Date.now() + card.interval * 24*60*60*1000;
+  card.due=Date.now()+card.interval*86400000;
 }
 
-let studyState = {deckId:null, queue:[], idx:0, revealed:false};
-
-function startStudy(deckId) {
-  const d = state.decks.find(x=>x.id===deckId);
-  if (!d) return;
-  const due = d.cards.filter(c=>isCardDue(c));
-  if (!due.length) {
-    openModal(`<div class="modal-title">🎉 All caught up!</div>
-      <p style="color:var(--text-muted)">No cards due in <strong>${d.name}</strong> right now. Great work!</p>
-      <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Nice!</button></div>`);
-    return;
-  }
-  studyState = {deckId, queue: shuffle([...due]), idx:0, revealed:false};
-  setViewRaw('study');
-  document.getElementById('topbar-title').textContent = '🃏 ' + d.name;
+let study={did:null,queue:[],idx:0,revealed:false};
+function startStudy(did){
+  const d=S.decks.find(x=>x.id===did);if(!d)return;
+  let queue=d.cards.filter(c=>cardDue(c));
+  if(!queue.length)queue=[...d.cards];
+  if(!queue.length){openModal(`<div class="modal-title">No cards yet</div><p style="color:var(--text-muted)">Add some cards to this deck first.</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal();manageDeck('${did}')">Add Cards</button></div>`);return;}
+  study={did,queue:shuffle([...queue]),idx:0,revealed:false};
+  setViewRaw('study','🃏 '+d.name);
   renderStudyCard();
 }
-
-function renderStudyCard() {
-  const {queue, idx, revealed, deckId} = studyState;
-  const el = document.getElementById('study-content');
-  if (idx >= queue.length) {
-    el.innerHTML = `<div class="flashcard-study"><div style="text-align:center;padding:60px 20px">
-      <div style="font-size:3rem;margin-bottom:16px">🎉</div>
-      <h2 style="font-size:1.4rem;margin-bottom:8px">Session Complete!</h2>
-      <p style="color:var(--text-muted)">You reviewed ${queue.length} card${queue.length!==1?'s':''}.</p>
-      <button class="btn btn-primary" style="margin-top:20px" onclick="setView('flashcards')">Back to Decks</button>
-    </div></div>`;
+function renderStudyCard(){
+  const{queue,idx,revealed,did}=study;
+  const el=document.getElementById('study-inner');
+  if(idx>=queue.length){
+    el.innerHTML=`<div class="fc-wrap"><div style="text-align:center;padding:60px"><div style="font-size:3rem;margin-bottom:16px">🎉</div><h2 style="font-size:1.3rem;margin-bottom:8px">Session Complete!</h2><p style="color:var(--text-muted)">Reviewed ${queue.length} card${queue.length!==1?'s':''}</p><button class="btn btn-primary mt16" onclick="setView('flashcards')">Back to Decks</button></div></div>`;
+    // log pomo-style
+    const today=new Date().toDateString();
+    if(!S.pomoLog)S.pomoLog={};
+    S.pomoLog[today]=(S.pomoLog[today]||0)+1;save();
     return;
   }
-  const card = queue[idx];
-  el.innerHTML = `<div class="flashcard-study">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <span style="font-size:.85rem;color:var(--text-muted)">${idx+1} / ${queue.length}</span>
-      <div style="background:var(--surface2);border-radius:20px;height:6px;flex:1;margin:0 12px">
-        <div style="background:var(--accent);height:6px;border-radius:20px;width:${(idx/queue.length*100).toFixed(0)}%"></div>
+  const card=queue[idx];
+  el.innerHTML=`<div class="fc-wrap">
+    <div class="flex items-c gap12 mb14">
+      <span style="font-size:.82rem;color:var(--text-muted)">${idx+1} / ${queue.length}</span>
+      <div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden">
+        <div style="height:100%;background:var(--accent);border-radius:3px;width:${(idx/queue.length*100).toFixed(0)}%;transition:width .3s"></div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="setView('flashcards')">Exit</button>
     </div>
-    <div class="flashcard" onclick="revealCard()">
-      <div class="flashcard-front">${card.front}</div>
-      ${revealed ? `<div class="flashcard-back">${card.back}</div>` : `<div style="color:var(--text-muted);font-size:.85rem;margin-top:16px">Click to reveal answer</div>`}
+    <div class="fc ${revealed?'revealed':''}" onclick="revealCard()">
+      <div class="fc-front">${card.front}</div>
+      ${revealed?`<div class="fc-sep"></div><div class="fc-back">${card.back}</div>`:`<div style="margin-top:16px;font-size:.8rem;color:var(--text-muted)">Click to reveal answer</div>`}
     </div>
-    ${revealed ? `<div class="rating-btns">
-      <button class="rating-btn" style="background:#f8717122;color:var(--red)" onclick="rateCard(0)">😣 Again</button>
-      <button class="rating-btn" style="background:#fb923c22;color:var(--orange)" onclick="rateCard(1)">😓 Hard</button>
-      <button class="rating-btn" style="background:#60a5fa22;color:var(--blue)" onclick="rateCard(2)">🙂 Good</button>
-      <button class="rating-btn" style="background:#4ade8022;color:var(--green)" onclick="rateCard(3)">😄 Easy</button>
-    </div>` : `<div style="text-align:center;margin-top:12px;color:var(--text-muted);font-size:.85rem">Click card to reveal</div>`}
+    ${revealed?`<div class="rating-row">
+      <div class="rate-btn" style="background:#f8717122;color:var(--red);border-color:#f8717144" onclick="rateCard(0)">😣<br><span style="font-size:.7rem;font-weight:500">Again</span></div>
+      <div class="rate-btn" style="background:#fb923c22;color:var(--orange);border-color:#fb923c44" onclick="rateCard(1)">😓<br><span style="font-size:.7rem;font-weight:500">Hard</span></div>
+      <div class="rate-btn" style="background:#60a5fa22;color:var(--blue);border-color:#60a5fa44" onclick="rateCard(2)">🙂<br><span style="font-size:.7rem;font-weight:500">Good</span></div>
+      <div class="rate-btn" style="background:#4ade8022;color:var(--green);border-color:#4ade8044" onclick="rateCard(3)">😄<br><span style="font-size:.7rem;font-weight:500">Easy</span></div>
+    </div>`:'<div style="text-align:center;margin-top:14px;font-size:.8rem;color:var(--text-muted)">Click the card to reveal the answer</div>'}
   </div>`;
 }
-
-function revealCard() {
-  studyState.revealed = true;
-  renderStudyCard();
+function revealCard(){study.revealed=true;renderStudyCard();}
+function rateCard(r){
+  const{queue,idx,did}=study;
+  const card=queue[idx];
+  const d=S.decks.find(x=>x.id===did);
+  const real=d.cards.find(c=>c.id===card.id);
+  if(real)sm2(real,[0,3,4,5][r]);
+  save();study.idx++;study.revealed=false;renderStudyCard();
 }
 
-function rateCard(rating) {
-  const {queue, idx, deckId} = studyState;
-  const card = queue[idx];
-  const d = state.decks.find(x=>x.id===deckId);
-  const realCard = d.cards.find(c=>c.id===card.id);
-  if (realCard) sm2(realCard, rating);
-  save();
-  studyState.idx++;
-  studyState.revealed = false;
-  renderStudyCard();
-}
-
-// ─── NOTES ────────────────────────────────────────────────────────────────────
-function renderNotes() {
-  const el = document.getElementById('notes-content');
-  if (!state.notes.length) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">📝</div><h3>No notes yet</h3>
-      <p>Start writing your study notes!</p>
-      <button class="btn btn-primary mt-16" onclick="openAddNote()">+ New Note</button></div>`;
+// ─── NOTES ───────────────────────────────────────────────────────────────────
+function renderNotes(){
+  const el=document.getElementById('notes-list');
+  if(!S.notes.length){
+    el.innerHTML=`<div class="empty"><div class="ei">📝</div><h3>No notes yet</h3><p>Write notes for each subject and topic</p><button class="btn btn-primary mt16" onclick="openAddNote()">+ New Note</button></div>`;
     return;
   }
-  const bySubject = {};
-  state.notes.forEach(n => {
-    if (!bySubject[n.subjectId]) bySubject[n.subjectId] = [];
-    bySubject[n.subjectId].push(n);
-  });
-  let html = '';
-  Object.entries(bySubject).forEach(([sid, notes]) => {
-    const s = state.subjects.find(x=>x.id===sid);
-    html += `<div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <div style="width:10px;height:10px;border-radius:50%;background:${s?.color||'#7c6af7'}"></div>
-        <span style="font-size:.95rem;font-weight:600">${s?.emoji||''} ${s?.name||'Unknown'}</span>
+  const by={};
+  S.notes.forEach(n=>{(by[n.subjectId]=by[n.subjectId]||[]).push(n);});
+  el.innerHTML=Object.entries(by).map(([sid,notes])=>{
+    const s=S.subjects.find(x=>x.id===sid);
+    return `<div style="margin-bottom:28px">
+      <div class="flex items-c gap8 mb14">
+        <div style="width:9px;height:9px;border-radius:50%;background:${s?.color||'var(--accent)'}"></div>
+        <span style="font-weight:700;font-size:.95rem">${s?.emoji||''} ${s?.name||'General'}</span>
       </div>
-      <div class="grid-3">${notes.map(n=>`
-        <div class="note-card" onclick="openNoteEditor('${n.id}')">
-          <div class="note-title">${n.title}</div>
-          <div class="note-preview">${n.content||'No content yet...'}</div>
-          <div class="note-meta">${n.topic?`📌 ${n.topic} · `:''} ${fmtDate(n.updatedAt)}</div>
-        </div>
-      `).join('')}</div>
+      <div class="g3">${notes.map(n=>`<div class="note-card" onclick="openNoteEditor('${n.id}')">
+        <div class="note-title">${n.title}</div>
+        <div class="note-preview">${n.content||'Empty note…'}</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:8px">${n.topic?`📌 ${n.topic} · `:''}${fmtDate(n.updatedAt)}</div>
+      </div>`).join('')}</div>
     </div>`;
-  });
-  el.innerHTML = html;
+  }).join('');
 }
-
-function openAddNote() {
-  const opts = state.subjects.map(s=>`<option value="${s.id}">${s.emoji||''} ${s.name}</option>`).join('');
+function openAddNote(){_openAddNoteModal(null);}
+function openAddNoteFor(sid){_openAddNoteModal(sid);}
+function _openAddNoteModal(prefixSid){
+  const opts=S.subjects.map(s=>`<option value="${s.id}" ${s.id===prefixSid?'selected':''}>${s.emoji||''} ${s.name}</option>`).join('');
   openModal(`<div class="modal-title">New Note</div>
-    <div class="form-group"><label class="form-label">Title</label>
-      <input class="form-input" id="note-title" placeholder="Note title"></div>
-    <div class="form-group"><label class="form-label">Subject</label>
-      <select class="form-input" id="note-subj">${opts||'<option>Add subjects first</option>'}</select></div>
-    <div class="form-group"><label class="form-label">Topic (optional)</label>
-      <input class="form-input" id="note-topic" placeholder="e.g. Unit 2"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveNote()">Create Note</button>
-    </div>`);
+    <div class="fg"><label class="fl">Title</label><input class="fi" id="ntit" placeholder="Note title"></div>
+    <div class="fg"><label class="fl">Subject</label><select class="fi" id="nsub">${opts||'<option>Add subjects first</option>'}</select></div>
+    <div class="fg"><label class="fl">Topic (optional)</label><input class="fi" id="ntop" placeholder="e.g. Unit 2 · Genetics"></div>
+    <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveNote()">Create</button></div>`);
+  setTimeout(()=>document.getElementById('ntit')?.focus(),50);
 }
-
-function openAddNoteFor(subjId) {
-  const opts = state.subjects.map(s=>`<option value="${s.id}" ${s.id===subjId?'selected':''}>${s.emoji||''} ${s.name}</option>`).join('');
-  openModal(`<div class="modal-title">New Note</div>
-    <div class="form-group"><label class="form-label">Title</label>
-      <input class="form-input" id="note-title" placeholder="Note title"></div>
-    <div class="form-group"><label class="form-label">Subject</label>
-      <select class="form-input" id="note-subj">${opts}</select></div>
-    <div class="form-group"><label class="form-label">Topic (optional)</label>
-      <input class="form-input" id="note-topic" placeholder="e.g. Unit 2"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveNote()">Create Note</button>
-    </div>`);
+function saveNote(){
+  const title=document.getElementById('ntit').value.trim();if(!title)return;
+  const now=Date.now(),id=uid();
+  S.notes.push({id,title,subjectId:document.getElementById('nsub').value,topic:document.getElementById('ntop').value,content:'',createdAt:now,updatedAt:now});
+  save();closeModal();openNoteEditor(id);
 }
-
-function saveNote() {
-  const title = document.getElementById('note-title').value.trim();
-  if (!title) return;
-  const now = Date.now();
-  const id = uid();
-  state.notes.push({id, title, subjectId: document.getElementById('note-subj').value, topic: document.getElementById('note-topic').value, content:'', createdAt:now, updatedAt:now});
-  save(); closeModal(); openNoteEditor(id);
-}
-
-function openNoteEditor(id) {
-  const n = state.notes.find(x=>x.id===id);
-  if (!n) return;
-  const s = state.subjects.find(x=>x.id===n.subjectId);
-  document.getElementById('topbar-title').textContent = '📝 ' + n.title;
-  setViewRaw('note-editor');
-  document.getElementById('topbar-actions').innerHTML = `
-    <button class="btn btn-danger btn-sm" onclick="deleteNote('${id}')">Delete</button>
-    <button class="btn btn-primary btn-sm" onclick="saveNoteContent('${id}')">Save</button>
-  `;
-  document.getElementById('note-editor-content').innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      ${s?`<span style="background:${s.color}22;padding:3px 10px;border-radius:20px;font-size:.8rem;color:${s.color}">${s.emoji||''} ${s.name}</span>`:''}
-      ${n.topic?`<span style="font-size:.8rem;color:var(--text-muted)">📌 ${n.topic}</span>`:''}
-      <span style="font-size:.75rem;color:var(--text-muted);margin-left:auto">Last saved: ${fmtDate(n.updatedAt)}</span>
+function openNoteEditor(id){
+  const n=S.notes.find(x=>x.id===id);if(!n)return;
+  const s=S.subjects.find(x=>x.id===n.subjectId);
+  setViewRaw('note-editor','📝 '+n.title);
+  document.getElementById('tb-actions').innerHTML=`
+    <span style="font-size:.75rem;color:var(--text-muted)" id="note-saved">Saved ${fmtDate(n.updatedAt)}</span>
+    <button class="btn btn-ghost btn-sm" onclick="delNote('${id}')">Delete</button>
+    <button class="btn btn-primary btn-sm" onclick="saveNoteContent('${id}')">Save</button>`;
+  document.getElementById('note-ed').innerHTML=`
+    <div class="flex items-c gap8 mb16">
+      ${s?`<span style="background:${s.color}22;color:${s.color};padding:3px 10px;border-radius:20px;font-size:.76rem;font-weight:700">${s.emoji||''} ${s.name}</span>`:''}
+      ${n.topic?`<span style="font-size:.76rem;color:var(--text-muted)">📌 ${n.topic}</span>`:''}
     </div>
-    <input class="form-input" id="note-title-edit" value="${n.title}" style="font-size:1.2rem;font-weight:700;margin-bottom:12px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:8px 0">
-    <textarea class="note-editor" id="note-content-edit" placeholder="Start writing your notes here...">${n.content||''}</textarea>
-  `;
+    <input class="fi" id="note-title-ed" value="${n.title}" style="font-size:1.25rem;font-weight:800;margin-bottom:12px;border:none;background:transparent;border-bottom:2px solid var(--border);border-radius:0;padding:6px 0" placeholder="Note title">
+    <textarea class="note-editor" id="note-body-ed" placeholder="Start writing your notes here…\n\nTips:\n• Use headings with ## \n• Make lists with -\n• Star important things with ★">${n.content||''}</textarea>`;
+  // Auto-save every 10s
+  document.getElementById('note-body-ed').addEventListener('input', debounce(()=>saveNoteContent(id,true),2000));
+  document.getElementById('note-title-ed').addEventListener('input', debounce(()=>saveNoteContent(id,true),2000));
 }
-
-function saveNoteContent(id) {
-  const n = state.notes.find(x=>x.id===id);
-  n.title = document.getElementById('note-title-edit').value;
-  n.content = document.getElementById('note-content-edit').value;
-  n.updatedAt = Date.now();
-  save();
-  document.querySelector('#note-editor-content span:last-child') && (document.querySelector('#note-editor-content [style*="Last saved"]').textContent = 'Last saved: just now');
+function saveNoteContent(id,silent){
+  const n=S.notes.find(x=>x.id===id);if(!n)return;
+  n.title=document.getElementById('note-title-ed').value||n.title;
+  n.content=document.getElementById('note-body-ed').value;
+  n.updatedAt=Date.now();save();
+  const el=document.getElementById('note-saved');
+  if(el)el.textContent='Saved just now';
+  if(!silent)toast('📝 Note saved');
 }
-
-function deleteNote(id) {
-  if (!confirm('Delete this note?')) return;
-  state.notes = state.notes.filter(n=>n.id!==id);
-  save(); setView('notes');
-}
+function delNote(id){if(!confirm('Delete this note?'))return;S.notes=S.notes.filter(n=>n.id!==id);save();setView('notes');}
 
 // ─── UPLOADS ─────────────────────────────────────────────────────────────────
-function renderUploads() {
-  const el = document.getElementById('uploads-content');
-  let html = `<div class="upload-zone" id="upload-drop" onclick="triggerUpload()">
-    <div style="font-size:2.5rem">📎</div>
-    <p>Click or drag & drop files here</p>
-    <p style="margin-top:4px;font-size:.78rem">PDFs, images, docs, anything!</p>
+function renderUploads(){
+  const el=document.getElementById('uploads-inner');
+  el.innerHTML=`<div class="drop-zone" id="dz" onclick="triggerUpload()">
+    <div style="font-size:2.5rem;margin-bottom:10px">📎</div>
+    <div style="font-weight:700;margin-bottom:6px">Drop files here or click to upload</div>
+    <div style="font-size:.8rem;color:var(--text-muted)">PDFs, images, Word docs, past SACs — anything</div>
   </div>
-  <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(this.files)">
-  <div style="margin-top:24px">`;
-
-  const bySubject = {};
-  state.uploads.forEach(u => {
-    const key = u.subjectId||'__none__';
-    if (!bySubject[key]) bySubject[key] = [];
-    bySubject[key].push(u);
+  <input type="file" id="fi" multiple style="display:none" onchange="handleFiles(this.files,null)">
+  <div style="margin-top:20px" id="file-list">`;
+  const by={};
+  S.uploads.forEach(u=>{const k=u.subjectId||'__';(by[k]=by[k]||[]).push(u);});
+  let html='';
+  if(!S.uploads.length)html='<div class="empty" style="padding:30px"><div class="ei">📂</div><p>No files yet</p></div>';
+  else Object.entries(by).forEach(([sid,files])=>{
+    const s=S.subjects.find(x=>x.id===sid);
+    html+=`<div style="margin-bottom:20px"><div style="font-weight:700;margin-bottom:10px">${s?`${s.emoji||''} ${s.name}`:'General'}</div><div style="display:flex;flex-direction:column;gap:8px">
+      ${files.map(u=>`<div class="file-row"><span style="font-size:1.4rem">${fIcon(u.type)}</span>
+        <div style="flex:1"><div style="font-weight:600;font-size:.88rem">${u.name}</div><div style="font-size:.75rem;color:var(--text-muted)">${u.size} · ${fmtDate(u.uploadedAt)}</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="dlFile('${u.id}')">⬇️</button>
+        <button class="btn btn-ghost btn-sm" onclick="delUpload('${u.id}',null)">🗑️</button>
+      </div>`).join('')}
+    </div></div>`;
   });
-
-  if (!state.uploads.length) {
-    html += `<div class="empty-state"><div class="icon">📂</div><p>No files uploaded yet.</p></div>`;
-  } else {
-    Object.entries(bySubject).forEach(([sid, files]) => {
-      const s = state.subjects.find(x=>x.id===sid);
-      html += `<div style="margin-bottom:20px"><div style="font-weight:600;margin-bottom:10px">${s?`${s.emoji||''} ${s.name}`:'General'}</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-        ${files.map(u=>`<div class="file-item">
-          <div class="file-icon">${fileIcon(u.type)}</div>
-          <div><div class="file-name">${u.name}</div><div class="file-meta">${u.size} · ${fmtDate(u.uploadedAt)}</div></div>
-          <button class="btn btn-ghost btn-sm" onclick="downloadFile('${u.id}')">⬇️</button>
-          <button class="btn btn-ghost btn-sm" onclick="deleteUpload('${u.id}',null)">🗑️</button>
-        </div>`).join('')}
-        </div></div>`;
-    });
-  }
-  html += '</div>';
-  el.innerHTML = html;
-
-  // drag and drop
-  const zone = document.getElementById('upload-drop');
-  if (zone) {
-    zone.ondragover = e => { e.preventDefault(); zone.classList.add('drag'); };
-    zone.ondragleave = () => zone.classList.remove('drag');
-    zone.ondrop = e => { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); };
-  }
+  document.getElementById('file-list').innerHTML=html+'</div>';
+  const dz=document.getElementById('dz');
+  if(dz){dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag');};dz.ondragleave=()=>dz.classList.remove('drag');dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag');handleFiles(e.dataTransfer.files,null);};}
 }
-
-function triggerUpload() { document.getElementById('file-input')?.click(); }
-function triggerUploadFor(subjId) {
-  const input = document.createElement('input');
-  input.type = 'file'; input.multiple = true;
-  input.onchange = () => handleFilesFor(input.files, subjId);
-  input.click();
+function triggerUpload(){document.getElementById('fi')?.click();}
+function uploadFor(sid){
+  const i=document.createElement('input');i.type='file';i.multiple=true;
+  i.onchange=()=>handleFiles(i.files,sid);i.click();
 }
-
-function handleFiles(files, subjId) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      state.uploads.push({id:uid(), name:file.name, type:file.type, size:formatBytes(file.size), subjectId:subjId||null, data:e.target.result, uploadedAt:Date.now()});
+function handleFiles(files,sid){
+  Array.from(files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      S.uploads.push({id:uid(),name:f.name,type:f.type,size:fmtBytes(f.size),subjectId:sid,data:e.target.result,uploadedAt:Date.now()});
       save();
-      if (currentView === 'uploads') renderUploads();
-    };
-    reader.readAsDataURL(file);
+      if(curView==='uploads')renderUploads();
+      else if(curView==='subject-detail'&&sid){const s=S.subjects.find(x=>x.id===sid);if(s)renderSubjDetail(s);}
+      toast('📎 '+f.name+' uploaded');
+    };r.readAsDataURL(f);
   });
 }
-
-function handleFilesFor(files, subjId) {
-  handleFiles(files, subjId);
-  setTimeout(() => {
-    const s = state.subjects.find(x=>x.id===subjId);
-    if (s) { setViewRaw('subject-detail'); renderSubjectDetail(s); }
-  }, 300);
+function dlFile(id){const u=S.uploads.find(x=>x.id===id);if(!u)return;const a=document.createElement('a');a.href=u.data;a.download=u.name;a.click();}
+function delUpload(id,sid){
+  S.uploads=S.uploads.filter(u=>u.id!==id);save();
+  if(sid){const s=S.subjects.find(x=>x.id===sid);if(s)renderSubjDetail(s);}else renderUploads();
 }
 
-function downloadFile(id) {
-  const u = state.uploads.find(x=>x.id===id);
-  if (!u) return;
-  const a = document.createElement('a');
-  a.href = u.data; a.download = u.name; a.click();
-}
+// ─── POMODORO ────────────────────────────────────────────────────────────────
+let pomo={mode:'focus',running:false,elapsed:0,total:1500,sessions:0,timer:null,cfg:{focus:25,short:5,long:15,max:4}};
+const POMO_CFG={focus:{lbl:'Focus',color:'var(--accent)'},short:{lbl:'Short Break',color:'var(--green)'},long:{lbl:'Long Break',color:'var(--blue)'}};
 
-function deleteUpload(id, subjId) {
-  state.uploads = state.uploads.filter(u=>u.id!==id);
-  save();
-  if (subjId) {
-    const s = state.subjects.find(x=>x.id===subjId);
-    if (s) renderSubjectDetail(s);
-  } else renderUploads();
+function pomoTotal(){return{focus:pomo.cfg.focus*60,short:pomo.cfg.short*60,long:pomo.cfg.long*60}[pomo.mode];}
+function setPomoMode(mode,el){
+  clearInterval(pomo.timer);pomo.running=false;pomo.mode=mode;pomo.elapsed=0;pomo.total=pomoTotal();
+  document.querySelectorAll('#pomo-tabs .tab').forEach((t,i)=>t.classList.toggle('active',['focus','short','long'][i]===mode));
+  document.getElementById('pomo-play').textContent='▶';updatePomoUI();
 }
-
-// ─── MODAL ────────────────────────────────────────────────────────────────────
-function openModal(html) {
-  document.getElementById('modal-content').innerHTML = html;
-  document.getElementById('modal-overlay').classList.remove('hidden');
-}
-
-function closeModal(e) {
-  if (e && e.target !== document.getElementById('modal-overlay')) return;
-  document.getElementById('modal-overlay').classList.add('hidden');
-}
-
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-function uid() { return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
-function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr; }
-function fmtDate(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  return d.toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'});
-}
-function formatBytes(b) {
-  if (b<1024) return b+'B';
-  if (b<1024*1024) return (b/1024).toFixed(1)+'KB';
-  return (b/1024/1024).toFixed(1)+'MB';
-}
-function fileIcon(type) {
-  if (!type) return '📄';
-  if (type.includes('pdf')) return '📕';
-  if (type.includes('image')) return '🖼️';
-  if (type.includes('word')||type.includes('doc')) return '📘';
-  if (type.includes('sheet')||type.includes('excel')) return '📗';
-  if (type.includes('presentation')||type.includes('powerpoint')) return '📙';
-  if (type.includes('video')) return '🎬';
-  if (type.includes('audio')) return '🎵';
-  if (type.includes('zip')) return '🗜️';
-  return '📄';
-}
-
-// ─── POMODORO ─────────────────────────────────────────────────────────────────
-const POMO_MODES = { focus: {label:'Focus Time', color:'var(--accent)'}, short: {label:'Short Break', color:'var(--green)'}, long: {label:'Long Break', color:'var(--blue)'} };
-let pomo = {
-  mode: 'focus', running: false, elapsed: 0, total: 25*60,
-  sessions: 0, maxSessions: 4, interval: null,
-  settings: {focus:25, short:5, long:15}
-};
-
-function pomoSeconds() {
-  const s = pomo.settings;
-  return {focus: s.focus*60, short: s.short*60, long: s.long*60}[pomo.mode];
-}
-
-function setPomoMode(mode, el) {
-  document.querySelectorAll('#pomo-mode-tabs .tab').forEach(t=>t.classList.remove('active'));
-  el?.classList.add('active');
-  pomo.mode = mode;
-  pomo.running = false; clearInterval(pomo.interval);
-  pomo.elapsed = 0; pomo.total = pomoSeconds();
-  updatePomoUI();
-}
-
-function togglePomo() {
-  if (pomo.running) {
-    pomo.running = false; clearInterval(pomo.interval);
-    document.getElementById('pomo-play-btn').textContent = '▶';
-  } else {
-    pomo.running = true;
-    document.getElementById('pomo-play-btn').textContent = '⏸';
-    pomo.interval = setInterval(() => {
+function togglePomo(){
+  if(pomo.running){clearInterval(pomo.timer);pomo.running=false;document.getElementById('pomo-play').textContent='▶';}
+  else{
+    pomo.running=true;document.getElementById('pomo-play').textContent='⏸';
+    pomo.timer=setInterval(()=>{
       pomo.elapsed++;
-      if (pomo.elapsed >= pomo.total) {
-        clearInterval(pomo.interval); pomo.running = false;
-        if (pomo.mode === 'focus') {
+      if(pomo.elapsed>=pomo.total){
+        clearInterval(pomo.timer);pomo.running=false;
+        document.getElementById('pomo-play').textContent='▶';
+        if(pomo.mode==='focus'){
           pomo.sessions++;
-          // log session
-          const today = new Date().toDateString();
-          if (!state.pomoLog) state.pomoLog = {};
-          state.pomoLog[today] = (state.pomoLog[today]||0) + 1;
-          save();
-          new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{});
-          setTimeout(()=>alert('🍅 Focus session done! Take a break.'), 100);
-          if (pomo.sessions % 4 === 0) setPomoModeAuto('long');
-          else setPomoModeAuto('short');
-        } else {
-          setTimeout(()=>alert('⏰ Break over! Back to focus.'), 100);
-          setPomoModeAuto('focus');
-        }
+          const today=new Date().toDateString();
+          S.pomoLog[today]=(S.pomoLog[today]||0)+1;save();
+          toast('🍅 Focus done! Take a break.');
+          if(pomo.sessions%pomo.cfg.max===0)setPomoMode('long',null);
+          else setPomoMode('short',null);
+        }else{toast('⏰ Break over! Time to focus.');setPomoMode('focus',null);}
         return;
       }
       updatePomoUI();
-    }, 1000);
+    },1000);
   }
 }
-
-function setPomoModeAuto(mode) {
-  pomo.mode = mode; pomo.elapsed = 0; pomo.total = pomoSeconds();
-  pomo.running = false;
-  document.querySelectorAll('#pomo-mode-tabs .tab').forEach((t,i) => {
-    t.classList.toggle('active', ['focus','short','long'][i]===mode);
-  });
-  document.getElementById('pomo-play-btn').textContent = '▶';
-  updatePomoUI();
-}
-
-function resetPomo() {
-  pomo.running = false; clearInterval(pomo.interval);
-  pomo.elapsed = 0; pomo.total = pomoSeconds();
-  document.getElementById('pomo-play-btn').textContent = '▶';
-  updatePomoUI();
-}
-function skipPomo() { pomo.elapsed = pomo.total; updatePomoUI(); }
-
-function updatePomoSettings() {
-  pomo.settings.focus = parseInt(document.getElementById('pomo-focus-len').value)||25;
-  pomo.settings.short = parseInt(document.getElementById('pomo-short-len').value)||5;
-  pomo.settings.long = parseInt(document.getElementById('pomo-long-len').value)||15;
+function resetPomo(){clearInterval(pomo.timer);pomo.running=false;pomo.elapsed=0;pomo.total=pomoTotal();document.getElementById('pomo-play').textContent='▶';updatePomoUI();}
+function skipPomo(){pomo.elapsed=pomo.total;updatePomoUI();}
+function updatePomoSettings(){
+  pomo.cfg.focus=+document.getElementById('pf').value||25;
+  pomo.cfg.short=+document.getElementById('ps').value||5;
+  pomo.cfg.long=+document.getElementById('pl').value||15;
+  pomo.cfg.max=+document.getElementById('pmx').value||4;
   resetPomo();
 }
-
-function updatePomoUI() {
-  const remaining = pomo.total - pomo.elapsed;
-  const m = Math.floor(remaining/60), s = remaining%60;
-  const disp = document.getElementById('pomo-display');
-  const lbl = document.getElementById('pomo-label');
-  const circle = document.getElementById('pomo-circle');
-  const sessEl = document.getElementById('pomo-sessions');
-  if (!disp) return;
-  disp.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  lbl.textContent = POMO_MODES[pomo.mode].label;
-  const pct = pomo.elapsed / pomo.total;
-  const circumference = 2 * Math.PI * 100;
-  circle.style.strokeDashoffset = circumference * (1 - pct);
-  circle.style.stroke = POMO_MODES[pomo.mode].color;
-  if (sessEl) {
-    sessEl.innerHTML = Array.from({length:4},(_,i)=>`<div class="pomo-dot ${i<pomo.sessions%4?'done':''}"></div>`).join('');
+function updatePomoUI(){
+  const rem=pomo.total-pomo.elapsed;
+  const m=Math.floor(rem/60),s=rem%60;
+  const d=document.getElementById('pomo-disp'),l=document.getElementById('pomo-lbl'),ring=document.getElementById('pring');
+  const dots=document.getElementById('pomo-dots');
+  if(!d)return;
+  d.textContent=`${pad(m)}:${pad(s)}`;
+  if(l)l.textContent=POMO_CFG[pomo.mode].lbl;
+  if(ring){
+    const pct=pomo.elapsed/pomo.total;
+    ring.style.strokeDashoffset=CIRC*(1-pct);
+    ring.style.stroke=POMO_CFG[pomo.mode].color;
   }
-  document.title = pomo.running ? `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} – StudyHub` : 'StudyHub';
+  if(dots)dots.innerHTML=Array.from({length:pomo.cfg.max},(_,i)=>`<div class="pomo-dot ${i<pomo.sessions%pomo.cfg.max&&pomo.sessions%pomo.cfg.max>0?'lit':''}"></div>`).join('');
+  document.title=pomo.running?`${pad(m)}:${pad(s)} · StudyHub`:'StudyHub';
 }
 
-// ─── STATS ────────────────────────────────────────────────────────────────────
-function renderStats() {
-  const el = document.getElementById('stats-content');
-  const totalCards = state.decks.reduce((a,d)=>a+d.cards.length,0);
-  const reviewedCards = state.decks.reduce((a,d)=>a+d.cards.filter(c=>c.reviews>0).length,0);
-  const totalTasks = state.subjects.flatMap(s=>s.tasks||[]).length;
-  const doneTasks = state.subjects.flatMap(s=>s.tasks||[]).filter(t=>t.done).length;
-  const pomoSessions = Object.values(state.pomoLog||{}).reduce((a,b)=>a+b,0);
-  const totalNotes = state.notes.length;
+// ─── STATS ───────────────────────────────────────────────────────────────────
+function renderStats(){
+  const el=document.getElementById('stats-inner');
+  const allTasks=S.subjects.flatMap(s=>s.tasks||[]);
+  const done=allTasks.filter(t=>t.done);
+  const totalCards=S.decks.reduce((a,d)=>a+d.cards.length,0);
+  const reviewed=S.decks.reduce((a,d)=>a+d.cards.filter(c=>c.reviews>0).length,0);
+  const pomoTotal2=Object.values(S.pomoLog||{}).reduce((a,b)=>a+b,0);
 
-  // streak
-  let streak = 0;
-  const log = state.pomoLog||{};
-  const d = new Date();
-  while (true) {
-    const key = d.toDateString();
-    if (log[key]) { streak++; d.setDate(d.getDate()-1); } else break;
-  }
+  let streak=0;const tmp=new Date();
+  while(S.pomoLog[tmp.toDateString()]){streak++;tmp.setDate(tmp.getDate()-1);}
 
-  // heatmap last 52 weeks
-  const heatmap = [];
-  const now = new Date(); now.setHours(0,0,0,0);
-  for (let i=364; i>=0; i--) {
-    const dd = new Date(now); dd.setDate(dd.getDate()-i);
-    const key = dd.toDateString();
-    const count = log[key]||0;
-    heatmap.push({count, date: dd.toLocaleDateString('en-AU',{day:'numeric',month:'short'})});
-  }
-  const maxCount = Math.max(...heatmap.map(h=>h.count), 1);
+  const now=new Date();now.setHours(0,0,0,0);
+  const hmap=Array.from({length:365},(_,i)=>{const d=new Date(now);d.setDate(d.getDate()-(364-i));return{count:S.pomoLog[d.toDateString()]||0,date:d.toLocaleDateString('en-AU',{day:'numeric',month:'short'})};});
+  const mx=Math.max(...hmap.map(h=>h.count),1);
 
-  el.innerHTML = `
-    <div class="grid-4 mb-16">
-      <div class="stat-card"><div class="stat-value">${streak} 🔥</div><div class="stat-label">Day Streak</div></div>
-      <div class="stat-card"><div class="stat-value">${pomoSessions}</div><div class="stat-label">Pomodoros Done</div></div>
-      <div class="stat-card"><div class="stat-value">${reviewedCards}/${totalCards}</div><div class="stat-label">Cards Reviewed</div></div>
-      <div class="stat-card"><div class="stat-value">${doneTasks}/${totalTasks}</div><div class="stat-label">Tasks Complete</div></div>
+  el.innerHTML=`
+    <div class="g4 mb20">
+      <div class="stat"><div class="stat-val">${streak} 🔥</div><div class="stat-lbl">Day Streak</div></div>
+      <div class="stat"><div class="stat-val">${pomoTotal2}</div><div class="stat-lbl">Study Sessions</div></div>
+      <div class="stat"><div class="stat-val">${reviewed}<span style="font-size:1rem;color:var(--text-muted)">/${totalCards}</span></div><div class="stat-lbl">Cards Reviewed</div></div>
+      <div class="stat"><div class="stat-val">${done.length}<span style="font-size:1rem;color:var(--text-muted)">/${allTasks.length}</span></div><div class="stat-lbl">Tasks Done</div></div>
     </div>
-
-    <div class="card mb-16">
-      <div class="card-title mb-16">Study Activity (last year)</div>
-      <div class="heatmap">
-        ${heatmap.map(h=>{
-          const alpha = h.count ? 0.2 + 0.8*(h.count/maxCount) : 0;
-          const bg = h.count ? `rgba(124,106,247,${alpha.toFixed(2)})` : 'var(--surface2)';
-          return `<div class="heatmap-cell" style="background:${bg}" title="${h.date}: ${h.count} sessions"></div>`;
-        }).join('')}
-      </div>
-      <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:8px;font-size:.75rem;color:var(--text-muted)">
-        Less
-        ${[0.1,0.3,0.5,0.7,1].map(a=>`<div style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,247,${a})"></div>`).join('')}
-        More
+    <div class="card mb14">
+      <div style="font-weight:700;margin-bottom:14px">Study Activity — Last Year</div>
+      <div class="hmap">${hmap.map(h=>{
+        const alpha=h.count?0.15+0.85*(h.count/mx):0;
+        const bg=h.count?`rgba(${hexToRgb(S.settings.accent)},${alpha.toFixed(2)})`:'var(--surface2)';
+        return `<div class="hmap-cell" style="background:${bg}" title="${h.date}: ${h.count} session${h.count!==1?'s':''}"></div>`;
+      }).join('')}</div>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:8px;font-size:.72rem;color:var(--text-muted)">
+        Less ${[.1,.3,.55,.75,1].map(a=>`<div style="width:11px;height:11px;border-radius:2px;background:rgba(${hexToRgb(S.settings.accent)},${a})"></div>`).join('')} More
       </div>
     </div>
-
-    <div class="grid-2">
+    <div class="g2">
       <div class="card">
-        <div class="card-title mb-16">Subject Progress</div>
-        ${state.subjects.length ? state.subjects.map(s=>{
-          const tasks = s.tasks||[], done = tasks.filter(t=>t.done).length;
-          const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
-          const deckCards = state.decks.filter(d=>d.subjectId===s.id).reduce((a,d)=>a+d.cards.length,0);
-          const noteCount = state.notes.filter(n=>n.subjectId===s.id).length;
-          return `<div style="margin-bottom:16px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <span>${s.emoji||'📚'}</span><span style="font-weight:600;font-size:.9rem">${s.name}</span>
-              <span style="margin-left:auto;font-size:.78rem;color:var(--text-muted)">${done}/${tasks.length} tasks · ${deckCards} cards · ${noteCount} notes</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
-          </div>`;
-        }).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No subjects yet.</p>'}
-      </div>
-      <div class="card">
-        <div class="card-title mb-16">Flashcard Mastery</div>
-        ${state.decks.length ? state.decks.map(d=>{
-          const mastered = d.cards.filter(c=>c.interval>=21).length;
-          const learning = d.cards.filter(c=>c.reviews>0&&c.interval<21).length;
-          const newCards = d.cards.filter(c=>c.reviews===0).length;
+        <div style="font-weight:700;margin-bottom:14px">Subject Progress</div>
+        ${S.subjects.length?S.subjects.map(s=>{
+          const tasks=s.tasks||[],d2=tasks.filter(t=>t.done).length,pct=tasks.length?Math.round(d2/tasks.length*100):0;
+          const deckCards=S.decks.filter(d=>d.subjectId===s.id).reduce((a,d)=>a+d.cards.length,0);
           return `<div style="margin-bottom:14px">
-            <div style="font-size:.88rem;font-weight:600;margin-bottom:6px">${d.name}</div>
-            <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden">
-              <div style="flex:${mastered};background:var(--green)" title="Mastered: ${mastered}"></div>
-              <div style="flex:${learning};background:var(--blue)" title="Learning: ${learning}"></div>
-              <div style="flex:${newCards};background:var(--surface2)" title="New: ${newCards}"></div>
+            <div class="flex items-c gap8 mb8"><span>${s.emoji||'📚'}</span><span style="font-weight:600;font-size:.88rem">${s.name}</span>
+            <span style="margin-left:auto;font-size:.73rem;color:var(--text-muted)">${d2}/${tasks.length} · ${deckCards} cards</span></div>
+            <div class="pbar"><div class="pfill" style="width:${pct}%;background:${s.color}"></div></div>
+          </div>`;
+        }).join(''):'<p style="color:var(--text-muted);font-size:.85rem">No subjects yet.</p>'}
+      </div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:14px">Flashcard Mastery</div>
+        ${S.decks.length?S.decks.map(d=>{
+          const mastered=d.cards.filter(c=>c.interval>=21).length;
+          const learning=d.cards.filter(c=>c.reviews>0&&c.interval<21).length;
+          const newC=d.cards.filter(c=>c.reviews===0).length;
+          const sub=S.subjects.find(s=>s.id===d.subjectId);
+          return `<div style="margin-bottom:14px">
+            <div style="font-size:.85rem;font-weight:600;margin-bottom:5px">${d.name} <span style="font-size:.72rem;color:var(--text-muted);font-weight:400">${sub?.name||''}</span></div>
+            <div style="display:flex;gap:2px;height:7px;border-radius:4px;overflow:hidden">
+              <div style="flex:${mastered||0};background:var(--green)"></div>
+              <div style="flex:${learning||0};background:var(--blue)"></div>
+              <div style="flex:${newC||0};background:var(--surface2)"></div>
             </div>
-            <div style="display:flex;gap:12px;margin-top:4px;font-size:.72rem;color:var(--text-muted)">
-              <span>🟢 ${mastered} mastered</span><span>🔵 ${learning} learning</span><span>⚪ ${newCards} new</span>
+            <div style="display:flex;gap:10px;margin-top:4px;font-size:.7rem;color:var(--text-muted)">
+              <span>🟢 ${mastered} mastered</span><span>🔵 ${learning} learning</span><span>⚪ ${newC} new</span>
             </div>
           </div>`;
-        }).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No decks yet.</p>'}
+        }).join(''):'<p style="color:var(--text-muted);font-size:.85rem">No decks yet.</p>'}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ─── SEARCH ───────────────────────────────────────────────────────────────────
-function openSearchModal() {
-  openModal(`<div class="modal-title">🔍 Search</div>
-    <div class="search-bar" style="margin-bottom:16px">
+// ─── SEARCH ──────────────────────────────────────────────────────────────────
+function openSearch(){
+  openModal(`<div class="modal-title" style="margin-bottom:0">
+    <div class="search-pill" style="border-radius:8px;margin-bottom:16px">
       <span style="color:var(--text-muted)">🔍</span>
-      <input id="modal-search-input" placeholder="Search everything..." oninput="runSearch(this.value)" autofocus style="background:none;border:none;outline:none;color:var(--text);font-size:.95rem;flex:1;font-family:inherit">
+      <input id="srch" placeholder="Search subjects, notes, cards, tasks…" oninput="runSearch(this.value)" style="font-size:.95rem" autofocus>
     </div>
-    <div id="modal-search-results" style="max-height:400px;overflow-y:auto"></div>
-    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>
-  `);
-  setTimeout(()=>document.getElementById('modal-search-input')?.focus(),50);
+  </div>
+  <div id="srch-res" style="max-height:380px;overflow-y:auto;min-height:60px"></div>
+  <div style="padding-top:10px;font-size:.72rem;color:var(--text-muted);border-top:1px solid var(--border)">Press Esc to close</div>`);
+  setTimeout(()=>document.getElementById('srch')?.focus(),60);
 }
-
-function handleGlobalSearch(val) {
-  if (val.trim()) openSearchModal();
-  document.getElementById('global-search').value = '';
-}
-
-function runSearch(query) {
-  const el = document.getElementById('modal-search-results');
-  if (!query.trim()) { el.innerHTML = ''; return; }
-  const q = query.toLowerCase();
-  const results = [];
-
-  state.subjects.forEach(s => {
-    if (s.name.toLowerCase().includes(q))
-      results.push({type:'Subject', title:`${s.emoji||'📚'} ${s.name}`, action:`closeModal();openSubjectDetail('${s.id}')`});
-    (s.tasks||[]).forEach(t => {
-      if (t.name.toLowerCase().includes(q))
-        results.push({type:'Task', title:t.name, sub:`${s.emoji||''} ${s.name}`, action:`closeModal();openSubjectDetail('${s.id}')`});
+function runSearch(q){
+  const el=document.getElementById('srch-res');
+  if(!q.trim()){el.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:.85rem">Start typing to search…</p>';return;}
+  const ql=q.toLowerCase();const res=[];
+  S.subjects.forEach(s=>{
+    if(s.name.toLowerCase().includes(ql))res.push({type:'Subject',icon:s.emoji||'📚',title:s.name,action:`closeModal();openSubjDetail('${s.id}')`});
+    (s.tasks||[]).forEach(t=>{if(t.name.toLowerCase().includes(ql))res.push({type:'Task',icon:'✅',title:t.name,sub:s.name,action:`closeModal();openSubjDetail('${s.id}')`});});
+  });
+  S.notes.forEach(n=>{
+    const s=S.subjects.find(x=>x.id===n.subjectId);
+    if(n.title.toLowerCase().includes(ql)||(n.content||'').toLowerCase().includes(ql))
+      res.push({type:'Note',icon:'📝',title:n.title,sub:s?.name,action:`closeModal();openNoteEditor('${n.id}')`});
+  });
+  S.decks.forEach(d=>{
+    const s=S.subjects.find(x=>x.id===d.subjectId);
+    if(d.name.toLowerCase().includes(ql))res.push({type:'Deck',icon:'🃏',title:d.name,sub:s?.name,action:`closeModal();startStudy('${d.id}')`});
+    d.cards.forEach(c=>{
+      if(c.front.toLowerCase().includes(ql)||c.back.toLowerCase().includes(ql))
+        res.push({type:'Flashcard',icon:'🃏',title:c.front,sub:d.name,action:`closeModal();startStudy('${d.id}')`});
     });
   });
-
-  state.notes.forEach(n => {
-    const s = state.subjects.find(x=>x.id===n.subjectId);
-    if (n.title.toLowerCase().includes(q)||(n.content||'').toLowerCase().includes(q))
-      results.push({type:'Note', title:n.title, sub:`${s?.emoji||''} ${s?.name||''}`, action:`closeModal();openNoteEditor('${n.id}')`});
+  S.uploads.forEach(u=>{
+    const s=S.subjects.find(x=>x.id===u.subjectId);
+    if(u.name.toLowerCase().includes(ql))res.push({type:'File',icon:fIcon(u.type),title:u.name,sub:s?.name,action:`dlFile('${u.id}')`});
   });
-
-  state.decks.forEach(d => {
-    const s = state.subjects.find(x=>x.id===d.subjectId);
-    if (d.name.toLowerCase().includes(q))
-      results.push({type:'Deck', title:d.name, sub:`${s?.emoji||''} ${s?.name||''}`, action:`closeModal();startStudy('${d.id}')`});
-    d.cards.forEach(c => {
-      if (c.front.toLowerCase().includes(q)||c.back.toLowerCase().includes(q))
-        results.push({type:'Flashcard', title:c.front, sub:d.name, action:`closeModal();startStudy('${d.id}')`});
-    });
-  });
-
-  state.uploads.forEach(u => {
-    const s = state.subjects.find(x=>x.id===u.subjectId);
-    if (u.name.toLowerCase().includes(q))
-      results.push({type:'File', title:u.name, sub:`${s?.emoji||''} ${s?.name||'General'}`, action:`downloadFile('${u.id}')`});
-  });
-
-  if (!results.length) { el.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">No results found.</p>'; return; }
-  el.innerHTML = results.slice(0,20).map(r=>`
-    <div class="search-result" onclick="${r.action}">
-      <div class="search-result-type">${r.type}</div>
-      <div class="search-result-title">${r.title}</div>
-      ${r.sub?`<div style="font-size:.78rem;color:var(--text-muted);margin-top:2px">${r.sub}</div>`:''}
-    </div>
-  `).join('');
+  if(!res.length){el.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:.85rem">No results found</p>';return;}
+  el.innerHTML=res.slice(0,20).map(r=>`
+    <div onclick="${r.action}" style="display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:8px;cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <span style="font-size:1.2rem">${r.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.title}</div>
+        ${r.sub?`<div style="font-size:.73rem;color:var(--text-muted)">${r.sub}</div>`:''}
+      </div>
+      <span style="font-size:.68rem;color:var(--text-muted);background:var(--surface2);padding:2px 7px;border-radius:5px;flex-shrink:0">${r.type}</span>
+    </div>`).join('');
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-renderSidebarSubjects();
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('overlay').classList.remove('hidden');}
+function closeModal(){document.getElementById('overlay').classList.add('hidden');}
+function maybeClose(e){if(e.target===document.getElementById('overlay'))closeModal();}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2600);
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+function pad(n){return String(n).padStart(2,'0');}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function fmtDate(ts){if(!ts)return '';return new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});}
+function fmtBytes(b){return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB';}
+function fIcon(t){if(!t)return '📄';if(t.includes('pdf'))return '📕';if(t.includes('image'))return '🖼️';if(t.includes('word')||t.includes('doc'))return '📘';if(t.includes('sheet')||t.includes('excel'))return '📗';if(t.includes('presentation')||t.includes('powerpoint'))return '📙';if(t.includes('video'))return '🎬';if(t.includes('audio'))return '🎵';if(t.includes('zip'))return '🗜️';return '📄';}
+function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `${r},${g},${b}`;}
+function debounce(fn,delay){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),delay);};}
+
+// ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal();}
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openSearch();}
+  if(e.key==='n'&&!e.metaKey&&!e.ctrlKey&&curView==='notes'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){openAddNote();}
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderSBSubjects();
 setView('dashboard');
 </script>
 </body>
