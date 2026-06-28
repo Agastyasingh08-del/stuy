@@ -395,9 +395,16 @@ let S={
   pomoLog:{},settings:{name:'',accent:'#7c6af7',light:false}
 };
 function save(){localStorage.setItem('sh2',JSON.stringify(S));}
-function load(){const d=localStorage.getItem('sh2');if(d)S=JSON.parse(d);}
+function load(){
+  try {
+    const d=localStorage.getItem('sh2');
+    if(d){const p=JSON.parse(d);S=Object.assign(S,p);}
+  } catch(e){}
+  if(!S.settings)S.settings={name:'',accent:'#7c6af7',light:false};
+  if(!S.pomoLog)S.pomoLog={};
+}
 load();
-applySettings();
+try{applySettings();}catch(e){}
 
 // ─── SETTINGS ────────────────────────────────────────────────────────────────
 function applySettings(){
