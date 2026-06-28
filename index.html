@@ -546,7 +546,7 @@ function renderSBSubjects(){
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 function renderDashboard(){
   const hr=new Date().getHours();
-  const greet=hr<12?'Good morning':'hr<17?'Good afternoon':'Good evening';
+  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
   const name=S.settings.name?', '+S.settings.name:'';
   document.getElementById('dash-greeting').textContent=(hr<12?'🌅':hr<17?'☀️':'🌙')+' '+greet+name+'!';
 
