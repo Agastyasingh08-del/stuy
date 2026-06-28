@@ -251,6 +251,7 @@ select.fi option{background:var(--surface2);}
   <div class="nav-item" data-view="notes"><span class="ni">📝</span> Notes</div>
   <div class="nav-item" data-view="uploads"><span class="ni">📎</span> Resources</div>
   <div class="nav-item" data-view="pomodoro"><span class="ni">⏱️</span> Pomodoro</div>
+  <div class="nav-item" data-view="ai"><span class="ni">🤖</span> AI Tutor</div>
 
   <hr class="nav-divider">
   <div class="nav-sect">My Subjects</div>
@@ -369,6 +370,28 @@ select.fi option{background:var(--surface2);}
     <!-- STATS -->
     <div class="view" id="view-stats"><div id="stats-inner"></div></div>
 
+    <!-- AI TUTOR -->
+    <div class="view" id="view-ai">
+      <div id="ai-no-key" class="hidden">
+        <div class="empty">
+          <div class="ei">🤖</div>
+          <h3>Set your API Key first</h3>
+          <p>Go to Settings and enter your Anthropic API key to unlock AI features.</p>
+          <button class="btn btn-primary mt16" onclick="setView('settings')">Go to Settings</button>
+        </div>
+      </div>
+      <div id="ai-chat-wrap" style="display:flex;flex-direction:column;height:calc(100vh - 56px - 48px)">
+        <div id="ai-msgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:16px"></div>
+        <div style="border-top:1px solid var(--border);padding-top:14px;flex-shrink:0">
+          <div style="display:flex;gap:10px;align-items:flex-end">
+            <textarea id="ai-input" placeholder="Ask me anything — explain a concept, quiz me, help me understand a topic…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-family:inherit;font-size:.9rem;resize:none;max-height:140px;min-height:48px;line-height:1.5" rows="2" onkeydown="aiInputKey(event)"></textarea>
+            <button class="btn btn-primary" style="height:48px;padding:0 18px;flex-shrink:0" onclick="sendAIMessage()" id="ai-send-btn">Send</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" id="ai-quick-prompts"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="view" id="view-settings"><div id="settings-inner"></div></div>
 
@@ -438,6 +461,22 @@ function renderSettings(){
         </div>
       </div>
     </div>
+    <div class="sect-title">AI Flashcard Generation</div>
+    <div class="card mb20">
+      <div class="setting-row">
+        <div><div class="setting-label">Anthropic API Key</div><div class="setting-sub">Used locally to convert your notes into flashcards. Never shared.</div></div>
+        <input class="fi" style="width:220px;font-family:monospace;font-size:.78rem" id="set-apikey" type="password" value="${S.settings.apiKey||''}" placeholder="sk-ant-..." oninput="S.settings.apiKey=this.value;save()">
+      </div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">Get a key at <strong>console.anthropic.com</strong> → API Keys</div>
+    </div>
+    <div class="sect-title">AI Tutor</div>
+    <div class="card mb20">
+      <div class="setting-row">
+        <div><div class="setting-label">Anthropic API Key</div><div class="setting-sub">Enables AI Tutor chat + auto flashcard generation from notes. Stored locally only.</div></div>
+        <input class="fi" style="width:230px;font-family:monospace;font-size:.76rem" type="password" id="set-apikey" value="${S.settings.apiKey||''}" placeholder="sk-ant-api03-..." oninput="S.settings.apiKey=this.value;save()">
+      </div>
+      <div style="font-size:.75rem;color:var(--text-muted);padding:4px 0">Get a free key at <strong>console.anthropic.com</strong> → API Keys</div>
+    </div>
     <div class="sect-title">Data</div>
     <div class="card">
       <div class="setting-row">
@@ -500,7 +539,7 @@ function setView(v){
   document.querySelector(`.nav-item[data-view="${v}"]`)?.classList.add('active');
   curView=v;
   const titles={dashboard:'Dashboard',schedule:'Schedule',subjects:'Subjects',flashcards:'Flashcards',
-    notes:'Notes',uploads:'Resources',pomodoro:'Pomodoro',stats:'Stats',settings:'Settings',
+    notes:'Notes',uploads:'Resources',pomodoro:'Pomodoro',stats:'Stats',settings:'Settings',ai:'🤖 AI Tutor',
     'subject-detail':'Subject','study':'Study Mode','note-editor':'Note'};
   document.getElementById('tb-title').textContent=titles[v]||'';
   renderTbActions(v);
@@ -513,6 +552,7 @@ function setView(v){
   else if(v==='pomodoro')updatePomoUI();
   else if(v==='stats')renderStats();
   else if(v==='settings')renderSettings();
+  else if(v==='ai')renderAI();
 }
 function setViewRaw(v,title){
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
@@ -1036,6 +1076,7 @@ function openNoteEditor(id){
   document.getElementById('tb-actions').innerHTML=`
     <span style="font-size:.75rem;color:var(--text-muted)" id="note-saved">Saved ${fmtDate(n.updatedAt)}</span>
     <button class="btn btn-ghost btn-sm" onclick="delNote('${id}')">Delete</button>
+    <button class="btn btn-ghost btn-sm" style="color:var(--accent2);border-color:var(--accent)" onclick="aiFlashcardsFromNote('${id}')">✨ AI Flashcards</button>
     <button class="btn btn-primary btn-sm" onclick="saveNoteContent('${id}')">Save</button>`;
   document.getElementById('note-ed').innerHTML=`
     <div class="flex items-c gap8 mb16">
@@ -1308,6 +1349,279 @@ function fmtBytes(b){return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1
 function fIcon(t){if(!t)return '📄';if(t.includes('pdf'))return '📕';if(t.includes('image'))return '🖼️';if(t.includes('word')||t.includes('doc'))return '📘';if(t.includes('sheet')||t.includes('excel'))return '📗';if(t.includes('presentation')||t.includes('powerpoint'))return '📙';if(t.includes('video'))return '🎬';if(t.includes('audio'))return '🎵';if(t.includes('zip'))return '🗜️';return '📄';}
 function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `${r},${g},${b}`;}
 function debounce(fn,delay){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),delay);};}
+
+// ─── AI ──────────────────────────────────────────────────────────────────────
+let aiHistory = [];
+
+const AI_QUICK = [
+  'Explain this topic simply',
+  'Quiz me on my notes',
+  'What are the key concepts I should know?',
+  'Give me a summary',
+  'What are common exam questions on this?',
+];
+
+function renderAI() {
+  const hasKey = !!S.settings?.apiKey;
+  document.getElementById('ai-no-key').classList.toggle('hidden', hasKey);
+  document.getElementById('ai-chat-wrap').style.display = hasKey ? 'flex' : 'none';
+  if (!hasKey) return;
+  if (!aiHistory.length) showAIWelcome();
+  renderAIQuickPrompts();
+}
+
+function showAIWelcome() {
+  const subjectList = S.subjects.map(s => s.emoji + ' ' + s.name).join(', ') || 'none yet';
+  appendAIMsg('ai', `👋 Hey! I'm your AI tutor. I know about all your subjects and notes.\n\nYour subjects: **${subjectList}**\n\nAsk me anything — I can explain concepts, quiz you, generate flashcards, summarise topics, or help you prep for SACs.`);
+}
+
+function renderAIQuickPrompts() {
+  const el = document.getElementById('ai-quick-prompts');
+  if (!el) return;
+  el.innerHTML = AI_QUICK.map(p => `<button class="btn btn-ghost btn-sm" style="font-size:.75rem" onclick="quickAI('${p}')">${p}</button>`).join('');
+}
+
+function quickAI(prompt) {
+  document.getElementById('ai-input').value = prompt;
+  sendAIMessage();
+}
+
+function aiInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
+}
+
+function appendAIMsg(role, text) {
+  const el = document.getElementById('ai-msgs');
+  if (!el) return;
+  const isAI = role === 'ai';
+  const div = document.createElement('div');
+  div.style.cssText = `display:flex;gap:10px;align-items:flex-start;${isAI ? '' : 'flex-direction:row-reverse'}`;
+  div.innerHTML = `
+    <div style="width:32px;height:32px;border-radius:50%;background:${isAI ? 'var(--accent)' : 'var(--surface2)'};display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">${isAI ? '🤖' : '👤'}</div>
+    <div style="max-width:80%;background:${isAI ? 'var(--surface)' : 'var(--accent)'};border:1px solid ${isAI ? 'var(--border)' : 'transparent'};border-radius:12px;padding:12px 16px;font-size:.88rem;line-height:1.6;color:${isAI ? 'var(--text)' : '#fff'};white-space:pre-wrap">${formatAIText(text)}</div>`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function formatAIText(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^## (.+)$/gm, '<div style="font-weight:800;font-size:1rem;margin:8px 0 4px">$1</div>')
+    .replace(/^### (.+)$/gm, '<div style="font-weight:700;margin:6px 0 2px">$1</div>')
+    .replace(/^- (.+)$/gm, '&bull; $1')
+    .replace(/\n/g, '<br>');
+}
+
+async function sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const msg = input.value.trim();
+  if (!msg || !S.settings?.apiKey) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  appendAIMsg('user', msg);
+  aiHistory.push({ role: 'user', content: msg });
+
+  const btn = document.getElementById('ai-send-btn');
+  btn.disabled = true; btn.textContent = '...';
+
+  // Build context from subjects + recent notes
+  const context = buildAIContext();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': S.settings.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: `You are a smart, friendly AI tutor helping a student study. You have access to their study data:\n\n${context}\n\nBe concise, clear, and encouraging. Use bullet points for lists. Format with **bold** for key terms.`,
+        messages: aiHistory.slice(-10)
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const reply = data.content[0].text;
+    aiHistory.push({ role: 'assistant', content: reply });
+    appendAIMsg('ai', reply);
+  } catch (e) {
+    appendAIMsg('ai', `❌ Error: ${e.message}\n\nCheck your API key in Settings.`);
+  }
+
+  btn.disabled = false; btn.textContent = 'Send';
+  document.getElementById('ai-msgs').scrollTop = 999999;
+}
+
+function buildAIContext() {
+  const subjs = S.subjects.map(s => {
+    const done = (s.tasks||[]).filter(t=>t.done).length;
+    return `- ${s.emoji||''} ${s.name} (${done}/${(s.tasks||[]).length} tasks done)`;
+  }).join('\n');
+
+  const recentNotes = S.notes.slice(-5).map(n => {
+    const s = S.subjects.find(x=>x.id===n.subjectId);
+    return `[${s?.name||''}] ${n.title}: ${(n.content||'').slice(0,300)}`;
+  }).join('\n\n');
+
+  const decks = S.decks.map(d => {
+    const s = S.subjects.find(x=>x.id===d.subjectId);
+    return `- ${d.name} (${s?.name||''}) — ${d.cards.length} cards`;
+  }).join('\n');
+
+  return `SUBJECTS:\n${subjs||'None'}\n\nRECENT NOTES:\n${recentNotes||'None'}\n\nFLASHCARD DECKS:\n${decks||'None'}`;
+}
+
+// ─── AI FLASHCARD GENERATION ─────────────────────────────────────────────────
+async function aiFlashcardsFromNote(noteId) {
+  if (!S.settings?.apiKey) {
+    openModal(`<div class="modal-title">API Key Required</div>
+      <p style="color:var(--text-muted)">Add your Anthropic API key in <strong>Settings</strong> to use AI flashcard generation.</p>
+      <div class="mactions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="closeModal();setView('settings')">Go to Settings</button></div>`);
+    return;
+  }
+
+  saveNoteContent(noteId, true);
+  const n = S.notes.find(x => x.id === noteId);
+  if (!n || !n.content?.trim()) { toast('❌ Note is empty — write some notes first!'); return; }
+
+  const s = S.subjects.find(x => x.id === n.subjectId);
+
+  openModal(`<div class="modal-title">✨ Generating Flashcards…</div>
+    <div style="text-align:center;padding:30px">
+      <div style="font-size:2rem;margin-bottom:12px;animation:spin 1s linear infinite">⚙️</div>
+      <p style="color:var(--text-muted)">AI is reading your notes and creating flashcards topic by topic…</p>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': S.settings.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        system: 'You are a study assistant. Given notes, extract flashcard question-answer pairs grouped by topic. Return ONLY valid JSON, no markdown, no explanation. Format: {"topics":[{"topic":"Topic Name","cards":[{"front":"Question?","back":"Answer."}]}]}',
+        messages: [{
+          role: 'user',
+          content: `Create comprehensive flashcards from these notes. Cover every key concept, definition, fact, and relationship. Group by topic.\n\nNOTE TITLE: ${n.title}\n\nNOTES:\n${n.content}`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    let parsed;
+    try { parsed = JSON.parse(data.content[0].text); }
+    catch { throw new Error('AI returned invalid format. Try again.'); }
+
+    const topics = parsed.topics || [];
+    const totalCards = topics.reduce((a, t) => a + t.cards.length, 0);
+
+    // Preview modal
+    closeModal();
+    setTimeout(() => {
+      openModal(`<div class="modal-title">✨ ${totalCards} Flashcards Generated!</div>
+        <p style="color:var(--text-muted);margin-bottom:16px">Found <strong>${topics.length} topic${topics.length!==1?'s':''}</strong> in your notes. Each topic becomes its own deck.</p>
+        <div style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px">
+          ${topics.map(t => `<div style="background:var(--surface2);border-radius:8px;padding:12px">
+            <div style="font-weight:700;margin-bottom:6px">📚 ${t.topic} <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">${t.cards.length} cards</span></div>
+            ${t.cards.slice(0,2).map(c=>`<div style="font-size:.78rem;color:var(--text-muted);padding:3px 0">Q: ${c.front}</div>`).join('')}
+            ${t.cards.length>2?`<div style="font-size:.72rem;color:var(--text-muted)">+${t.cards.length-2} more…</div>`:''}
+          </div>`).join('')}
+        </div>
+        <div class="mactions">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveAIDecks(${JSON.stringify(topics).replace(/'/g,"&#39;")}, '${n.subjectId}', '${n.title}')">Create ${topics.length} Deck${topics.length!==1?'s':''}</button>
+        </div>`);
+    }, 50);
+
+  } catch (e) {
+    closeModal();
+    setTimeout(() => openModal(`<div class="modal-title">❌ Error</div>
+      <p style="color:var(--text-muted)">${e.message}</p>
+      <div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`), 50);
+  }
+}
+
+function saveAIDecks(topics, subjectId, noteTitle) {
+  topics.forEach(t => {
+    const deck = {
+      id: uid(),
+      name: t.topic,
+      subjectId,
+      topic: noteTitle,
+      cards: t.cards.map(c => ({
+        id: uid(),
+        front: c.front,
+        back: c.back,
+        due: Date.now(),
+        interval: 1,
+        ease: 2.5,
+        reviews: 0
+      }))
+    };
+    S.decks.push(deck);
+  });
+  save();
+  closeModal();
+  toast(`✅ Created ${topics.length} deck${topics.length!==1?'s':''} with flashcards!`);
+  setView('flashcards');
+}
+
+// Also allow generating flashcards on a subject/topic from the AI tutor
+async function aiGenerateForTopic(subjectId, topic) {
+  if (!S.settings?.apiKey) { toast('❌ Add API key in Settings first'); return; }
+
+  const s = S.subjects.find(x=>x.id===subjectId);
+  const notes = S.notes.filter(n=>n.subjectId===subjectId).map(n=>`${n.title}:\n${n.content||''}`).join('\n\n');
+
+  openModal(`<div class="modal-title">✨ Generating for ${topic}…</div>
+    <div style="text-align:center;padding:30px"><div style="font-size:2rem;animation:spin 1s linear infinite">⚙️</div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <p style="color:var(--text-muted);margin-top:12px">Creating flashcards…</p></div>`);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': S.settings.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        system: 'You are a study assistant. Create comprehensive flashcards for the given topic. Return ONLY valid JSON: {"cards":[{"front":"Q?","back":"A."}]}',
+        messages: [{ role: 'user', content: `Create 15-20 flashcards for the topic: "${topic}" for subject: "${s?.name||''}"\n\nExisting notes:\n${notes||'None — use your knowledge.'}` }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const parsed = JSON.parse(data.content[0].text);
+    const cards = parsed.cards || [];
+    const deck = { id:uid(), name:topic, subjectId, topic:'AI Generated', cards: cards.map(c=>({id:uid(),front:c.front,back:c.back,due:Date.now(),interval:1,ease:2.5,reviews:0})) };
+    S.decks.push(deck);
+    save();
+    closeModal();
+    toast(`✅ Created deck "${topic}" with ${cards.length} cards!`);
+    setView('flashcards');
+  } catch(e) {
+    closeModal();
+    setTimeout(()=>openModal(`<div class="modal-title">❌ Error</div><p style="color:var(--text-muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
+  }
+}
 
 // ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
