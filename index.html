@@ -195,6 +195,34 @@
   .tab { flex: 1; padding: 7px; text-align: center; border-radius: 7px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: .15s; }
   .tab.active { background: var(--surface); color: var(--text); font-weight: 600; }
   .streak-flame { font-size: 1.2rem; }
+
+  /* POMODORO */
+  .pomo-ring { position: relative; width: 220px; height: 220px; margin: 0 auto 24px; }
+  .pomo-ring svg { transform: rotate(-90deg); }
+  .pomo-ring circle { fill: none; stroke-width: 10; }
+  .pomo-ring .track { stroke: var(--surface2); }
+  .pomo-ring .fill { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .5s linear; }
+  .pomo-time { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .pomo-time .time { font-size: 2.8rem; font-weight: 700; letter-spacing: .05em; }
+  .pomo-time .label { font-size: .8rem; color: var(--text-muted); margin-top: 4px; }
+  .pomo-controls { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+  .pomo-btn { width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem; transition: .15s; display: flex; align-items: center; justify-content: center; }
+  .pomo-sessions { display: flex; gap: 6px; justify-content: center; margin-top: 16px; }
+  .pomo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); transition: .3s; }
+  .pomo-dot.done { background: var(--accent); }
+
+  /* STATS */
+  .heatmap { display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; }
+  .heatmap-cell { aspect-ratio: 1; border-radius: 2px; background: var(--surface2); transition: .15s; cursor: default; }
+  .heatmap-cell:hover { opacity: .8; }
+
+  /* SEARCH */
+  .search-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; margin-bottom: 20px; }
+  .search-bar input { background: none; border: none; outline: none; color: var(--text); font-size: .95rem; flex: 1; font-family: inherit; }
+  .search-result { padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: .15s; }
+  .search-result:hover { border-color: var(--accent); }
+  .search-result-type { font-size: .72rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .06em; }
+  .search-result-title { font-size: .95rem; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -211,6 +239,8 @@
   <div class="nav-item" data-view="flashcards"><span class="icon">🃏</span> Flashcards</div>
   <div class="nav-item" data-view="notes"><span class="icon">📝</span> Notes</div>
   <div class="nav-item" data-view="uploads"><span class="icon">📎</span> Resources</div>
+  <div class="nav-item" data-view="pomodoro"><span class="icon">⏱️</span> Pomodoro</div>
+  <div class="nav-item" data-view="stats"><span class="icon">📊</span> Stats</div>
 
   <div class="nav-section" style="margin-top:8px">Subjects</div>
   <div class="sidebar-subjects" id="sidebar-subjects"></div>
@@ -219,6 +249,12 @@
 <div id="main">
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div style="flex:1;max-width:280px;margin:0 16px">
+      <div class="search-bar" style="margin-bottom:0;padding:6px 12px">
+        <span style="color:var(--text-muted)">🔍</span>
+        <input id="global-search" placeholder="Search notes, tasks, cards..." oninput="handleGlobalSearch(this.value)" onfocus="openSearchModal()" autocomplete="off">
+      </div>
+    </div>
     <div class="topbar-actions" id="topbar-actions"></div>
   </div>
   <div id="content">
@@ -285,6 +321,49 @@
       <div id="uploads-content"></div>
     </div>
 
+    <!-- POMODORO -->
+    <div class="view" id="view-pomodoro">
+      <div style="max-width:480px;margin:0 auto;text-align:center">
+        <div class="tabs" id="pomo-mode-tabs" style="margin-bottom:28px">
+          <div class="tab active" onclick="setPomoMode('focus',this)">Focus</div>
+          <div class="tab" onclick="setPomoMode('short',this)">Short Break</div>
+          <div class="tab" onclick="setPomoMode('long',this)">Long Break</div>
+        </div>
+        <div class="pomo-ring">
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle class="track" cx="110" cy="110" r="100"/>
+            <circle class="fill" id="pomo-circle" cx="110" cy="110" r="100" stroke-dasharray="628" stroke-dashoffset="0"/>
+          </svg>
+          <div class="pomo-time">
+            <div class="time" id="pomo-display">25:00</div>
+            <div class="label" id="pomo-label">Focus Time</div>
+          </div>
+        </div>
+        <div class="pomo-sessions" id="pomo-sessions"></div>
+        <div class="pomo-controls" style="margin-top:24px">
+          <button class="pomo-btn" style="background:var(--surface2);color:var(--text)" onclick="resetPomo()">⟳</button>
+          <button class="pomo-btn" style="background:var(--accent);color:#fff;width:60px;height:60px;font-size:1.4rem" id="pomo-play-btn" onclick="togglePomo()">▶</button>
+          <button class="pomo-btn" style="background:var(--surface2);color:var(--text)" onclick="skipPomo()">⏭</button>
+        </div>
+        <div style="margin-top:28px" class="card">
+          <div class="card-title" style="margin-bottom:12px">Session Settings</div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Focus (min)</label>
+              <input class="form-input" type="number" id="pomo-focus-len" value="25" min="1" max="120" onchange="updatePomoSettings()"></div>
+            <div class="form-group"><label class="form-label">Short Break</label>
+              <input class="form-input" type="number" id="pomo-short-len" value="5" min="1" max="30" onchange="updatePomoSettings()"></div>
+            <div class="form-group"><label class="form-label">Long Break</label>
+              <input class="form-input" type="number" id="pomo-long-len" value="15" min="1" max="60" onchange="updatePomoSettings()"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="view" id="view-stats">
+      <div id="stats-content"></div>
+    </div>
+
   </div>
 </div>
 
@@ -327,7 +406,7 @@ function setView(v) {
   document.querySelector(`.nav-item[data-view="${v}"]`)?.classList.add('active');
   currentView = v;
   const titles = {dashboard:'Dashboard',schedule:'Schedule',subjects:'Subjects',
-    flashcards:'Flashcards',notes:'Notes',uploads:'Resources',
+    flashcards:'Flashcards',notes:'Notes',uploads:'Resources',pomodoro:'⏱️ Pomodoro',stats:'📊 Stats',
     'subject-detail':'Subject Detail','study':'Study Mode','note-editor':'Note Editor'};
   document.getElementById('topbar-title').textContent = titles[v] || '';
   renderTopbarActions(v);
@@ -341,6 +420,8 @@ function renderView(v) {
   else if (v === 'flashcards') renderFlashcards();
   else if (v === 'notes') renderNotes();
   else if (v === 'uploads') renderUploads();
+  else if (v === 'pomodoro') updatePomoUI();
+  else if (v === 'stats') renderStats();
 }
 
 document.querySelectorAll('.nav-item').forEach(el => {
@@ -1291,6 +1372,265 @@ function fileIcon(type) {
   if (type.includes('audio')) return '🎵';
   if (type.includes('zip')) return '🗜️';
   return '📄';
+}
+
+// ─── POMODORO ─────────────────────────────────────────────────────────────────
+const POMO_MODES = { focus: {label:'Focus Time', color:'var(--accent)'}, short: {label:'Short Break', color:'var(--green)'}, long: {label:'Long Break', color:'var(--blue)'} };
+let pomo = {
+  mode: 'focus', running: false, elapsed: 0, total: 25*60,
+  sessions: 0, maxSessions: 4, interval: null,
+  settings: {focus:25, short:5, long:15}
+};
+
+function pomoSeconds() {
+  const s = pomo.settings;
+  return {focus: s.focus*60, short: s.short*60, long: s.long*60}[pomo.mode];
+}
+
+function setPomoMode(mode, el) {
+  document.querySelectorAll('#pomo-mode-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el?.classList.add('active');
+  pomo.mode = mode;
+  pomo.running = false; clearInterval(pomo.interval);
+  pomo.elapsed = 0; pomo.total = pomoSeconds();
+  updatePomoUI();
+}
+
+function togglePomo() {
+  if (pomo.running) {
+    pomo.running = false; clearInterval(pomo.interval);
+    document.getElementById('pomo-play-btn').textContent = '▶';
+  } else {
+    pomo.running = true;
+    document.getElementById('pomo-play-btn').textContent = '⏸';
+    pomo.interval = setInterval(() => {
+      pomo.elapsed++;
+      if (pomo.elapsed >= pomo.total) {
+        clearInterval(pomo.interval); pomo.running = false;
+        if (pomo.mode === 'focus') {
+          pomo.sessions++;
+          // log session
+          const today = new Date().toDateString();
+          if (!state.pomoLog) state.pomoLog = {};
+          state.pomoLog[today] = (state.pomoLog[today]||0) + 1;
+          save();
+          new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{});
+          setTimeout(()=>alert('🍅 Focus session done! Take a break.'), 100);
+          if (pomo.sessions % 4 === 0) setPomoModeAuto('long');
+          else setPomoModeAuto('short');
+        } else {
+          setTimeout(()=>alert('⏰ Break over! Back to focus.'), 100);
+          setPomoModeAuto('focus');
+        }
+        return;
+      }
+      updatePomoUI();
+    }, 1000);
+  }
+}
+
+function setPomoModeAuto(mode) {
+  pomo.mode = mode; pomo.elapsed = 0; pomo.total = pomoSeconds();
+  pomo.running = false;
+  document.querySelectorAll('#pomo-mode-tabs .tab').forEach((t,i) => {
+    t.classList.toggle('active', ['focus','short','long'][i]===mode);
+  });
+  document.getElementById('pomo-play-btn').textContent = '▶';
+  updatePomoUI();
+}
+
+function resetPomo() {
+  pomo.running = false; clearInterval(pomo.interval);
+  pomo.elapsed = 0; pomo.total = pomoSeconds();
+  document.getElementById('pomo-play-btn').textContent = '▶';
+  updatePomoUI();
+}
+function skipPomo() { pomo.elapsed = pomo.total; updatePomoUI(); }
+
+function updatePomoSettings() {
+  pomo.settings.focus = parseInt(document.getElementById('pomo-focus-len').value)||25;
+  pomo.settings.short = parseInt(document.getElementById('pomo-short-len').value)||5;
+  pomo.settings.long = parseInt(document.getElementById('pomo-long-len').value)||15;
+  resetPomo();
+}
+
+function updatePomoUI() {
+  const remaining = pomo.total - pomo.elapsed;
+  const m = Math.floor(remaining/60), s = remaining%60;
+  const disp = document.getElementById('pomo-display');
+  const lbl = document.getElementById('pomo-label');
+  const circle = document.getElementById('pomo-circle');
+  const sessEl = document.getElementById('pomo-sessions');
+  if (!disp) return;
+  disp.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  lbl.textContent = POMO_MODES[pomo.mode].label;
+  const pct = pomo.elapsed / pomo.total;
+  const circumference = 2 * Math.PI * 100;
+  circle.style.strokeDashoffset = circumference * (1 - pct);
+  circle.style.stroke = POMO_MODES[pomo.mode].color;
+  if (sessEl) {
+    sessEl.innerHTML = Array.from({length:4},(_,i)=>`<div class="pomo-dot ${i<pomo.sessions%4?'done':''}"></div>`).join('');
+  }
+  document.title = pomo.running ? `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} – StudyHub` : 'StudyHub';
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const el = document.getElementById('stats-content');
+  const totalCards = state.decks.reduce((a,d)=>a+d.cards.length,0);
+  const reviewedCards = state.decks.reduce((a,d)=>a+d.cards.filter(c=>c.reviews>0).length,0);
+  const totalTasks = state.subjects.flatMap(s=>s.tasks||[]).length;
+  const doneTasks = state.subjects.flatMap(s=>s.tasks||[]).filter(t=>t.done).length;
+  const pomoSessions = Object.values(state.pomoLog||{}).reduce((a,b)=>a+b,0);
+  const totalNotes = state.notes.length;
+
+  // streak
+  let streak = 0;
+  const log = state.pomoLog||{};
+  const d = new Date();
+  while (true) {
+    const key = d.toDateString();
+    if (log[key]) { streak++; d.setDate(d.getDate()-1); } else break;
+  }
+
+  // heatmap last 52 weeks
+  const heatmap = [];
+  const now = new Date(); now.setHours(0,0,0,0);
+  for (let i=364; i>=0; i--) {
+    const dd = new Date(now); dd.setDate(dd.getDate()-i);
+    const key = dd.toDateString();
+    const count = log[key]||0;
+    heatmap.push({count, date: dd.toLocaleDateString('en-AU',{day:'numeric',month:'short'})});
+  }
+  const maxCount = Math.max(...heatmap.map(h=>h.count), 1);
+
+  el.innerHTML = `
+    <div class="grid-4 mb-16">
+      <div class="stat-card"><div class="stat-value">${streak} 🔥</div><div class="stat-label">Day Streak</div></div>
+      <div class="stat-card"><div class="stat-value">${pomoSessions}</div><div class="stat-label">Pomodoros Done</div></div>
+      <div class="stat-card"><div class="stat-value">${reviewedCards}/${totalCards}</div><div class="stat-label">Cards Reviewed</div></div>
+      <div class="stat-card"><div class="stat-value">${doneTasks}/${totalTasks}</div><div class="stat-label">Tasks Complete</div></div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title mb-16">Study Activity (last year)</div>
+      <div class="heatmap">
+        ${heatmap.map(h=>{
+          const alpha = h.count ? 0.2 + 0.8*(h.count/maxCount) : 0;
+          const bg = h.count ? `rgba(124,106,247,${alpha.toFixed(2)})` : 'var(--surface2)';
+          return `<div class="heatmap-cell" style="background:${bg}" title="${h.date}: ${h.count} sessions"></div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:8px;font-size:.75rem;color:var(--text-muted)">
+        Less
+        ${[0.1,0.3,0.5,0.7,1].map(a=>`<div style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,247,${a})"></div>`).join('')}
+        More
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title mb-16">Subject Progress</div>
+        ${state.subjects.length ? state.subjects.map(s=>{
+          const tasks = s.tasks||[], done = tasks.filter(t=>t.done).length;
+          const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+          const deckCards = state.decks.filter(d=>d.subjectId===s.id).reduce((a,d)=>a+d.cards.length,0);
+          const noteCount = state.notes.filter(n=>n.subjectId===s.id).length;
+          return `<div style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span>${s.emoji||'📚'}</span><span style="font-weight:600;font-size:.9rem">${s.name}</span>
+              <span style="margin-left:auto;font-size:.78rem;color:var(--text-muted)">${done}/${tasks.length} tasks · ${deckCards} cards · ${noteCount} notes</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${s.color}"></div></div>
+          </div>`;
+        }).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No subjects yet.</p>'}
+      </div>
+      <div class="card">
+        <div class="card-title mb-16">Flashcard Mastery</div>
+        ${state.decks.length ? state.decks.map(d=>{
+          const mastered = d.cards.filter(c=>c.interval>=21).length;
+          const learning = d.cards.filter(c=>c.reviews>0&&c.interval<21).length;
+          const newCards = d.cards.filter(c=>c.reviews===0).length;
+          return `<div style="margin-bottom:14px">
+            <div style="font-size:.88rem;font-weight:600;margin-bottom:6px">${d.name}</div>
+            <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden">
+              <div style="flex:${mastered};background:var(--green)" title="Mastered: ${mastered}"></div>
+              <div style="flex:${learning};background:var(--blue)" title="Learning: ${learning}"></div>
+              <div style="flex:${newCards};background:var(--surface2)" title="New: ${newCards}"></div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:.72rem;color:var(--text-muted)">
+              <span>🟢 ${mastered} mastered</span><span>🔵 ${learning} learning</span><span>⚪ ${newCards} new</span>
+            </div>
+          </div>`;
+        }).join('') : '<p style="color:var(--text-muted);font-size:.88rem">No decks yet.</p>'}
+      </div>
+    </div>
+  `;
+}
+
+// ─── SEARCH ───────────────────────────────────────────────────────────────────
+function openSearchModal() {
+  openModal(`<div class="modal-title">🔍 Search</div>
+    <div class="search-bar" style="margin-bottom:16px">
+      <span style="color:var(--text-muted)">🔍</span>
+      <input id="modal-search-input" placeholder="Search everything..." oninput="runSearch(this.value)" autofocus style="background:none;border:none;outline:none;color:var(--text);font-size:.95rem;flex:1;font-family:inherit">
+    </div>
+    <div id="modal-search-results" style="max-height:400px;overflow-y:auto"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>
+  `);
+  setTimeout(()=>document.getElementById('modal-search-input')?.focus(),50);
+}
+
+function handleGlobalSearch(val) {
+  if (val.trim()) openSearchModal();
+  document.getElementById('global-search').value = '';
+}
+
+function runSearch(query) {
+  const el = document.getElementById('modal-search-results');
+  if (!query.trim()) { el.innerHTML = ''; return; }
+  const q = query.toLowerCase();
+  const results = [];
+
+  state.subjects.forEach(s => {
+    if (s.name.toLowerCase().includes(q))
+      results.push({type:'Subject', title:`${s.emoji||'📚'} ${s.name}`, action:`closeModal();openSubjectDetail('${s.id}')`});
+    (s.tasks||[]).forEach(t => {
+      if (t.name.toLowerCase().includes(q))
+        results.push({type:'Task', title:t.name, sub:`${s.emoji||''} ${s.name}`, action:`closeModal();openSubjectDetail('${s.id}')`});
+    });
+  });
+
+  state.notes.forEach(n => {
+    const s = state.subjects.find(x=>x.id===n.subjectId);
+    if (n.title.toLowerCase().includes(q)||(n.content||'').toLowerCase().includes(q))
+      results.push({type:'Note', title:n.title, sub:`${s?.emoji||''} ${s?.name||''}`, action:`closeModal();openNoteEditor('${n.id}')`});
+  });
+
+  state.decks.forEach(d => {
+    const s = state.subjects.find(x=>x.id===d.subjectId);
+    if (d.name.toLowerCase().includes(q))
+      results.push({type:'Deck', title:d.name, sub:`${s?.emoji||''} ${s?.name||''}`, action:`closeModal();startStudy('${d.id}')`});
+    d.cards.forEach(c => {
+      if (c.front.toLowerCase().includes(q)||c.back.toLowerCase().includes(q))
+        results.push({type:'Flashcard', title:c.front, sub:d.name, action:`closeModal();startStudy('${d.id}')`});
+    });
+  });
+
+  state.uploads.forEach(u => {
+    const s = state.subjects.find(x=>x.id===u.subjectId);
+    if (u.name.toLowerCase().includes(q))
+      results.push({type:'File', title:u.name, sub:`${s?.emoji||''} ${s?.name||'General'}`, action:`downloadFile('${u.id}')`});
+  });
+
+  if (!results.length) { el.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">No results found.</p>'; return; }
+  el.innerHTML = results.slice(0,20).map(r=>`
+    <div class="search-result" onclick="${r.action}">
+      <div class="search-result-type">${r.type}</div>
+      <div class="search-result-title">${r.title}</div>
+      ${r.sub?`<div style="font-size:.78rem;color:var(--text-muted);margin-top:2px">${r.sub}</div>`:''}
+    </div>
+  `).join('');
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
