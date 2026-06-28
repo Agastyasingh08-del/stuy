@@ -944,11 +944,34 @@ function manageDeck(id){
     </div>
     <div class="mactions"><button class="btn btn-danger btn-sm" onclick="delDeck('${id}')">Delete Deck</button><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`);
 }
+function cardImgInput(side){
+  return `<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <label style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:.78rem;color:var(--text-muted);padding:4px 10px;border:1px dashed var(--border);border-radius:6px">
+      🖼 Add image<input type="file" accept="image/*" style="display:none" onchange="previewCardImg(this,'${side}')">
+    </label>
+    <span id="img-label-${side}" style="font-size:.75rem;color:var(--text-muted)"></span>
+  </div>
+  <img id="img-prev-${side}" style="display:none;max-width:100%;max-height:140px;border-radius:8px;margin-top:8px;object-fit:contain">`;
+}
+let _cardImgs={front:null,back:null};
+function previewCardImg(input, side){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    _cardImgs[side]=e.target.result;
+    const prev=document.getElementById('img-prev-'+side);
+    const lbl=document.getElementById('img-label-'+side);
+    if(prev){prev.src=e.target.result;prev.style.display='block';}
+    if(lbl) lbl.textContent=file.name;
+  };
+  reader.readAsDataURL(file);
+}
 function openAddCard(did){
+  _cardImgs={front:null,back:null};
   closeModal();
   setTimeout(()=>openModal(`<div class="modal-title">Add Flashcard</div>
-    <div class="fg"><label class="fl">Front (Question / Term)</label><textarea class="fi" id="cf" rows="3" placeholder="What is...?"></textarea></div>
-    <div class="fg"><label class="fl">Back (Answer / Definition)</label><textarea class="fi" id="cb" rows="3" placeholder="It is..."></textarea></div>
+    <div class="fg"><label class="fl">Front (Question / Term)</label><textarea class="fi" id="cf" rows="3" placeholder="What is...?"></textarea>${cardImgInput('front')}</div>
+    <div class="fg"><label class="fl">Back (Answer / Definition)</label><textarea class="fi" id="cb" rows="3" placeholder="It is..."></textarea>${cardImgInput('back')}</div>
     <div class="mactions">
       <button class="btn btn-ghost" onclick="closeModal();manageDeck('${did}')">Cancel</button>
       <button class="btn btn-ghost" onclick="saveCard('${did}',true)">Save & Add Another</button>
@@ -958,8 +981,10 @@ function openAddCard(did){
 }
 function saveCard(did,another){
   const front=document.getElementById('cf').value.trim(),back=document.getElementById('cb').value.trim();
-  if(!front||!back)return;
-  S.decks.find(x=>x.id===did).cards.push({id:uid(),front,back,due:Date.now(),interval:1,ease:2.5,reviews:0});
+  if(!front&&!_cardImgs.front){toast('❌ Front is empty');return;}
+  if(!back&&!_cardImgs.back){toast('❌ Back is empty');return;}
+  S.decks.find(x=>x.id===did).cards.push({id:uid(),front,back,frontImg:_cardImgs.front||null,backImg:_cardImgs.back||null,due:Date.now(),interval:1,ease:2.5,reviews:0});
+  _cardImgs={front:null,back:null};
   save();toast('🃏 Card added');
   if(another){closeModal();setTimeout(()=>openAddCard(did),60);}
   else{closeModal();renderFCList();}
@@ -1012,8 +1037,8 @@ function renderStudyCard(){
       </div>
     </div>
     <div class="fc ${revealed?'revealed':''}" onclick="revealCard()">
-      <div class="fc-front">${card.front}</div>
-      ${revealed?`<div class="fc-sep"></div><div class="fc-back">${card.back}</div>`:`<div style="margin-top:16px;font-size:.8rem;color:var(--text-muted)">Click to reveal answer</div>`}
+      <div class="fc-front">${card.front||''}${card.frontImg?`<img src="${card.frontImg}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:${card.front?'10px':'0'};object-fit:contain;display:block">`:''}</div>
+      ${revealed?`<div class="fc-sep"></div><div class="fc-back">${card.back||''}${card.backImg?`<img src="${card.backImg}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:${card.back?'10px':'0'};object-fit:contain;display:block">`:''}</div>`:`<div style="margin-top:16px;font-size:.8rem;color:var(--text-muted)">Click to reveal answer</div>`}
     </div>
     ${revealed?`<div class="rating-row">
       <div class="rate-btn" style="background:#f8717122;color:var(--red);border-color:#f8717144" onclick="rateCard(0)">😣<br><span style="font-size:.7rem;font-weight:500">Again</span></div>
