@@ -1872,6 +1872,7 @@ function handleAIGenDrop(e){
 let aigenFile = null;
 function handleAIGenFile(input) {
   const file = input.files[0]; if (!file) return;
+  if (file.size > 50 * 1024 * 1024) { toast('❌ File too large — max 50 MB'); return; }
   const reader = new FileReader();
   reader.onload = e => {
     aigenFile = {name: file.name, type: file.type, data: e.target.result, size: fmtBytes(file.size)};
