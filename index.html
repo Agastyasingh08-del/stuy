@@ -1982,6 +1982,8 @@ function renderAIReview(){
                 <div style="flex:1;min-width:0">
                   <input value="${c.front.replace(/"/g,'&quot;')}" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);padding:3px 0;font-size:.8rem;margin-bottom:4px" placeholder="Front" oninput="_aiReview.topics[${ti}].cards[${ci}].front=this.value">
                   <input value="${c.back.replace(/"/g,'&quot;')}" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text-muted);padding:3px 0;font-size:.78rem" placeholder="Back" oninput="_aiReview.topics[${ti}].cards[${ci}].back=this.value">
+                  ${c.backImg?`<img src="${c.backImg}" style="max-width:100%;max-height:100px;border-radius:6px;margin-top:6px;object-fit:contain;display:block" title="Extracted diagram">
+                  <span style="font-size:.7rem;color:var(--accent)">🖼 Diagram extracted</span>`:''}
                 </div>
                 <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.9rem;padding:2px 4px;flex-shrink:0" onclick="aiReviewRemoveCard(${ti},${ci})" title="Delete card">🗑</button>
               </div>`).join('')}
@@ -2075,7 +2077,12 @@ async function aiFlashcardsFromFile(fileObj, subjectId) {
     } else if (type.startsWith('image/')) {
       messages = [{role:'user', content:[
         {type:'image', source:{type:'base64', media_type:type, data:base64}},
-        {type:'text', text:`Create comprehensive flashcards from this image grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}`}
+        {type:'text', text:`Analyse this image and create comprehensive flashcards grouped by topic.
+For any diagram, chart, figure, graph, or labelled illustration that would be useful embedded on a card, include an "imageRegion" field with its bounding box as fractions of the full image (0.0–1.0): {"top":0.1,"left":0.05,"width":0.9,"height":0.3}.
+Only add imageRegion when there is a clearly identifiable visual region worth cropping — do NOT add it for plain text regions.
+Return ONLY valid JSON, no markdown:
+{"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A.","imageRegion":{"top":0.0,"left":0.0,"width":1.0,"height":0.5}}]}]}
+imageRegion is optional — omit it on text-only cards.`}
       ]}];
     } else {
       // text file — decode base64 to text
@@ -2097,8 +2104,12 @@ async function aiFlashcardsFromFile(fileObj, subjectId) {
     try { parsed = JSON.parse(raw.replace(/```json|```/g,'')); }
     catch { throw new Error('AI returned invalid format. Try again.'); }
 
-    const topics = parsed.topics || [];
-    const totalCards = topics.reduce((a,t)=>a+t.cards.length,0);
+    let topics = parsed.topics || [];
+
+    // For images: crop any imageRegion bounding boxes into dataURLs
+    if (type.startsWith('image/')) {
+      topics = await cropImageRegions(fileObj.data, topics);
+    }
 
     closeModal();
     setTimeout(()=>openAIReviewModal(topics, subjectId, fileObj.name), 50);
@@ -2106,6 +2117,36 @@ async function aiFlashcardsFromFile(fileObj, subjectId) {
     closeModal();
     setTimeout(()=>openModal(`<div class="modal-title">❌ Error</div><p style="color:var(--text-muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
   }
+}
+
+async function cropImageRegions(dataUrl, topics) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const W = img.naturalWidth, H = img.naturalHeight;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const result = topics.map(t => ({
+        ...t,
+        cards: t.cards.map(c => {
+          if (!c.imageRegion) return c;
+          const {top=0, left=0, width=1, height=1} = c.imageRegion;
+          const sx = Math.round(left * W), sy = Math.round(top * H);
+          const sw = Math.round(width * W), sh = Math.round(height * H);
+          if (sw < 10 || sh < 10) return c; // skip tiny regions
+          canvas.width = sw; canvas.height = sh;
+          ctx.clearRect(0, 0, sw, sh);
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+          const cropped = canvas.toDataURL('image/png');
+          const {imageRegion, ...rest} = c;
+          return {...rest, backImg: cropped};
+        })
+      }));
+      resolve(result);
+    };
+    img.onerror = () => resolve(topics); // fallback: return unchanged
+    img.src = dataUrl;
+  });
 }
 
 // ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
