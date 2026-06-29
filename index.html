@@ -1075,28 +1075,114 @@ function sm2(card,q){
   }
 }
 
-let study={did:null,queue:[],idx:0,revealed:false};
+let study={did:null,queue:[],idx:0,revealed:false,typeMode:false,aiGrading:false,aiResult:null};
 function startStudy(did){
   const d=S.decks.find(x=>x.id===did);if(!d)return;
   let queue=d.cards.filter(c=>cardDue(c));
   if(!queue.length)queue=[...d.cards];
   if(!queue.length){openModal(`<div class="modal-title">No cards yet</div><p style="color:var(--text-muted)">Add some cards to this deck first.</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal();manageDeck('${did}')">Add Cards</button></div>`);return;}
-  study={did,queue:shuffle([...queue]),idx:0,revealed:false};
+  study={did,queue:shuffle([...queue]),idx:0,revealed:false,typeMode:false,aiGrading:false,aiResult:null};
   setViewRaw('study','🃏 '+d.name);
   renderStudyCard();
 }
+
 function renderStudyCard(){
-  const{queue,idx,revealed,did}=study;
+  const{queue,idx,revealed,did,typeMode,aiGrading,aiResult}=study;
   const el=document.getElementById('study-inner');
   if(idx>=queue.length){
     el.innerHTML=`<div class="fc-wrap"><div style="text-align:center;padding:60px"><div style="font-size:3rem;margin-bottom:16px">🎉</div><h2 style="font-size:1.3rem;margin-bottom:8px">Session Complete!</h2><p style="color:var(--text-muted)">Reviewed ${queue.length} card${queue.length!==1?'s':''}</p><button class="btn btn-primary mt16" onclick="setView('flashcards')">Back to Decks</button></div></div>`;
-    // log pomo-style
     const today=new Date().toDateString();
     if(!S.pomoLog)S.pomoLog={};
     S.pomoLog[today]=(S.pomoLog[today]||0)+1;save();
     return;
   }
   const card=queue[idx];
+  const sr=srCfg();
+  const aLbl=sr.againMin?sr.againMin+'m':'now';
+  const hLbl=sr.hardMin?sr.hardMin+'m':'soon';
+  const gLbl=(sr.goodDays||1)+'d';
+  const eLbl=(sr.easyDays||4)+'d+';
+
+  const frontHtml=`${card.front||''}${card.frontImg?`<img src="${card.frontImg}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:${card.front?'10px':'0'};object-fit:contain;display:block">`:''}`;
+  const backHtml=`${card.back||''}${card.backImg?`<img src="${card.backImg}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:${card.back?'10px':'0'};object-fit:contain;display:block">`:''}`;
+
+  const ratingRow=`<div class="rating-row">
+    <div class="rate-btn" style="background:#f8717122;color:var(--red);border-color:#f8717144" onclick="rateCard(0)">😣<br><span style="font-size:.7rem;font-weight:500">Again</span><br><span style="font-size:.65rem;opacity:.7">${aLbl}</span></div>
+    <div class="rate-btn" style="background:#fb923c22;color:var(--orange);border-color:#fb923c44" onclick="rateCard(1)">😓<br><span style="font-size:.7rem;font-weight:500">Hard</span><br><span style="font-size:.65rem;opacity:.7">${hLbl}</span></div>
+    <div class="rate-btn" style="background:#60a5fa22;color:var(--blue);border-color:#60a5fa44" onclick="rateCard(2)">🙂<br><span style="font-size:.7rem;font-weight:500">Good</span><br><span style="font-size:.65rem;opacity:.7">${gLbl}</span></div>
+    <div class="rate-btn" style="background:#4ade8022;color:var(--green);border-color:#4ade8044" onclick="rateCard(3)">😄<br><span style="font-size:.7rem;font-weight:500">Easy</span><br><span style="font-size:.65rem;opacity:.7">${eLbl}</span></div>
+  </div>`;
+
+  let bodyHtml='';
+  if(typeMode){
+    if(!revealed){
+      bodyHtml=`
+        <div class="fc">
+          <div class="fc-front">${frontHtml}</div>
+        </div>
+        <textarea id="study-answer" placeholder="Type your answer here…" style="width:100%;margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:80px;box-sizing:border-box" onkeydown="if((e||event).key==='Enter'&&((e||event).ctrlKey||(e||event).metaKey))submitTypedAnswer()"></textarea>
+        <div style="display:flex;gap:10px;margin-top:10px;justify-content:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="study.typeMode=false;renderStudyCard()">Switch to flip mode</button>
+          <button class="btn btn-primary" onclick="submitTypedAnswer()">Submit${S.settings?.apiKey?' & AI Grade':''}</button>
+        </div>`;
+    } else if(aiGrading){
+      bodyHtml=`
+        <div class="fc revealed">
+          <div class="fc-front">${frontHtml}</div>
+          <div class="fc-sep"></div>
+          <div class="fc-back">${backHtml}</div>
+        </div>
+        <div style="margin-top:14px;background:var(--surface2);border-radius:10px;padding:14px;font-size:.88rem">
+          <div style="font-weight:600;margin-bottom:6px;color:var(--text-muted)">Your answer:</div>
+          <div style="color:var(--text)">${study._typedAnswer||''}</div>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:.85rem">
+          <div style="animation:spin 1s linear infinite;font-size:1.2rem">⚙️</div> AI is grading your answer…
+        </div>`;
+    } else if(aiResult){
+      const score=aiResult.score; // 0-3 mapped to rating
+      const scoreColor=['var(--red)','var(--orange)','var(--blue)','var(--green)'][score]||'var(--text)';
+      const scoreLbl=['Incorrect','Partially correct','Mostly correct','Correct'][score]||'';
+      bodyHtml=`
+        <div class="fc revealed">
+          <div class="fc-front">${frontHtml}</div>
+          <div class="fc-sep"></div>
+          <div class="fc-back">${backHtml}</div>
+        </div>
+        <div style="margin-top:14px;background:var(--surface2);border-radius:10px;padding:14px;font-size:.88rem">
+          <div style="font-weight:600;margin-bottom:4px;color:var(--text-muted)">Your answer:</div>
+          <div style="color:var(--text);margin-bottom:10px">${study._typedAnswer||''}</div>
+          <div style="border-top:1px solid var(--border);padding-top:10px">
+            <span style="font-weight:700;color:${scoreColor}">${scoreLbl}</span>
+            <span style="color:var(--text-muted);font-size:.8rem;margin-left:8px">${aiResult.feedback||''}</span>
+          </div>
+        </div>
+        ${ratingRow}`;
+    } else {
+      // fallback revealed without AI
+      bodyHtml=`
+        <div class="fc revealed">
+          <div class="fc-front">${frontHtml}</div>
+          <div class="fc-sep"></div>
+          <div class="fc-back">${backHtml}</div>
+        </div>
+        <div style="margin-top:14px;background:var(--surface2);border-radius:10px;padding:14px;font-size:.88rem">
+          <div style="font-weight:600;margin-bottom:4px;color:var(--text-muted)">Your answer:</div>
+          <div>${study._typedAnswer||''}</div>
+        </div>
+        ${ratingRow}`;
+    }
+  } else {
+    bodyHtml=`
+      <div class="fc ${revealed?'revealed':''}" onclick="${revealed?'':'revealCard()'}">
+        <div class="fc-front">${frontHtml}</div>
+        ${revealed?`<div class="fc-sep"></div><div class="fc-back">${backHtml}</div>`:`<div style="margin-top:16px;font-size:.8rem;color:var(--text-muted)">Click to reveal answer</div>`}
+      </div>
+      ${revealed?ratingRow:`<div style="text-align:center;margin-top:14px;font-size:.8rem;color:var(--text-muted)">
+        Click the card to reveal · or <span style="color:var(--accent);cursor:pointer" onclick="study.typeMode=true;renderStudyCard()">type your answer</span>
+      </div>`}`;
+  }
+
   el.innerHTML=`<div class="fc-wrap">
     <div class="flex items-c gap12 mb14">
       <span style="font-size:.82rem;color:var(--text-muted)">${idx+1} / ${queue.length}</span>
@@ -1104,22 +1190,39 @@ function renderStudyCard(){
         <div style="height:100%;background:var(--accent);border-radius:3px;width:${(idx/queue.length*100).toFixed(0)}%;transition:width .3s"></div>
       </div>
     </div>
-    <div class="fc ${revealed?'revealed':''}" onclick="revealCard()">
-      <div class="fc-front">${card.front||''}${card.frontImg?`<img src="${card.frontImg}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:${card.front?'10px':'0'};object-fit:contain;display:block">`:''}</div>
-      ${revealed?`<div class="fc-sep"></div><div class="fc-back">${card.back||''}${card.backImg?`<img src="${card.backImg}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:${card.back?'10px':'0'};object-fit:contain;display:block">`:''}</div>`:`<div style="margin-top:16px;font-size:.8rem;color:var(--text-muted)">Click to reveal answer</div>`}
-    </div>
-    ${revealed?`<div class="rating-row">
-      ${(()=>{const sr=srCfg();const aLbl=sr.againMin?sr.againMin+'m':'now';const hLbl=sr.hardMin?sr.hardMin+'m':'soon';const gLbl=(sr.goodDays||1)+'d';const eLbl=(sr.easyDays||4)+'d+';return`
-      <div class="rate-btn" style="background:#f8717122;color:var(--red);border-color:#f8717144" onclick="rateCard(0)">😣<br><span style="font-size:.7rem;font-weight:500">Again</span><br><span style="font-size:.65rem;opacity:.7">${aLbl}</span></div>
-      <div class="rate-btn" style="background:#fb923c22;color:var(--orange);border-color:#fb923c44" onclick="rateCard(1)">😓<br><span style="font-size:.7rem;font-weight:500">Hard</span><br><span style="font-size:.65rem;opacity:.7">${hLbl}</span></div>
-      <div class="rate-btn" style="background:#60a5fa22;color:var(--blue);border-color:#60a5fa44" onclick="rateCard(2)">🙂<br><span style="font-size:.7rem;font-weight:500">Good</span><br><span style="font-size:.65rem;opacity:.7">${gLbl}</span></div>
-      <div class="rate-btn" style="background:#4ade8022;color:var(--green);border-color:#4ade8044" onclick="rateCard(3)">😄<br><span style="font-size:.7rem;font-weight:500">Easy</span><br><span style="font-size:.65rem;opacity:.7">${eLbl}</span></div>`;})()}
-    </div>`:'<div style="text-align:center;margin-top:14px;font-size:.8rem;color:var(--text-muted)">Click the card to reveal the answer</div>'}
+    ${bodyHtml}
   </div>`;
+  if(typeMode&&!revealed) setTimeout(()=>document.getElementById('study-answer')?.focus(),50);
 }
+
+async function submitTypedAnswer(){
+  const answer=(document.getElementById('study-answer')?.value||'').trim();
+  if(!answer){toast('❌ Type something first');return;}
+  study._typedAnswer=answer;
+  const card=study.queue[study.idx];
+
+  if(S.settings?.apiKey){
+    study.revealed=true;study.aiGrading=true;study.aiResult=null;renderStudyCard();
+    try{
+      const raw=await callClaude(
+        'You are a strict but fair flashcard grader. Grade the student\'s answer vs the model answer. Return ONLY JSON: {"score":0,"feedback":"short feedback"}. Score: 0=incorrect, 1=partially correct, 2=mostly correct, 3=correct/equivalent.',
+        [{role:'user',content:`Question: ${card.front}\nModel answer: ${card.back}\nStudent answer: ${answer}`}]
+      );
+      const parsed=JSON.parse(raw.replace(/```json|```/g,''));
+      study.aiGrading=false;
+      study.aiResult={score:Math.min(3,Math.max(0,parsed.score??2)),feedback:parsed.feedback||''};
+    }catch(e){
+      study.aiGrading=false;
+      study.aiResult={score:2,feedback:'(Could not grade — rate yourself)'};
+    }
+  } else {
+    study.revealed=true;study.aiGrading=false;study.aiResult=null;
+  }
+  renderStudyCard();
+}
+
 function revealCard(){study.revealed=true;renderStudyCard();}
 function rateCard(r){
-  // r: 0=Again, 1=Hard, 2=Good, 3=Easy
   const{queue,idx,did}=study;
   const card=queue[idx];
   const d=S.decks.find(x=>x.id===did);
@@ -1127,12 +1230,12 @@ function rateCard(r){
   if(real) sm2(real, r);
   save();
   if(r===0||r===1){
-    // Re-insert card later in the queue so it comes back this session
     const remaining=queue.length-idx-1;
     const insertAt=idx+1+Math.min(3,Math.floor(remaining/2)+1);
     study.queue.splice(insertAt,0,card);
   }
-  study.idx++;study.revealed=false;renderStudyCard();
+  study.idx++;study.revealed=false;study.aiGrading=false;study.aiResult=null;study._typedAnswer=null;
+  renderStudyCard();
 }
 
 // ─── NOTES ───────────────────────────────────────────────────────────────────
@@ -1842,25 +1945,8 @@ async function aiFlashcardsFromNote(noteId) {
     catch { throw new Error('AI returned invalid format. Try again.'); }
 
     const topics = parsed.topics || [];
-    const totalCards = topics.reduce((a, t) => a + t.cards.length, 0);
-
-    // Preview modal
     closeModal();
-    setTimeout(() => {
-      openModal(`<div class="modal-title">✨ ${totalCards} Flashcards Generated!</div>
-        <p style="color:var(--text-muted);margin-bottom:16px">Found <strong>${topics.length} topic${topics.length!==1?'s':''}</strong> in your notes. Each topic becomes its own deck.</p>
-        <div style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px">
-          ${topics.map(t => `<div style="background:var(--surface2);border-radius:8px;padding:12px">
-            <div style="font-weight:700;margin-bottom:6px">📚 ${t.topic} <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">${t.cards.length} cards</span></div>
-            ${t.cards.slice(0,2).map(c=>`<div style="font-size:.78rem;color:var(--text-muted);padding:3px 0">Q: ${c.front}</div>`).join('')}
-            ${t.cards.length>2?`<div style="font-size:.72rem;color:var(--text-muted)">+${t.cards.length-2} more…</div>`:''}
-          </div>`).join('')}
-        </div>
-        <div class="mactions">
-          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-          <button class="btn btn-primary" onclick="saveAIDecks(${JSON.stringify(topics).replace(/'/g,"&#39;")}, '${n.subjectId}', '${n.title}')">Create ${topics.length} Deck${topics.length!==1?'s':''}</button>
-        </div>`);
-    }, 50);
+    setTimeout(() => openAIReviewModal(topics, n.subjectId, n.title), 50);
 
   } catch (e) {
     closeModal();
@@ -1868,6 +1954,53 @@ async function aiFlashcardsFromNote(noteId) {
       <p style="color:var(--text-muted)">${e.message}</p>
       <div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`), 50);
   }
+}
+
+let _aiReview={topics:[],subjectId:'',title:''};
+function openAIReviewModal(topics, subjectId, title){
+  _aiReview={topics:JSON.parse(JSON.stringify(topics)),subjectId,title};
+  renderAIReview();
+}
+function renderAIReview(){
+  const {topics,subjectId,title}=_aiReview;
+  const totalCards=topics.reduce((a,t)=>a+t.cards.length,0);
+  openModal(`<div class="modal-title">✨ Review Generated Cards</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:.82rem;color:var(--text-muted)">${topics.length} deck${topics.length!==1?'s':''} · ${totalCards} cards total</span>
+      <button class="btn btn-ghost btn-sm" onclick="aiReviewMergeAll()" title="Merge all topics into one deck">⊕ Merge into 1 deck</button>
+    </div>
+    <div style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:14px" id="ai-review-list">
+      ${topics.map((t,ti)=>`
+        <div style="background:var(--surface2);border-radius:10px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <input value="${t.topic.replace(/"/g,'&quot;')}" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 9px;font-size:.85rem;font-weight:600" oninput="_aiReview.topics[${ti}].topic=this.value">
+            <button class="btn btn-danger btn-sm" onclick="aiReviewRemoveTopic(${ti})" title="Remove this deck">✕</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${t.cards.map((c,ci)=>`
+              <div style="background:var(--surface);border-radius:7px;padding:8px 10px;display:flex;gap:8px;align-items:flex-start">
+                <div style="flex:1;min-width:0">
+                  <input value="${c.front.replace(/"/g,'&quot;')}" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);padding:3px 0;font-size:.8rem;margin-bottom:4px" placeholder="Front" oninput="_aiReview.topics[${ti}].cards[${ci}].front=this.value">
+                  <input value="${c.back.replace(/"/g,'&quot;')}" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text-muted);padding:3px 0;font-size:.78rem" placeholder="Back" oninput="_aiReview.topics[${ti}].cards[${ci}].back=this.value">
+                </div>
+                <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.9rem;padding:2px 4px;flex-shrink:0" onclick="aiReviewRemoveCard(${ti},${ci})" title="Delete card">🗑</button>
+              </div>`).join('')}
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px;font-size:.75rem" onclick="aiReviewAddCard(${ti})">+ Add card</button>
+        </div>`).join('')}
+    </div>
+    <div class="mactions" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAIDecks(_aiReview.topics,_aiReview.subjectId,_aiReview.title)">Save ${topics.length} Deck${topics.length!==1?'s':''}</button>
+    </div>`);
+}
+function aiReviewRemoveTopic(ti){_aiReview.topics.splice(ti,1);renderAIReview();}
+function aiReviewRemoveCard(ti,ci){_aiReview.topics[ti].cards.splice(ci,1);if(!_aiReview.topics[ti].cards.length)_aiReview.topics.splice(ti,1);renderAIReview();}
+function aiReviewAddCard(ti){_aiReview.topics[ti].cards.push({front:'',back:''});renderAIReview();}
+function aiReviewMergeAll(){
+  const all=_aiReview.topics.flatMap(t=>t.cards);
+  _aiReview.topics=[{topic:_aiReview.title||'All Cards',cards:all}];
+  renderAIReview();
 }
 
 function saveAIDecks(topics, subjectId, noteTitle) {
@@ -1913,12 +2046,8 @@ async function aiGenerateForTopic(subjectId, topic) {
     );
     const parsed2 = JSON.parse(raw2.replace(/```json|```/g,''));
     const cards = parsed2.cards || [];
-    const deck = { id:uid(), name:topic, subjectId, topic:'AI Generated', cards: cards.map(c=>({id:uid(),front:c.front,back:c.back,due:Date.now(),interval:1,ease:2.5,reviews:0})) };
-    S.decks.push(deck);
-    save();
     closeModal();
-    toast(`✅ Created deck "${topic}" with ${cards.length} cards!`);
-    setView('flashcards');
+    setTimeout(()=>openAIReviewModal([{topic,cards}], subjectId, topic), 50);
   } catch(e) {
     closeModal();
     setTimeout(()=>openModal(`<div class="modal-title">❌ Error</div><p style="color:var(--text-muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
@@ -1972,19 +2101,7 @@ async function aiFlashcardsFromFile(fileObj, subjectId) {
     const totalCards = topics.reduce((a,t)=>a+t.cards.length,0);
 
     closeModal();
-    setTimeout(()=>openModal(`<div class="modal-title">✨ ${totalCards} Flashcards Generated!</div>
-      <p style="color:var(--text-muted);margin-bottom:16px">Found <strong>${topics.length} topic${topics.length!==1?'s':''}</strong>. Each topic becomes its own deck.</p>
-      <div style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px">
-        ${topics.map(t=>`<div style="background:var(--surface2);border-radius:8px;padding:12px">
-          <div style="font-weight:700;margin-bottom:6px">📚 ${t.topic} <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">${t.cards.length} cards</span></div>
-          ${t.cards.slice(0,2).map(c=>`<div style="font-size:.78rem;color:var(--text-muted);padding:3px 0">Q: ${c.front}</div>`).join('')}
-          ${t.cards.length>2?`<div style="font-size:.72rem;color:var(--text-muted)">+${t.cards.length-2} more…</div>`:''}
-        </div>`).join('')}
-      </div>
-      <div class="mactions">
-        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveAIDecks(${JSON.stringify(topics).replace(/'/g,"&#39;")}, '${subjectId}', '${fileObj.name}')">Create ${topics.length} Deck${topics.length!==1?'s':''}</button>
-      </div>`), 50);
+    setTimeout(()=>openAIReviewModal(topics, subjectId, fileObj.name), 50);
   } catch(e) {
     closeModal();
     setTimeout(()=>openModal(`<div class="modal-title">❌ Error</div><p style="color:var(--text-muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
