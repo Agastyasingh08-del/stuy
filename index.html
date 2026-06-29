@@ -966,26 +966,35 @@ function manageDeck(id){
     <div class="mactions"><button class="btn btn-danger btn-sm" onclick="delDeck('${id}')">Delete Deck</button><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`);
 }
 function cardImgInput(side){
-  return `<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <label style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:.78rem;color:var(--text-muted);padding:4px 10px;border:1px dashed var(--border);border-radius:6px">
-      🖼 Add image<input type="file" accept="image/*" style="display:none" onchange="previewCardImg(this,'${side}')">
-    </label>
-    <span id="img-label-${side}" style="font-size:.75rem;color:var(--text-muted)"></span>
+  return `<div id="card-dz-${side}" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor=''" ondrop="handleCardImgDrop(event,'${side}')"
+    style="margin-top:8px;border:2px dashed var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;transition:border-color .2s" onclick="document.getElementById('card-file-${side}').click()">
+    <span style="font-size:.78rem;color:var(--text-muted)">🖼 Drop or click to add image</span>
+    <span id="img-label-${side}" style="font-size:.75rem;color:var(--accent)"></span>
+    <input type="file" id="card-file-${side}" accept="image/*" style="display:none" onchange="previewCardImg(this,'${side}')">
   </div>
   <img id="img-prev-${side}" style="display:none;max-width:100%;max-height:140px;border-radius:8px;margin-top:8px;object-fit:contain">`;
 }
 let _cardImgs={front:null,back:null};
 function previewCardImg(input, side){
-  const file=input.files[0]; if(!file) return;
+  const file=input.files?.[0]||input; if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
     _cardImgs[side]=e.target.result;
     const prev=document.getElementById('img-prev-'+side);
     const lbl=document.getElementById('img-label-'+side);
+    const dz=document.getElementById('card-dz-'+side);
     if(prev){prev.src=e.target.result;prev.style.display='block';}
-    if(lbl) lbl.textContent=file.name;
+    if(lbl) lbl.textContent=file.name||'Image';
+    if(dz) dz.style.borderColor='var(--accent)';
   };
   reader.readAsDataURL(file);
+}
+function handleCardImgDrop(e, side){
+  e.preventDefault();
+  const file=[...(e.dataTransfer.files||[])].find(f=>f.type.startsWith('image/'));
+  if(!file){toast('❌ Drop an image file');return;}
+  previewCardImg(file, side);
+  document.getElementById('card-dz-'+side).style.borderColor='var(--accent)';
 }
 function openAddCard(did){
   _cardImgs={front:null,back:null};
@@ -1013,8 +1022,10 @@ function openAddCard(did){
           _cardImgs[side]=ev.target.result;
           const prev=document.getElementById('img-prev-'+side);
           const lbl=document.getElementById('img-label-'+side);
+          const dz=document.getElementById('card-dz-'+side);
           if(prev){prev.src=ev.target.result;prev.style.display='block';}
           if(lbl) lbl.textContent='Pasted image';
+          if(dz) dz.style.borderColor='var(--accent)';
         };
         reader.readAsDataURL(file);
       });
@@ -1702,10 +1713,13 @@ function openAIGenModal() {
     <div id="aig-upload" class="hidden">
       <div class="fg"><label class="fl">Subject (for the new deck)</label>
         <select class="fi" id="aig-upload-subj">${subjOpts||'<option>Add subjects first</option>'}</select></div>
-      <div id="aig-dropzone" class="drop-zone" style="padding:24px;margin-top:4px" onclick="triggerAIGenUpload()">
+      <div id="aig-dropzone" class="drop-zone" style="padding:24px;margin-top:4px" onclick="triggerAIGenUpload()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent)11'"
+        ondragleave="this.style.borderColor='';this.style.background=''"
+        ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handleAIGenDrop(event)">
         <div style="font-size:1.8rem;margin-bottom:6px">📄</div>
-        <div style="font-weight:600;font-size:.88rem">Click to upload a PDF, image, or text file</div>
-        <div style="font-size:.76rem;color:var(--text-muted);margin-top:4px">Also saves to your Resources</div>
+        <div style="font-weight:600;font-size:.88rem">Drop file here or click to upload</div>
+        <div style="font-size:.76rem;color:var(--text-muted);margin-top:4px">PDF, image, or text • Also saves to Resources</div>
       </div>
       <div id="aig-file-chosen" style="display:none;font-size:.83rem;color:var(--accent2);margin-top:8px"></div>
       <input type="file" id="aig-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.md" onchange="handleAIGenFile(this)">
@@ -1746,6 +1760,12 @@ function refreshAIGNotes() {
 }
 
 function triggerAIGenUpload() { document.getElementById('aig-file-input')?.click(); }
+function handleAIGenDrop(e){
+  const file=[...(e.dataTransfer.files||[])][0];
+  if(!file){toast('❌ No file detected');return;}
+  const fakeInput={files:[file]};
+  handleAIGenFile(fakeInput);
+}
 let aigenFile = null;
 function handleAIGenFile(input) {
   const file = input.files[0]; if (!file) return;
