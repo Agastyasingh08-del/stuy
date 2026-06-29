@@ -234,6 +234,7 @@ select.fi option{background:var(--surface2);}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.85rem;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideUp .3s ease;display:flex;align-items:center;gap:8px;}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:none;opacity:1;}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -1822,10 +1823,10 @@ function openAIGenModal() {
         ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handleAIGenDrop(event)">
         <div style="font-size:1.8rem;margin-bottom:6px">📄</div>
         <div style="font-weight:600;font-size:.88rem">Drop file here or click to upload</div>
-        <div style="font-size:.76rem;color:var(--text-muted);margin-top:4px">PDF, image, or text • Also saves to Resources</div>
+        <div style="font-size:.76rem;color:var(--text-muted);margin-top:4px">PDF, Word (.docx), image, or text • Also saves to Resources</div>
       </div>
       <div id="aig-file-chosen" style="display:none;font-size:.83rem;color:var(--accent2);margin-top:8px"></div>
-      <input type="file" id="aig-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.md" onchange="handleAIGenFile(this)">
+      <input type="file" id="aig-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.md,.docx" onchange="handleAIGenFile(this)">
     </div>
 
     <!-- BY TOPIC -->
@@ -1873,15 +1874,17 @@ let aigenFile = null;
 function handleAIGenFile(input) {
   const file = input.files[0]; if (!file) return;
   if (file.size > 50 * 1024 * 1024) { toast('❌ File too large — max 50 MB'); return; }
+  const isDocx = file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
   const reader = new FileReader();
   reader.onload = e => {
-    aigenFile = {name: file.name, type: file.type, data: e.target.result, size: fmtBytes(file.size)};
+    aigenFile = {name: file.name, type: isDocx ? 'application/docx' : file.type, data: e.target.result, size: fmtBytes(file.size)};
     const chosen = document.getElementById('aig-file-chosen');
-    if (chosen) { chosen.style.display='block'; chosen.textContent = fIcon(file.type)+' '+file.name+' ('+fmtBytes(file.size)+')'; }
+    if (chosen) { chosen.style.display='block'; chosen.textContent = '📝 '+file.name+' ('+fmtBytes(file.size)+')'; }
     const dz = document.getElementById('aig-dropzone');
     if (dz) dz.style.borderColor = 'var(--accent)';
   };
-  reader.readAsDataURL(file);
+  if (isDocx) reader.readAsArrayBuffer(file);
+  else reader.readAsDataURL(file);
 }
 
 async function runAIGen() {
@@ -2070,7 +2073,22 @@ async function aiFlashcardsFromFile(fileObj, subjectId) {
     const type = fileObj.type || '';
     const base64 = fileObj.data?.split(',')[1] || '';
 
-    if (type === 'application/pdf') {
+    if (type === 'application/docx') {
+      // Extract text from docx via JSZip
+      const zip = await JSZip.loadAsync(fileObj.data);
+      const xmlFile = zip.file('word/document.xml');
+      if (!xmlFile) throw new Error('Invalid Word document');
+      const xml = await xmlFile.async('string');
+      // Strip XML tags, decode common entities, collapse whitespace
+      const text = xml
+        .replace(/<w:br[^>]*\/>/g, '\n')
+        .replace(/<w:p[ >][^>]*>/g, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#xD;/g,'')
+        .replace(/\n{3,}/g,'\n\n').trim();
+      messages = [{role:'user', content:`Create comprehensive flashcards from this Word document grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}\n\nDOCUMENT:\n${text.slice(0,40000)}`}];
+
+    } else if (type === 'application/pdf') {
       messages = [{role:'user', content:[
         {type:'document', source:{type:'base64', media_type:'application/pdf', data:base64}},
         {type:'text', text:`Create comprehensive flashcards from this document grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}`}
