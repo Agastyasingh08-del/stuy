@@ -1873,7 +1873,8 @@ function handleAIGenDrop(e){
 let aigenFile = null;
 function handleAIGenFile(input) {
   const file = input.files[0]; if (!file) return;
-  if (file.size > 50 * 1024 * 1024) { toast('❌ File too large — max 50 MB'); return; }
+  const maxSize = (file.name.endsWith('.pdf') || file.type === 'application/pdf') ? 200 * 1024 * 1024 : 50 * 1024 * 1024;
+  if (file.size > maxSize) { toast(`❌ File too large — max ${file.type==='application/pdf'||file.name.endsWith('.pdf')?'200':'50'} MB`); return; }
   const isDocx = file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
   const reader = new FileReader();
   reader.onload = e => {
@@ -1901,8 +1902,8 @@ async function runAIGen() {
   } else if (activeTab === 'Upload Document') {
     if (!aigenFile) { toast('❌ Upload a file first'); return; }
     const sid = document.getElementById('aig-upload-subj')?.value;
-    // save to uploads too
-    S.uploads.push({id:uid(), name:aigenFile.name, type:aigenFile.type, size:aigenFile.size, subjectId:sid, data:aigenFile.data, uploadedAt:Date.now()});
+    // Save metadata only — not the raw file data (too large for localStorage)
+    S.uploads.push({id:uid(), name:aigenFile.name, type:aigenFile.type, size:aigenFile.size, subjectId:sid, uploadedAt:Date.now()});
     save();
     closeModal();
     await aiFlashcardsFromFile(aigenFile, sid);
