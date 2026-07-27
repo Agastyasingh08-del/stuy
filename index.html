@@ -2195,10 +2195,14 @@ function renderLessonSetup(el) {
 
 function lessonFileRow(key, label, hint) {
   const f = LS.files[key];
-  return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface2);border-radius:8px">
+  return `<div id="lfdz-${key}"
+    ondragover="event.preventDefault();document.getElementById('lfdz-${key}').style.borderColor='var(--accent)';document.getElementById('lfdz-${key}').style.background='var(--accent)11'"
+    ondragleave="document.getElementById('lfdz-${key}').style.borderColor='transparent';document.getElementById('lfdz-${key}').style.background=''"
+    ondrop="event.preventDefault();document.getElementById('lfdz-${key}').style.borderColor='transparent';document.getElementById('lfdz-${key}').style.background='';lessonDropFile(event,'${key}')"
+    style="display:flex;align-items:center;gap:12px;padding:10px;background:${f?'var(--surface2)':'var(--surface2)'};border-radius:8px;border:2px dashed ${f?'var(--accent)':'transparent'};transition:border-color .2s,background .2s">
     <div style="flex:1">
       <div style="font-weight:600;font-size:.85rem">${label}</div>
-      <div style="font-size:.75rem;color:var(--text-muted)">${hint}</div>
+      <div style="font-size:.75rem;color:var(--text-muted)">${f?'':hint+' · drop file here'}</div>
       ${f?`<div style="font-size:.75rem;color:var(--accent);margin-top:3px">✓ ${f.name}</div>`:''}
     </div>
     <label style="cursor:pointer">
@@ -2207,6 +2211,12 @@ function lessonFileRow(key, label, hint) {
     </label>
     ${f?`<span style="cursor:pointer;color:var(--text-muted);font-size:.9rem" onclick="LS.files['${key}']=null;renderLesson()">✕</span>`:''}
   </div>`;
+}
+
+function lessonDropFile(event, key) {
+  const file = [...(event.dataTransfer.files||[])][0];
+  if (!file) return;
+  loadLessonFile({target:{files:[file]}}, key);
 }
 
 async function loadLessonFile(event, key) {
