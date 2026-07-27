@@ -233,6 +233,8 @@ select.fi option{background:var(--surface2);}
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.85rem;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideUp .3s ease;display:flex;align-items:center;gap:8px;}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:none;opacity:1;}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
@@ -253,6 +255,7 @@ select.fi option{background:var(--surface2);}
   <div class="nav-item" data-view="uploads"><span class="ni">📎</span> Resources</div>
   <div class="nav-item" data-view="pomodoro"><span class="ni">⏱️</span> Pomodoro</div>
   <div class="nav-item" data-view="ai"><span class="ni">🤖</span> AI Tutor</div>
+  <div class="nav-item" data-view="lesson"><span class="ni">🎓</span> AI Lesson</div>
 
   <hr class="nav-divider">
   <div class="nav-sect">My Subjects</div>
@@ -366,6 +369,11 @@ select.fi option{background:var(--surface2);}
           <div class="fg mt8"><label class="fl">Sessions until long break</label><input class="fi" type="number" id="pmx" value="4" min="1" max="10" onchange="updatePomoSettings()"></div>
         </div>
       </div>
+    </div>
+
+    <!-- AI LESSON -->
+    <div class="view" id="view-lesson">
+      <div id="lesson-inner" style="max-width:720px;margin:0 auto;height:calc(100vh - 56px - 48px);display:flex;flex-direction:column"></div>
     </div>
 
     <!-- STATS -->
@@ -580,6 +588,7 @@ function setView(v){
   else if(v==='stats')renderStats();
   else if(v==='settings')renderSettings();
   else if(v==='ai')renderAI();
+  else if(v==='lesson')renderLesson();
 }
 function setViewRaw(v,title){
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
@@ -2137,6 +2146,307 @@ imageRegion is optional — omit it on text-only cards.`}
     closeModal();
     setTimeout(()=>openModal(`<div class="modal-title">❌ Error</div><p style="color:var(--text-muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
   }
+}
+
+// ─── AI LESSON ────────────────────────────────────────────────────────────────
+let LS = { phase:'setup', files:{notes:null,examQs:null,studyDesign:null}, messages:[], examQList:[], examIdx:0, examResults:[], subject:'' };
+
+function renderLesson() {
+  const el = document.getElementById('lesson-inner');
+  if (!el) return;
+  if (!S.settings?.apiKey) {
+    el.innerHTML=`<div class="empty"><div class="ei">🎓</div><h3>API Key Required</h3><p>Add your Anthropic API key in Settings to use AI Lessons.</p><button class="btn btn-primary mt16" onclick="setView('settings')">Go to Settings</button></div>`;
+    return;
+  }
+  if (LS.phase === 'setup') renderLessonSetup(el);
+  else if (LS.phase === 'lesson') renderLessonChat(el);
+  else if (LS.phase === 'exam') renderLessonExam(el);
+  else if (LS.phase === 'summary') renderLessonSummary(el);
+}
+
+function renderLessonSetup(el) {
+  el.innerHTML = `
+    <div style="flex:1;overflow-y:auto;padding-bottom:16px">
+      <div class="sect-title" style="margin-top:0">🎓 AI Lesson</div>
+      <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:20px">Upload your files and the AI will teach you interactively — then test you with your actual exam questions.</p>
+      <div class="card mb16">
+        <div style="font-weight:700;margin-bottom:14px">1. Upload your files</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${lessonFileRow('notes','📝 Notes / Summary','Your study notes or summary (PDF, Word, image, text)')}
+          ${lessonFileRow('examQs','📋 Exam Questions','Past exam questions or practice SAC (PDF, Word, image, text)')}
+          ${lessonFileRow('studyDesign','📌 Study Design','Dot point list of what needs to be covered (optional)')}
+        </div>
+      </div>
+      <div class="card mb16">
+        <div style="font-weight:700;margin-bottom:10px">2. Subject / Topic</div>
+        <input class="fi" id="lesson-subject" placeholder="e.g. Biology Unit 3 — Cellular Respiration" value="${LS.subject}" oninput="LS.subject=this.value">
+      </div>
+      <div class="card mb16">
+        <div style="font-weight:700;margin-bottom:10px">3. Lesson style</div>
+        <select class="fi" id="lesson-style">
+          <option value="socratic">Socratic — AI asks questions to guide me to answers</option>
+          <option value="explain">Explain then check — AI teaches, then asks comprehension questions</option>
+          <option value="fast">Fast track — Brief summary then straight to exam practice</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:.95rem" onclick="startLesson()">🚀 Start Lesson</button>
+    </div>`;
+}
+
+function lessonFileRow(key, label, hint) {
+  const f = LS.files[key];
+  return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface2);border-radius:8px">
+    <div style="flex:1">
+      <div style="font-weight:600;font-size:.85rem">${label}</div>
+      <div style="font-size:.75rem;color:var(--text-muted)">${hint}</div>
+      ${f?`<div style="font-size:.75rem;color:var(--accent);margin-top:3px">✓ ${f.name}</div>`:''}
+    </div>
+    <label style="cursor:pointer">
+      <span class="btn btn-ghost btn-sm">${f?'Replace':'Upload'}</span>
+      <input type="file" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.md" onchange="loadLessonFile(event,'${key}')">
+    </label>
+    ${f?`<span style="cursor:pointer;color:var(--text-muted);font-size:.9rem" onclick="LS.files['${key}']=null;renderLesson()">✕</span>`:''}
+  </div>`;
+}
+
+async function loadLessonFile(event, key) {
+  const file = event.target.files[0]; if (!file) return;
+  if (file.size > 50*1024*1024) { toast('❌ Max 50MB'); return; }
+  toast('📂 Loading…');
+  const isDocx = file.name.endsWith('.docx');
+  if (isDocx) {
+    const buf = await file.arrayBuffer();
+    LS.files[key] = {name:file.name, type:'application/docx', data:buf};
+  } else {
+    const data = await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(file);});
+    LS.files[key] = {name:file.name, type:file.type, data};
+  }
+  renderLesson();
+}
+
+async function extractLessonFileText(f) {
+  if (!f) return '';
+  const type = f.type || '';
+  if (type === 'application/docx') {
+    const zip = await JSZip.loadAsync(f.data);
+    const xml = await zip.file('word/document.xml').async('string');
+    return xml.replace(/<w:p[ >][^>]*>/g,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+  }
+  const base64 = f.data?.split(',')[1]||'';
+  if (type === 'application/pdf') {
+    // Send to Claude to extract text
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','anthropic-beta':'pdfs-2024-09-25'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},{type:'text',text:'Extract all text content from this document. Return plain text only.'}]}]})});
+    const d = await res.json(); return d.content?.[0]?.text||'';
+  }
+  if (type.startsWith('image/')) {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:type,data:base64}},{type:'text',text:'Extract all text content from this image. Return plain text only.'}]}]})});
+    const d = await res.json(); return d.content?.[0]?.text||'';
+  }
+  // plain text
+  try { return atob(base64); } catch { return ''; }
+}
+
+async function startLesson() {
+  if (!LS.files.notes && !LS.files.examQs) { toast('❌ Upload at least notes or exam questions'); return; }
+  LS.subject = document.getElementById('lesson-subject')?.value?.trim() || LS.subject;
+  const style = document.getElementById('lesson-style')?.value || 'socratic';
+  LS.phase = 'lesson'; LS.messages = []; LS.examQList = []; LS.examIdx = 0; LS.examResults = [];
+  renderLessonChat(document.getElementById('lesson-inner'), true);
+
+  // Extract text from all files
+  toast('📖 Reading your files…');
+  const [notesText, examText, designText] = await Promise.all([
+    extractLessonFileText(LS.files.notes),
+    extractLessonFileText(LS.files.examQs),
+    extractLessonFileText(LS.files.studyDesign)
+  ]);
+
+  // Parse exam questions
+  if (examText) {
+    const qRes = await callClaude(
+      'Extract each exam question as a JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2}]. If marks not shown use 2.',
+      [{role:'user',content:`Extract all exam questions from this text:\n\n${examText.slice(0,8000)}`}]
+    );
+    try { LS.examQList = JSON.parse(qRes.replace(/```json|```/g,'')); } catch { LS.examQList=[]; }
+  }
+
+  const styleInstructions = {
+    socratic: 'Use the Socratic method: guide the student to discover answers themselves by asking targeted questions. Never just give the answer — prompt them to think.',
+    explain: 'Explain each concept clearly with examples, then ask 1-2 comprehension questions to check understanding before moving on.',
+    fast: 'Give a concise summary of key concepts (2-3 sentences each), then move quickly to exam practice.'
+  }[style];
+
+  const systemPrompt = `You are an expert tutor for ${LS.subject||'this subject'}.
+${styleInstructions}
+Your job is to teach the student using their notes and study design, then test them with their exam questions.
+
+TEACHING PHASE: Work through each dot point / key concept from the study design and notes.
+- Engage the student actively — ask them questions, get them to explain things back to you.
+- When they answer, give feedback and build on it.
+- After covering all content, say exactly: "LESSON COMPLETE — ready for exam practice?" to signal transition.
+
+EXAM PHASE (after lesson): Present exam questions one at a time. Wait for the answer. Grade each response and explain what a full-marks answer needs.
+
+STUDENT'S NOTES:
+${notesText.slice(0,6000)||'(none provided)'}
+
+STUDY DESIGN / DOT POINTS:
+${designText.slice(0,3000)||'(none provided)'}
+
+EXAM QUESTIONS AVAILABLE:
+${examText.slice(0,4000)||'(none provided)'}
+
+Start by briefly introducing what you'll cover today and asking the student their first question.`;
+
+  LS._systemPrompt = systemPrompt;
+  const intro = await callClaude(systemPrompt, []);
+  LS.messages.push({role:'assistant', content:intro});
+  renderLessonChat(document.getElementById('lesson-inner'));
+}
+
+function renderLessonChat(el, loading=false) {
+  if (!el) return;
+  el.innerHTML = `
+    <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:16px" id="lesson-msgs">
+      ${loading ? `<div style="text-align:center;padding:40px;color:var(--text-muted)"><div style="font-size:2rem;animation:spin 1s linear infinite">⚙️</div><p style="margin-top:12px">Reading your files and preparing your lesson…</p></div>` :
+        LS.messages.map(m => `
+          <div style="display:flex;gap:10px;align-items:flex-start;${m.role==='user'?'flex-direction:row-reverse':''}">
+            <div style="width:32px;height:32px;border-radius:50%;background:${m.role==='user'?'var(--accent)':'var(--surface2)'};display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">${m.role==='user'?'👤':'🎓'}</div>
+            <div style="max-width:85%;background:${m.role==='user'?'var(--accent)':'var(--surface2)'};color:${m.role==='user'?'#fff':'var(--text)'};border-radius:12px;padding:12px 15px;font-size:.88rem;line-height:1.6;white-space:pre-wrap">${m.content}</div>
+          </div>`).join('')
+      }
+      ${LS._thinking?`<div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center">🎓</div><div style="color:var(--text-muted);font-size:.85rem;animation:pulse 1.5s infinite">Thinking…</div></div>`:''}
+    </div>
+    ${LS.phase==='lesson'?`
+    <div style="border-top:1px solid var(--border);padding-top:12px;flex-shrink:0">
+      <div style="display:flex;gap:10px;align-items:flex-end">
+        <textarea id="lesson-input" placeholder="Type your answer or response…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px;font-family:inherit;font-size:.88rem;resize:none;min-height:48px;max-height:130px" rows="2" onkeydown="lessonKey(event)"></textarea>
+        <button class="btn btn-primary" style="height:48px;padding:0 18px;flex-shrink:0" onclick="sendLessonMessage()">Send</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="lessonQuickSend('Can you explain that differently?')">Explain differently</button>
+        <button class="btn btn-ghost btn-sm" onclick="lessonQuickSend('Can you give me an example?')">Give example</button>
+        <button class="btn btn-ghost btn-sm" onclick="lessonQuickSend('I understand, move on.')">Move on</button>
+        ${LS.examQList.length?`<button class="btn btn-ghost btn-sm" style="color:var(--accent)" onclick="startExamPhase()">⏭ Skip to exam (${LS.examQList.length} Qs)</button>`:''}
+      </div>
+    </div>`:''}`;
+  // Scroll to bottom
+  setTimeout(()=>{const m=document.getElementById('lesson-msgs');if(m)m.scrollTop=m.scrollHeight;},50);
+}
+
+function lessonKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendLessonMessage();}}
+function lessonQuickSend(txt){document.getElementById('lesson-input').value=txt;sendLessonMessage();}
+
+async function sendLessonMessage() {
+  const input = document.getElementById('lesson-input');
+  const txt = input?.value?.trim(); if(!txt) return;
+  input.value='';
+  LS.messages.push({role:'user',content:txt});
+  LS._thinking=true; renderLessonChat(document.getElementById('lesson-inner'));
+
+  const reply = await callClaude(LS._systemPrompt, LS.messages.map(m=>({role:m.role,content:m.content})));
+  LS._thinking=false;
+  LS.messages.push({role:'assistant',content:reply});
+
+  // Detect lesson complete signal
+  if (reply.includes('LESSON COMPLETE') && LS.examQList.length) {
+    setTimeout(()=>{
+      openModal(`<div class="modal-title">🎉 Lesson Complete!</div>
+        <p style="color:var(--text-muted)">Great work! Ready to test your knowledge with <strong>${LS.examQList.length} exam question${LS.examQList.length!==1?'s':''}?</strong></p>
+        <div class="mactions">
+          <button class="btn btn-ghost" onclick="closeModal()">Keep chatting</button>
+          <button class="btn btn-primary" onclick="closeModal();startExamPhase()">Start Exam 🎯</button>
+        </div>`);
+    },400);
+  }
+  renderLessonChat(document.getElementById('lesson-inner'));
+}
+
+function startExamPhase() {
+  if (!LS.examQList.length) { toast('❌ No exam questions found'); return; }
+  LS.phase='exam'; LS.examIdx=0; LS.examResults=[];
+  renderLessonExam(document.getElementById('lesson-inner'));
+}
+
+function renderLessonExam(el) {
+  if (!el) return;
+  if (LS.examIdx >= LS.examQList.length) { LS.phase='summary'; renderLessonSummary(el); return; }
+  const q = LS.examQList[LS.examIdx];
+  const result = LS._examResult;
+  el.innerHTML = `
+    <div style="flex:1;overflow-y:auto;padding-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div style="height:100%;background:var(--accent);border-radius:3px;width:${(LS.examIdx/LS.examQList.length*100).toFixed(0)}%;transition:width .4s"></div>
+        </div>
+        <span style="font-size:.8rem;color:var(--text-muted);white-space:nowrap">${LS.examIdx+1} / ${LS.examQList.length}</span>
+      </div>
+      <div class="card mb16">
+        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px">EXAM QUESTION ${LS.examIdx+1}${q.marks?` · ${q.marks} marks`:''}</div>
+        <div style="font-size:.95rem;font-weight:600;line-height:1.6">${q.q}</div>
+      </div>
+      ${result ? `
+        <div class="card mb16" style="border:1px solid ${result.score>=2?'var(--green)':'var(--orange)'}44">
+          <div style="font-weight:700;color:${result.score>=2?'var(--green)':'var(--orange)'};margin-bottom:6px">${['Incorrect','Partially correct','Mostly correct','Full marks! ✓'][Math.min(3,result.score)]}</div>
+          <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:8px;font-style:italic">"${result.yourAnswer}"</div>
+          <div style="font-size:.85rem;line-height:1.6;white-space:pre-wrap">${result.feedback}</div>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="nextExamQ()">
+          ${LS.examIdx+1<LS.examQList.length?'Next Question →':'See Results 🎉'}
+        </button>` : `
+        <textarea id="exam-answer" placeholder="Write your answer here…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:13px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:120px;box-sizing:border-box;margin-bottom:10px" rows="5"></textarea>
+        <button class="btn btn-primary" style="width:100%;padding:12px" id="exam-submit-btn" onclick="submitExamAnswer()">Submit Answer</button>`}
+    </div>`;
+  setTimeout(()=>document.getElementById('exam-answer')?.focus(),50);
+}
+
+async function submitExamAnswer() {
+  const ans = document.getElementById('exam-answer')?.value?.trim();
+  if (!ans) { toast('❌ Write an answer first'); return; }
+  const btn = document.getElementById('exam-submit-btn');
+  if (btn) { btn.textContent='Grading…'; btn.disabled=true; }
+  const q = LS.examQList[LS.examIdx];
+  const raw = await callClaude(
+    'You are a strict exam marker. Grade the student answer. Return ONLY JSON: {"score":0,"feedback":"Detailed feedback explaining what was missing and what a full-marks answer needs."}. Score: 0=incorrect, 1=partial, 2=mostly correct, 3=full marks.',
+    [{role:'user',content:`Question: ${q.q}\nMarks: ${q.marks||2}\nStudent answer: ${ans}`}]
+  );
+  let result={score:1,feedback:'Could not grade automatically — review yourself.',yourAnswer:ans};
+  try { const p=JSON.parse(raw.replace(/```json|```/g,'')); result={...p,yourAnswer:ans}; } catch {}
+  LS.examResults.push({...q, ...result});
+  LS._examResult=result;
+  renderLessonExam(document.getElementById('lesson-inner'));
+}
+
+function nextExamQ(){LS.examIdx++;LS._examResult=null;renderLessonExam(document.getElementById('lesson-inner'));}
+
+function renderLessonSummary(el) {
+  const total=LS.examResults.length;
+  const score=LS.examResults.reduce((a,r)=>a+(r.score||0),0);
+  const maxScore=total*3;
+  const pct=maxScore?Math.round(score/maxScore*100):0;
+  const color=pct>=75?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
+  el.innerHTML=`
+    <div style="flex:1;overflow-y:auto;padding-bottom:24px">
+      <div style="text-align:center;padding:24px 0">
+        <div style="font-size:3rem;margin-bottom:8px">🎓</div>
+        <h2 style="font-size:1.4rem;margin-bottom:4px">Lesson Complete!</h2>
+        <div style="font-size:2.5rem;font-weight:800;color:${color}">${pct}%</div>
+        <div style="color:var(--text-muted);font-size:.85rem">${score} / ${maxScore} marks · ${total} questions</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+        ${LS.examResults.map((r,i)=>`
+          <div class="card" style="border-left:3px solid ${r.score>=2?'var(--green)':r.score===1?'var(--orange)':'var(--red)'}">
+            <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:4px">Q${i+1}${r.marks?' · '+r.marks+' marks':''}</div>
+            <div style="font-size:.85rem;font-weight:600;margin-bottom:6px">${r.q}</div>
+            <div style="font-size:.8rem;color:var(--text-muted);font-style:italic;margin-bottom:6px">"${r.yourAnswer}"</div>
+            <div style="font-size:.8rem;line-height:1.5;color:${r.score>=2?'var(--green)':r.score===1?'var(--orange)':'var(--red)'}">${['❌','⚠️','✅','⭐'][Math.min(3,r.score||0)]} ${r.feedback}</div>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" style="flex:1" onclick="LS.phase='lesson';renderLesson()">↩ Back to lesson</button>
+        <button class="btn btn-primary" style="flex:1" onclick="LS={phase:'setup',files:{notes:null,examQs:null,studyDesign:null},messages:[],examQList:[],examIdx:0,examResults:[],subject:''};renderLesson()">New Lesson</button>
+      </div>
+    </div>`;
 }
 
 async function cropImageRegions(dataUrl, topics) {
