@@ -2305,6 +2305,62 @@ function buildFileBlocks(files) {
   return {blocks, hasPdf};
 }
 
+function reviewExamQsModal(initialQs, rawText) {
+  return new Promise(resolveModal => {
+    let _eqs = initialQs.map((q,i)=>({...q,_id:i}));
+    window._eqResolve = resolveModal;
+    window._eqList = _eqs;
+    function renderEqModal() {
+      const noQs = _eqs.length === 0;
+      document.getElementById('modal-content').innerHTML = `
+        <div class="modal-title">📋 Review Exam Questions</div>
+        ${noQs ? `<div style="background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.3);border-radius:10px;padding:14px;margin-bottom:14px;font-size:.88rem;line-height:1.6">
+          <strong>⚠️ Could not read question text from your file.</strong><br>
+          Your file may be an answer key or marking guide (without the question stems).<br>
+          Please type or paste your exam questions below, then click Start Lesson.
+        </div>` : `<div style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">${_eqs.length} question${_eqs.length!==1?'s':''} extracted — review, edit, or add questions, then start your lesson.</div>`}
+        <div id="eq-list" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;margin-bottom:12px">
+          ${_eqs.map((q,i)=>`
+            <div style="background:var(--surface2);border-radius:10px;padding:12px">
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <span style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;padding-top:2px">Q${i+1}</span>
+                <textarea id="eq-text-${i}" style="flex:1;background:transparent;border:none;color:var(--text);font-family:inherit;font-size:.88rem;resize:vertical;min-height:52px;outline:none;line-height:1.5">${q.q}</textarea>
+                <div style="display:flex;flex-direction:column;gap:4px;min-width:52px;align-items:flex-end">
+                  <select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.78rem;padding:2px 4px" onchange="window._eqList[${i}].marks=+this.value">
+                    ${[1,2,3,4,5,6,8,10].map(n=>`<option value="${n}"${q.marks==n?' selected':''}>${n}m</option>`).join('')}
+                  </select>
+                  <button onclick="window._eqList.splice(${i},1);renderEqModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:0" title="Remove">✕</button>
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>
+        <button onclick="window._eqAddQ()" class="btn btn-ghost btn-sm" style="margin-bottom:14px;width:100%">+ Add question</button>
+        <div class="mactions">
+          <button class="btn btn-ghost" onclick="closeModal();window._eqResolve(null)">Cancel</button>
+          <button class="btn btn-primary" onclick="window._eqFinish()">Start Lesson →</button>
+        </div>`;
+      window.renderEqModal = renderEqModal;
+    }
+    window._eqAddQ = () => {
+      window._syncEqTexts();
+      _eqs.push({q:'',marks:2,fileIdx:0,_id:Date.now()});
+      renderEqModal();
+      setTimeout(()=>{const els=document.querySelectorAll('[id^="eq-text-"]');if(els.length)els[els.length-1].focus();},50);
+    };
+    window._syncEqTexts = () => {
+      document.querySelectorAll('[id^="eq-text-"]').forEach((el,i)=>{ if(_eqs[i]) _eqs[i].q=el.value.trim(); });
+    };
+    window._eqFinish = () => {
+      window._syncEqTexts();
+      const result = _eqs.filter(q=>q.q.trim());
+      closeModal();
+      window._eqResolve(result);
+    };
+    openModal('');
+    renderEqModal();
+  });
+}
+
 async function startLesson() {
   if (!LS.files.notes.length && !LS.files.examQs.length) { toast('❌ Upload at least notes or exam questions'); return; }
   LS.subject = document.getElementById('lesson-subject')?.value?.trim() || LS.subject;
@@ -2323,17 +2379,42 @@ async function startLesson() {
   // Parse exam questions from all exam files
   if (LS.files.examQs.length) {
     const {blocks: examBlocks, hasPdf: examHasPdf} = buildFileBlocks(LS.files.examQs);
+    const extractionSystem = `You are extracting exam questions for a study app. The file may be:
+1. A QUESTION PAPER: extract each question's full text, all sub-parts (a,b,c), MCQ options, and marks.
+2. AN ANSWER KEY / EXAM REPORT: shows which answers are correct and %s of students who chose each option, but NOT the question text itself. In this case you CANNOT reconstruct the question — do NOT guess. Instead return an empty array [].
+3. A MARKING GUIDE / SAMPLE ANSWERS: includes model answers but not question stems — return [].
+
+Only extract questions when you can read the actual question text/stem. Return ONLY valid JSON array, no markdown fences.`;
+    const extractionPrompt = `Extract all exam questions from these ${LS.files.examQs.length} file(s).
+
+For each question return:
+{"q": "Complete question text including all sub-parts and any MCQ options listed", "marks": 2, "fileIdx": 0}
+
+fileIdx = which file the question came from (0-based).
+If marks aren't shown, estimate based on the depth of the question.
+If you cannot read the actual question text (e.g. this is an answer key or marking guide without question stems), return an empty array: []
+
+Also include this extracted text for reference:
+${examText.slice(0,6000)}`;
     let qMsgs;
     if (examBlocks.length) {
-      qMsgs = [{role:'user',content:[...examBlocks,{type:'text',text:`Extract every exam question from these ${LS.files.examQs.length} file(s) as a JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"fileIdx":0}]. fileIdx = which file (0-based). If marks not shown use 2.`}]}];
+      qMsgs = [{role:'user',content:[...examBlocks,{type:'text',text:extractionPrompt}]}];
     } else {
-      qMsgs = [{role:'user',content:`Extract all exam questions as JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"fileIdx":0}].\n\n${examText.slice(0,8000)}`}];
+      qMsgs = [{role:'user',content:extractionPrompt}];
     }
     const extraH = examHasPdf?{'anthropic-beta':'pdfs-2024-09-25'}:{};
     try {
-      const qRes = await callClaude('Extract exam questions. Return ONLY valid JSON array, no markdown.', qMsgs, extraH);
-      LS.examQList = JSON.parse(qRes.replace(/```json|```/g,''));
+      const qRes = await callClaude(extractionSystem, qMsgs, extraH);
+      const parsed = JSON.parse(qRes.replace(/```json|```/g,'').trim());
+      LS.examQList = Array.isArray(parsed) ? parsed : [];
     } catch { LS.examQList=[]; }
+  }
+
+  // Show question review modal if we have exam Qs (or failed to extract any)
+  if (LS.files.examQs.length) {
+    const reviewed = await reviewExamQsModal(LS.examQList, examText);
+    if (reviewed === null) { LS.phase='setup'; renderLesson(); return; } // cancelled
+    LS.examQList = reviewed;
   }
 
   const styleInstructions = {
