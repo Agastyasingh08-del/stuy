@@ -2219,9 +2219,22 @@ async function loadLessonFile(event, key) {
     LS.files[key] = {name:file.name, type:'application/docx', data:buf};
   } else {
     const data = await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(file);});
-    LS.files[key] = {name:file.name, type:file.type, data};
+    LS.files[key] = {name:file.name, type:file.type, data, base64:data.split(',')[1]||''};
   }
   renderLesson();
+}
+
+// Build Claude content blocks for a lesson file (image or PDF sent natively, text extracted)
+function lessonFileContentBlock(f, textPrompt) {
+  if (!f) return [{type:'text',content:textPrompt+'\n(no file)'}];
+  const type = f.type||'';
+  if (type.startsWith('image/')) {
+    return [{type:'image',source:{type:'base64',media_type:type,data:f.base64}},{type:'text',text:textPrompt}];
+  }
+  if (type==='application/pdf') {
+    return [{type:'document',source:{type:'base64',media_type:'application/pdf',data:f.base64}},{type:'text',text:textPrompt}];
+  }
+  return null; // use extracted text instead
 }
 
 async function extractLessonFileText(f) {
@@ -2251,9 +2264,9 @@ async function startLesson() {
   LS.subject = document.getElementById('lesson-subject')?.value?.trim() || LS.subject;
   const style = document.getElementById('lesson-style')?.value || 'socratic';
   LS.phase = 'lesson'; LS.messages = []; LS.examQList = []; LS.examIdx = 0; LS.examResults = [];
+  LS._notesFile = LS.files.notes; LS._examFile = LS.files.examQs;
   renderLessonChat(document.getElementById('lesson-inner'), true);
 
-  // Extract text from all files
   toast('📖 Reading your files…');
   const [notesText, examText, designText] = await Promise.all([
     extractLessonFileText(LS.files.notes),
@@ -2261,13 +2274,23 @@ async function startLesson() {
     extractLessonFileText(LS.files.studyDesign)
   ]);
 
-  // Parse exam questions
-  if (examText) {
-    const qRes = await callClaude(
-      'Extract each exam question as a JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2}]. If marks not shown use 2.',
-      [{role:'user',content:`Extract all exam questions from this text:\n\n${examText.slice(0,8000)}`}]
-    );
-    try { LS.examQList = JSON.parse(qRes.replace(/```json|```/g,'')); } catch { LS.examQList=[]; }
+  // Parse exam questions — send image/PDF directly if applicable
+  if (LS.files.examQs) {
+    const examF = LS.files.examQs;
+    const examType = examF.type||'';
+    let qMsgs;
+    if (examType.startsWith('image/')) {
+      qMsgs = [{role:'user',content:[{type:'image',source:{type:'base64',media_type:examType,data:examF.base64}},{type:'text',text:'Extract every exam question from this image as JSON array. Return ONLY valid JSON: [{"q":"Full question text including any diagram descriptions","marks":2,"hasImage":true}]. If marks not shown use 2.'}]}];
+    } else if (examType==='application/pdf') {
+      qMsgs = [{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:examF.base64}},{type:'text',text:'Extract every exam question from this PDF as JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"hasImage":false}]. If marks not shown use 2. If a question references a diagram/figure, note it in the question text.'}]}];
+    } else {
+      qMsgs = [{role:'user',content:`Extract all exam questions from this text as JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"hasImage":false}]. If marks not shown use 2.\n\n${examText.slice(0,8000)}`}];
+    }
+    const extraH = examType==='application/pdf'?{'anthropic-beta':'pdfs-2024-09-25'}:{};
+    try {
+      const qRes = await callClaude('Extract exam questions. Return ONLY valid JSON array, no markdown.', qMsgs, extraH);
+      LS.examQList = JSON.parse(qRes.replace(/```json|```/g,''));
+    } catch { LS.examQList=[]; }
   }
 
   const styleInstructions = {
@@ -2278,28 +2301,39 @@ async function startLesson() {
 
   const systemPrompt = `You are an expert tutor for ${LS.subject||'this subject'}.
 ${styleInstructions}
-Your job is to teach the student using their notes and study design, then test them with their exam questions.
+Your job is to teach the student using their notes, study design, and any uploaded images/diagrams, then test them with exam questions.
 
-TEACHING PHASE: Work through each dot point / key concept from the study design and notes.
+IMPORTANT: The student's notes and exam questions may contain diagrams, graphs, and images. When teaching, reference these visuals by describing what they show and asking the student questions about them.
+
+TEACHING PHASE: Work through each dot point / key concept.
 - Engage the student actively — ask them questions, get them to explain things back to you.
-- When they answer, give feedback and build on it.
+- Reference diagrams from their notes when relevant.
 - After covering all content, say exactly: "LESSON COMPLETE — ready for exam practice?" to signal transition.
-
-EXAM PHASE (after lesson): Present exam questions one at a time. Wait for the answer. Grade each response and explain what a full-marks answer needs.
-
-STUDENT'S NOTES:
-${notesText.slice(0,6000)||'(none provided)'}
 
 STUDY DESIGN / DOT POINTS:
 ${designText.slice(0,3000)||'(none provided)'}
 
-EXAM QUESTIONS AVAILABLE:
-${examText.slice(0,4000)||'(none provided)'}
+EXAM QUESTIONS AVAILABLE (${LS.examQList.length} questions):
+${examText.slice(0,3000)||'(none provided)'}
 
-Start by briefly introducing what you'll cover today and asking the student their first question.`;
+Start by briefly introducing what you will cover and diving into the first concept or question.`;
 
   LS._systemPrompt = systemPrompt;
-  const intro = await callClaude(systemPrompt, []);
+
+  // First message includes the actual notes file (image/PDF) so Claude can SEE diagrams
+  let firstMsgContent;
+  const notesF = LS.files.notes;
+  const notesType = notesF?.type||'';
+  if (notesF && notesType.startsWith('image/')) {
+    firstMsgContent = [{type:'image',source:{type:'base64',media_type:notesType,data:notesF.base64}},{type:'text',text:`Here are my notes (as an image). Please start the lesson based on these notes and the study design.`}];
+  } else if (notesF && notesType==='application/pdf') {
+    firstMsgContent = [{type:'document',source:{type:'base64',media_type:'application/pdf',data:notesF.base64}},{type:'text',text:`Here are my notes (as a PDF). Please start the lesson based on these notes and the study design.`}];
+  } else {
+    firstMsgContent = `Here are my notes:\n\n${notesText.slice(0,5000)||'(no notes provided)'}\n\nPlease start the lesson.`;
+  }
+
+  const extraH = notesType==='application/pdf'?{'anthropic-beta':'pdfs-2024-09-25'}:{};
+  const intro = await callClaude(systemPrompt, [{role:'user',content:firstMsgContent}], extraH);
   LS.messages.push({role:'assistant', content:intro});
   renderLessonChat(document.getElementById('lesson-inner'));
 }
@@ -2344,7 +2378,16 @@ async function sendLessonMessage() {
   LS.messages.push({role:'user',content:txt});
   LS._thinking=true; renderLessonChat(document.getElementById('lesson-inner'));
 
-  const reply = await callClaude(LS._systemPrompt, LS.messages.map(m=>({role:m.role,content:m.content})));
+  // Include notes image in first user message of each call so Claude can still see diagrams
+  const msgs = LS.messages.map((m,i)=>{
+    if (i===0 && m.role==='user') {
+      const nf=LS._notesFile; const nt=nf?.type||'';
+      if (nf && nt.startsWith('image/')) return {role:'user',content:[{type:'image',source:{type:'base64',media_type:nt,data:nf.base64}},{type:'text',text:typeof m.content==='string'?m.content:'...'}]};
+    }
+    return {role:m.role,content:typeof m.content==='string'?m.content:m.content};
+  });
+  const extraH2 = LS._notesFile?.type==='application/pdf'?{'anthropic-beta':'pdfs-2024-09-25'}:{};
+  const reply = await callClaude(LS._systemPrompt, msgs, extraH2);
   LS._thinking=false;
   LS.messages.push({role:'assistant',content:reply});
 
@@ -2383,7 +2426,8 @@ function renderLessonExam(el) {
       </div>
       <div class="card mb16">
         <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px">EXAM QUESTION ${LS.examIdx+1}${q.marks?` · ${q.marks} marks`:''}</div>
-        <div style="font-size:.95rem;font-weight:600;line-height:1.6">${q.q}</div>
+        <div style="font-size:.95rem;font-weight:600;line-height:1.6;margin-bottom:${(q.hasImage&&LS._examFile?.type?.startsWith('image/'))?'10px':'0'}">${q.q}</div>
+        ${(q.hasImage && LS._examFile?.type?.startsWith('image/')) ? `<img src="${LS._examFile.data}" style="max-width:100%;border-radius:8px;margin-top:8px;object-fit:contain" alt="Exam question image">` : ''}
       </div>
       ${result ? `
         <div class="card mb16" style="border:1px solid ${result.score>=2?'var(--green)':'var(--orange)'}44">
