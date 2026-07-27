@@ -2149,7 +2149,7 @@ imageRegion is optional — omit it on text-only cards.`}
 }
 
 // ─── AI LESSON ────────────────────────────────────────────────────────────────
-let LS = { phase:'setup', files:{notes:null,examQs:null,studyDesign:null}, messages:[], examQList:[], examIdx:0, examResults:[], subject:'' };
+let LS = { phase:'setup', files:{notes:[],examQs:[],studyDesign:[]}, messages:[], examQList:[], examIdx:0, examResults:[], subject:'' };
 
 function renderLesson() {
   const el = document.getElementById('lesson-inner');
@@ -2194,45 +2194,60 @@ function renderLessonSetup(el) {
 }
 
 function lessonFileRow(key, label, hint) {
-  const f = LS.files[key];
-  return `<div id="lfdz-${key}"
-    ondragover="event.preventDefault();document.getElementById('lfdz-${key}').style.borderColor='var(--accent)';document.getElementById('lfdz-${key}').style.background='var(--accent)11'"
-    ondragleave="document.getElementById('lfdz-${key}').style.borderColor='transparent';document.getElementById('lfdz-${key}').style.background=''"
-    ondrop="event.preventDefault();document.getElementById('lfdz-${key}').style.borderColor='transparent';document.getElementById('lfdz-${key}').style.background='';lessonDropFile(event,'${key}')"
-    style="display:flex;align-items:center;gap:12px;padding:10px;background:${f?'var(--surface2)':'var(--surface2)'};border-radius:8px;border:2px dashed ${f?'var(--accent)':'transparent'};transition:border-color .2s,background .2s">
-    <div style="flex:1">
-      <div style="font-weight:600;font-size:.85rem">${label}</div>
-      <div style="font-size:.75rem;color:var(--text-muted)">${f?'':hint+' · drop file here'}</div>
-      ${f?`<div style="font-size:.75rem;color:var(--accent);margin-top:3px">✓ ${f.name}</div>`:''}
+  const files = LS.files[key]||[];
+  const atMax = files.length >= 10;
+  return `<div style="background:var(--surface2);border-radius:10px;padding:12px">
+    <div style="font-weight:600;font-size:.85rem;margin-bottom:4px">${label}</div>
+    <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px">${hint} · up to 10 files</div>
+    ${files.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      ${files.map((f,i)=>`<div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--accent)44;border-radius:6px;padding:3px 8px;font-size:.75rem">
+        <span style="color:var(--accent)">✓</span><span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+        <span style="cursor:pointer;color:var(--text-muted);margin-left:2px" onclick="LS.files['${key}'].splice(${i},1);renderLesson()">✕</span>
+      </div>`).join('')}
+    </div>` : ''}
+    <div id="lfdz-${key}"
+      ondragover="event.preventDefault();document.getElementById('lfdz-${key}').style.borderColor='var(--accent)';document.getElementById('lfdz-${key}').style.background='var(--accent)11'"
+      ondragleave="document.getElementById('lfdz-${key}').style.borderColor='';document.getElementById('lfdz-${key}').style.background=''"
+      ondrop="event.preventDefault();document.getElementById('lfdz-${key}').style.borderColor='';document.getElementById('lfdz-${key}').style.background='';lessonDropFile(event,'${key}')"
+      style="border:2px dashed var(--border);border-radius:8px;padding:10px 14px;text-align:center;cursor:${atMax?'not-allowed':'pointer'};opacity:${atMax?'.5':'1'};transition:border-color .2s,background .2s;font-size:.8rem;color:var(--text-muted)"
+      onclick="${atMax?'':'document.getElementById(\'lfinput-'+key+'\').click()'}">
+      ${atMax ? '✅ Max 10 files reached' : '📂 Drop files here or click to browse (up to 10)'}
     </div>
-    <label style="cursor:pointer">
-      <span class="btn btn-ghost btn-sm">${f?'Replace':'Upload'}</span>
-      <input type="file" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.md" onchange="loadLessonFile(event,'${key}')">
-    </label>
-    ${f?`<span style="cursor:pointer;color:var(--text-muted);font-size:.9rem" onclick="LS.files['${key}']=null;renderLesson()">✕</span>`:''}
+    <input type="file" id="lfinput-${key}" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.md" multiple onchange="loadLessonFiles(event,'${key}')">
   </div>`;
 }
 
 function lessonDropFile(event, key) {
-  const file = [...(event.dataTransfer.files||[])][0];
-  if (!file) return;
-  loadLessonFile({target:{files:[file]}}, key);
+  const files = [...(event.dataTransfer.files||[])];
+  if (!files.length) return;
+  loadLessonFiles({target:{files}}, key);
 }
 
-async function loadLessonFile(event, key) {
-  const file = event.target.files[0]; if (!file) return;
-  if (file.size > 50*1024*1024) { toast('❌ Max 50MB'); return; }
-  toast('📂 Loading…');
-  const isDocx = file.name.endsWith('.docx');
-  if (isDocx) {
-    const buf = await file.arrayBuffer();
-    LS.files[key] = {name:file.name, type:'application/docx', data:buf};
-  } else {
-    const data = await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(file);});
-    LS.files[key] = {name:file.name, type:file.type, data, base64:data.split(',')[1]||''};
+async function loadLessonFiles(event, key) {
+  const files = [...(event.target.files||[])];
+  if (!files.length) return;
+  const existing = LS.files[key]||[];
+  const slots = 10 - existing.length;
+  if (slots <= 0) { toast('❌ Max 10 files per section'); return; }
+  const toLoad = files.slice(0, slots);
+  if (files.length > slots) toast(`⚠️ Only ${slots} slot${slots!==1?'s':''} left — loaded first ${slots}`);
+  toast(`📂 Loading ${toLoad.length} file${toLoad.length!==1?'s':''}…`);
+  for (const file of toLoad) {
+    if (file.size > 50*1024*1024) { toast(`❌ ${file.name} too large (max 50MB)`); continue; }
+    const isDocx = file.name.endsWith('.docx');
+    if (isDocx) {
+      const buf = await file.arrayBuffer();
+      LS.files[key].push({name:file.name, type:'application/docx', data:buf});
+    } else {
+      const data = await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(file);});
+      LS.files[key].push({name:file.name, type:file.type, data, base64:data.split(',')[1]||''});
+    }
   }
   renderLesson();
 }
+
+// kept for back-compat
+async function loadLessonFile(event, key) { return loadLessonFiles(event, key); }
 
 // Build Claude content blocks for a lesson file (image or PDF sent natively, text extracted)
 function lessonFileContentBlock(f, textPrompt) {
@@ -2247,7 +2262,7 @@ function lessonFileContentBlock(f, textPrompt) {
   return null; // use extracted text instead
 }
 
-async function extractLessonFileText(f) {
+async function extractOneFileText(f) {
   if (!f) return '';
   const type = f.type || '';
   if (type === 'application/docx') {
@@ -2255,9 +2270,8 @@ async function extractLessonFileText(f) {
     const xml = await zip.file('word/document.xml').async('string');
     return xml.replace(/<w:p[ >][^>]*>/g,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
   }
-  const base64 = f.data?.split(',')[1]||'';
+  const base64 = f.base64 || f.data?.split(',')[1]||'';
   if (type === 'application/pdf') {
-    // Send to Claude to extract text
     const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','anthropic-beta':'pdfs-2024-09-25'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},{type:'text',text:'Extract all text content from this document. Return plain text only.'}]}]})});
     const d = await res.json(); return d.content?.[0]?.text||'';
   }
@@ -2265,16 +2279,38 @@ async function extractLessonFileText(f) {
     const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:type,data:base64}},{type:'text',text:'Extract all text content from this image. Return plain text only.'}]}]})});
     const d = await res.json(); return d.content?.[0]?.text||'';
   }
-  // plain text
   try { return atob(base64); } catch { return ''; }
 }
 
+async function extractLessonFileText(files) {
+  if (!files?.length) return '';
+  const texts = await Promise.all(files.map(f => extractOneFileText(f)));
+  return texts.filter(Boolean).join('\n\n---\n\n');
+}
+
+// Build multimodal content blocks from an array of files
+function buildFileBlocks(files) {
+  const blocks = [];
+  let hasPdf = false;
+  for (const f of (files||[])) {
+    const type = f.type||'';
+    if (type.startsWith('image/')) {
+      blocks.push({type:'image',source:{type:'base64',media_type:type,data:f.base64}});
+    } else if (type==='application/pdf') {
+      blocks.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:f.base64}});
+      hasPdf = true;
+    }
+    // docx/text handled via extracted text only
+  }
+  return {blocks, hasPdf};
+}
+
 async function startLesson() {
-  if (!LS.files.notes && !LS.files.examQs) { toast('❌ Upload at least notes or exam questions'); return; }
+  if (!LS.files.notes.length && !LS.files.examQs.length) { toast('❌ Upload at least notes or exam questions'); return; }
   LS.subject = document.getElementById('lesson-subject')?.value?.trim() || LS.subject;
   const style = document.getElementById('lesson-style')?.value || 'socratic';
   LS.phase = 'lesson'; LS.messages = []; LS.examQList = []; LS.examIdx = 0; LS.examResults = [];
-  LS._notesFile = LS.files.notes; LS._examFile = LS.files.examQs;
+  LS._notesFiles = LS.files.notes; LS._examFiles = LS.files.examQs;
   renderLessonChat(document.getElementById('lesson-inner'), true);
 
   toast('📖 Reading your files…');
@@ -2284,19 +2320,16 @@ async function startLesson() {
     extractLessonFileText(LS.files.studyDesign)
   ]);
 
-  // Parse exam questions — send image/PDF directly if applicable
-  if (LS.files.examQs) {
-    const examF = LS.files.examQs;
-    const examType = examF.type||'';
+  // Parse exam questions from all exam files
+  if (LS.files.examQs.length) {
+    const {blocks: examBlocks, hasPdf: examHasPdf} = buildFileBlocks(LS.files.examQs);
     let qMsgs;
-    if (examType.startsWith('image/')) {
-      qMsgs = [{role:'user',content:[{type:'image',source:{type:'base64',media_type:examType,data:examF.base64}},{type:'text',text:'Extract every exam question from this image as JSON array. Return ONLY valid JSON: [{"q":"Full question text including any diagram descriptions","marks":2,"hasImage":true}]. If marks not shown use 2.'}]}];
-    } else if (examType==='application/pdf') {
-      qMsgs = [{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:examF.base64}},{type:'text',text:'Extract every exam question from this PDF as JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"hasImage":false}]. If marks not shown use 2. If a question references a diagram/figure, note it in the question text.'}]}];
+    if (examBlocks.length) {
+      qMsgs = [{role:'user',content:[...examBlocks,{type:'text',text:`Extract every exam question from these ${LS.files.examQs.length} file(s) as a JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"fileIdx":0}]. fileIdx = which file (0-based). If marks not shown use 2.`}]}];
     } else {
-      qMsgs = [{role:'user',content:`Extract all exam questions from this text as JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"hasImage":false}]. If marks not shown use 2.\n\n${examText.slice(0,8000)}`}];
+      qMsgs = [{role:'user',content:`Extract all exam questions as JSON array. Return ONLY valid JSON: [{"q":"Full question text","marks":2,"fileIdx":0}].\n\n${examText.slice(0,8000)}`}];
     }
-    const extraH = examType==='application/pdf'?{'anthropic-beta':'pdfs-2024-09-25'}:{};
+    const extraH = examHasPdf?{'anthropic-beta':'pdfs-2024-09-25'}:{};
     try {
       const qRes = await callClaude('Extract exam questions. Return ONLY valid JSON array, no markdown.', qMsgs, extraH);
       LS.examQList = JSON.parse(qRes.replace(/```json|```/g,''));
@@ -2311,38 +2344,30 @@ async function startLesson() {
 
   const systemPrompt = `You are an expert tutor for ${LS.subject||'this subject'}.
 ${styleInstructions}
-Your job is to teach the student using their notes, study design, and any uploaded images/diagrams, then test them with exam questions.
-
-IMPORTANT: The student's notes and exam questions may contain diagrams, graphs, and images. When teaching, reference these visuals by describing what they show and asking the student questions about them.
-
-TEACHING PHASE: Work through each dot point / key concept.
-- Engage the student actively — ask them questions, get them to explain things back to you.
-- Reference diagrams from their notes when relevant.
-- After covering all content, say exactly: "LESSON COMPLETE — ready for exam practice?" to signal transition.
+The student has uploaded ${LS.files.notes.length} notes file(s), ${LS.files.examQs.length} exam file(s), and ${LS.files.studyDesign.length} study design file(s).
+Reference diagrams and images from their files when teaching. Work through all dot points systematically.
+After covering all content, say exactly: "LESSON COMPLETE — ready for exam practice?" to transition.
 
 STUDY DESIGN / DOT POINTS:
 ${designText.slice(0,3000)||'(none provided)'}
 
-EXAM QUESTIONS AVAILABLE (${LS.examQList.length} questions):
+EXAM QUESTIONS AVAILABLE (${LS.examQList.length} questions extracted):
 ${examText.slice(0,3000)||'(none provided)'}
 
-Start by briefly introducing what you will cover and diving into the first concept or question.`;
+Start by introducing what you'll cover today.`;
 
   LS._systemPrompt = systemPrompt;
 
-  // First message includes the actual notes file (image/PDF) so Claude can SEE diagrams
+  // First message: send all notes files as multimodal blocks
+  const {blocks: notesBlocks, hasPdf: notesHasPdf} = buildFileBlocks(LS.files.notes);
   let firstMsgContent;
-  const notesF = LS.files.notes;
-  const notesType = notesF?.type||'';
-  if (notesF && notesType.startsWith('image/')) {
-    firstMsgContent = [{type:'image',source:{type:'base64',media_type:notesType,data:notesF.base64}},{type:'text',text:`Here are my notes (as an image). Please start the lesson based on these notes and the study design.`}];
-  } else if (notesF && notesType==='application/pdf') {
-    firstMsgContent = [{type:'document',source:{type:'base64',media_type:'application/pdf',data:notesF.base64}},{type:'text',text:`Here are my notes (as a PDF). Please start the lesson based on these notes and the study design.`}];
+  if (notesBlocks.length) {
+    firstMsgContent = [...notesBlocks, {type:'text',text:`Here are my ${LS.files.notes.length} notes file(s). Also extracted text:\n\n${notesText.slice(0,3000)}\n\nPlease start the lesson.`}];
   } else {
     firstMsgContent = `Here are my notes:\n\n${notesText.slice(0,5000)||'(no notes provided)'}\n\nPlease start the lesson.`;
   }
 
-  const extraH = notesType==='application/pdf'?{'anthropic-beta':'pdfs-2024-09-25'}:{};
+  const extraH = notesHasPdf?{'anthropic-beta':'pdfs-2024-09-25'}:{};
   const intro = await callClaude(systemPrompt, [{role:'user',content:firstMsgContent}], extraH);
   LS.messages.push({role:'assistant', content:intro});
   renderLessonChat(document.getElementById('lesson-inner'));
@@ -2389,14 +2414,15 @@ async function sendLessonMessage() {
   LS._thinking=true; renderLessonChat(document.getElementById('lesson-inner'));
 
   // Include notes image in first user message of each call so Claude can still see diagrams
+  const {blocks: nb, hasPdf: nhp} = buildFileBlocks(LS._notesFiles||[]);
   const msgs = LS.messages.map((m,i)=>{
-    if (i===0 && m.role==='user') {
-      const nf=LS._notesFile; const nt=nf?.type||'';
-      if (nf && nt.startsWith('image/')) return {role:'user',content:[{type:'image',source:{type:'base64',media_type:nt,data:nf.base64}},{type:'text',text:typeof m.content==='string'?m.content:'...'}]};
+    if (i===0 && m.role==='user' && nb.length) {
+      const txt = typeof m.content==='string'?m.content:(m.content?.find?.(b=>b.type==='text')?.text||'...');
+      return {role:'user',content:[...nb,{type:'text',text:txt}]};
     }
     return {role:m.role,content:typeof m.content==='string'?m.content:m.content};
   });
-  const extraH2 = LS._notesFile?.type==='application/pdf'?{'anthropic-beta':'pdfs-2024-09-25'}:{};
+  const extraH2 = nhp?{'anthropic-beta':'pdfs-2024-09-25'}:{};
   const reply = await callClaude(LS._systemPrompt, msgs, extraH2);
   LS._thinking=false;
   LS.messages.push({role:'assistant',content:reply});
@@ -2437,7 +2463,7 @@ function renderLessonExam(el) {
       <div class="card mb16">
         <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px">EXAM QUESTION ${LS.examIdx+1}${q.marks?` · ${q.marks} marks`:''}</div>
         <div style="font-size:.95rem;font-weight:600;line-height:1.6;margin-bottom:${(q.hasImage&&LS._examFile?.type?.startsWith('image/'))?'10px':'0'}">${q.q}</div>
-        ${(q.hasImage && LS._examFile?.type?.startsWith('image/')) ? `<img src="${LS._examFile.data}" style="max-width:100%;border-radius:8px;margin-top:8px;object-fit:contain" alt="Exam question image">` : ''}
+        ${(()=>{const ef=(LS._examFiles||[]).find(f=>f.type?.startsWith('image/'));return ef?`<img src="${ef.data}" style="max-width:100%;border-radius:8px;margin-top:8px;object-fit:contain" alt="Exam question image">`:'';})()}
       </div>
       ${result ? `
         <div class="card mb16" style="border:1px solid ${result.score>=2?'var(--green)':'var(--orange)'}44">
@@ -2498,7 +2524,7 @@ function renderLessonSummary(el) {
       </div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-ghost" style="flex:1" onclick="LS.phase='lesson';renderLesson()">↩ Back to lesson</button>
-        <button class="btn btn-primary" style="flex:1" onclick="LS={phase:'setup',files:{notes:null,examQs:null,studyDesign:null},messages:[],examQList:[],examIdx:0,examResults:[],subject:''};renderLesson()">New Lesson</button>
+        <button class="btn btn-primary" style="flex:1" onclick="LS={phase:'setup',files:{notes:[],examQs:[],studyDesign:[]},messages:[],examQList:[],examIdx:0,examResults:[],subject:''};renderLesson()">New Lesson</button>
       </div>
     </div>`;
 }
