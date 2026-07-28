@@ -237,6 +237,8 @@ select.fi option{background:var(--surface2);}
 @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
 <body>
 
@@ -2099,10 +2101,63 @@ async function aiFlashcardsFromFile(fileObj, subjectId) {
       messages = [{role:'user', content:`Create comprehensive flashcards from this Word document grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}\n\nDOCUMENT:\n${text.slice(0,40000)}`}];
 
     } else if (type === 'application/pdf') {
-      messages = [{role:'user', content:[
-        {type:'document', source:{type:'base64', media_type:'application/pdf', data:base64}},
-        {type:'text', text:`Create comprehensive flashcards from this document grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}`}
-      ]}];
+      // Render PDF pages as images so we can extract diagrams
+      openModal(`<div class="modal-title">✨ Reading Document…</div>
+        <div style="text-align:center;padding:30px"><div style="font-size:2rem;animation:spin 1s linear infinite">⚙️</div>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        <p style="color:var(--text-muted);margin-top:12px" id="fc-status">Rendering PDF pages…</p></div>`);
+      const pageImgs = await pdfToImages(base64, 1.5);
+      const setStatus = t => { const el=document.getElementById('fc-status'); if(el) el.textContent=t; };
+      if (pageImgs.length > 0) {
+        // Send each page as an image to Claude with imageRegion support
+        setStatus(`Analysing ${pageImgs.length} page(s) for diagrams…`);
+        const allTopics = [];
+        const seenTopics = {};
+        for (let pi=0; pi<pageImgs.length; pi++) {
+          setStatus(`Analysing page ${pi+1} of ${pageImgs.length}…`);
+          const pgBase64 = pageImgs[pi].split(',')[1];
+          const pgMsg = [{role:'user', content:[
+            {type:'image', source:{type:'base64', media_type:'image/png', data:pgBase64}},
+            {type:'text', text:`This is page ${pi+1} of a study document. Create flashcards for the content on this page.
+For any diagram, chart, figure, table, or labelled illustration worth embedding on a card, include imageRegion as fractions of the page image (0.0–1.0): {"top":0.1,"left":0.05,"width":0.9,"height":0.3}.
+Only add imageRegion for clearly visual content — NOT for plain text paragraphs.
+Return ONLY valid JSON, no markdown:
+{"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A.","imageRegion":{"top":0.0,"left":0.0,"width":1.0,"height":0.5}}]}]}
+imageRegion is optional. If this page has no useful content, return {"topics":[]}.`}
+          ]}];
+          try {
+            const pgRes = await fetch('https://api.anthropic.com/v1/messages', {
+              method:'POST',
+              headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+              body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4096,system:'You are a study assistant. Always return only valid JSON, no markdown.',messages:pgMsg})
+            });
+            const pgData = await pgRes.json();
+            if (pgData.error) continue;
+            const pgParsed = JSON.parse(pgData.content[0].text.replace(/```json|```/g,''));
+            const pgTopics = pgParsed.topics || [];
+            // Crop imageRegions using this page's image
+            const croppedTopics = await cropImageRegions(pageImgs[pi], pgTopics);
+            for (const t of croppedTopics) {
+              if (seenTopics[t.topic]) {
+                seenTopics[t.topic].cards.push(...t.cards);
+              } else {
+                seenTopics[t.topic] = t;
+                allTopics.push(t);
+              }
+            }
+          } catch { /* skip page on error */ }
+        }
+        closeModal();
+        setTimeout(()=>openAIReviewModal(allTopics, subjectId, fileObj.name), 50);
+        return; // handled — skip the shared code below
+      } else {
+        // pdf.js not available or failed — fall back to document API without images
+        setStatus('Generating flashcards…');
+        messages = [{role:'user', content:[
+          {type:'document', source:{type:'base64', media_type:'application/pdf', data:base64}},
+          {type:'text', text:`Create comprehensive flashcards from this document grouped by topic. Return ONLY valid JSON: {"topics":[{"topic":"Topic Name","cards":[{"front":"Q?","back":"A."}]}]}`}
+        ]}];
+      }
     } else if (type.startsWith('image/')) {
       messages = [{role:'user', content:[
         {type:'image', source:{type:'base64', media_type:type, data:base64}},
@@ -2622,6 +2677,25 @@ function renderLessonSummary(el) {
         <button class="btn btn-primary" style="flex:1" onclick="LS={phase:'setup',files:{notes:[],examQs:[],studyDesign:[]},messages:[],examQList:[],examIdx:0,examResults:[],subject:''};renderLesson()">New Lesson</button>
       </div>
     </div>`;
+}
+
+// Render all pages of a PDF (base64) to an array of image dataURLs via pdf.js
+async function pdfToImages(base64, scale=1.5) {
+  if (typeof pdfjsLib === 'undefined') return [];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  const pdf = await pdfjsLib.getDocument({data:bytes}).promise;
+  const images = [];
+  for (let p=1;p<=pdf.numPages;p++) {
+    const page = await pdf.getPage(p);
+    const vp = page.getViewport({scale});
+    const canvas = document.createElement('canvas');
+    canvas.width = vp.width; canvas.height = vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'), viewport:vp}).promise;
+    images.push(canvas.toDataURL('image/png'));
+  }
+  return images;
 }
 
 async function cropImageRegions(dataUrl, topics) {
