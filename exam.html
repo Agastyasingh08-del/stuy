@@ -1095,6 +1095,7 @@ function renderQView(q, revealed) {
         <span style="font-size:.8rem;color:var(--muted)">${ans.aiScore} / 3</span>
       </div>
       <div style="font-size:.86rem;line-height:1.6">${ans.aiFeedback}</div>
+      ${ans.aiDiagram ? `<div style="margin-top:12px;background:white;border-radius:8px;padding:10px;overflow-x:auto">${ans.aiDiagram}</div>` : ''}
     </div>` : '';
 
   const shortArea = !revealed && q.type !== 'mcq' ? `
@@ -1145,16 +1146,23 @@ async function submitShort(qid) {
 
   try {
     const reportCtx = q.examinerReport ? `\n\nEXAMINER'S REPORT FOR THIS QUESTION:\n${q.examinerReport}` : '';
+    // Detect if question involves drawing/diagrams
+    const needsDiagram = /draw|diagram|sketch|label|annotate|graph|table|flowchart|cycle|pathway|structure/i.test(q.text);
+    const diagramInstruction = needsDiagram
+      ? ' If a diagram, labelled structure, cycle, graph, or flowchart would help illustrate the correct answer, include one as valid inline SVG in the "diagram" field (viewBox="0 0 500 350", white bg, clear labels, biology-accurate). Otherwise set "diagram":null.'
+      : ' Set "diagram":null.';
     const feedback = await callAI(
-      'You are a strict exam marker. Grade the student answer against the question and examiner report. Return ONLY JSON: {"score":0,"feedback":"Detailed feedback explaining what was missing and what a full-marks answer needs."}. Score: 0=incorrect/irrelevant, 1=partially correct, 2=mostly correct (minor gaps), 3=full marks.',
-      [{role:'user',content:`QUESTION: ${q.text}\nMARKS: ${q.marks}${reportCtx}\n\nSTUDENT ANSWER: ${ans}`}]
+      'You are a strict VCE Biology exam marker. Grade the student answer and return ONLY valid JSON (no markdown). Score: 0=incorrect/irrelevant, 1=partially correct, 2=mostly correct minor gaps, 3=full marks.' + diagramInstruction,
+      [{role:'user',content:`QUESTION: ${q.text}\nMARKS: ${q.marks}${reportCtx}\n\nSTUDENT ANSWER: ${ans}\n\nReturn ONLY JSON: {"score":0,"feedback":"Detailed feedback explaining what was missing and what a full-marks answer needs, referencing the examiner report where available.","diagram":null}`}]
     );
     const parsed = JSON.parse(feedback.replace(/```json|```/g,''));
     _sess.answers[qid].aiScore = Math.min(3,Math.max(0,parsed.score));
     _sess.answers[qid].aiFeedback = parsed.feedback||'';
+    _sess.answers[qid].aiDiagram = parsed.diagram||null;
   } catch(e) {
     _sess.answers[qid].aiScore = -1;
     _sess.answers[qid].aiFeedback = 'Could not grade — check your API key.';
+    _sess.answers[qid].aiDiagram = null;
   }
   save();
   document.getElementById('sess-body').innerHTML = renderQView(q, true);
@@ -1302,10 +1310,15 @@ EXAMINER'S REPORT: ${q.examinerReport}` : '';
     const correctCtx = q.correctAnswer ? `
 
 CORRECT ANSWER: ${q.correctAnswer}` : '';
-    const text = await callAI(
-      'You are a VCE Biology teacher. Explain the biological concept tested by this question in a clear, structured way. Format your response using these sections:\n**The Core Concept** — What biological topic/process does this question test?\n**Key Facts to Know** — 3-5 bullet points of the essential knowledge needed\n**Why Students Struggle** — Common mistakes or misconceptions for this type of question\n**Exam Tip** — How to approach this type of question in an exam\nKeep each section concise and targeted to a VCE student.',
-      [{role:'user', content: 'QUESTION: '+q.text+correctCtx+reportCtx}]
+    const needsDiagram = /draw|diagram|sketch|label|annotate|graph|table|flowchart|cycle|pathway|structure|process|stage|phase/i.test(q.text + (q.topic||''));
+    const raw = await callAI(
+      'You are a VCE Biology teacher. Return ONLY valid JSON (no markdown). Explain the biological concept tested by this question.' + (needsDiagram ? ' Also produce a clear, accurate inline SVG diagram (viewBox="0 0 520 360", white background, labelled, biology-accurate) illustrating the key concept — put it in the "diagram" field. If no diagram adds value, set "diagram":null.' : ' Set "diagram":null.'),
+      [{role:'user', content: 'QUESTION: '+q.text+correctCtx+reportCtx+'\n\nReturn ONLY JSON: {"concept":"What biological topic this tests","facts":["fact1","fact2","fact3"],"struggles":"Common mistakes","tip":"Exam approach tip","diagram":null}'}]
     );
+    let parsed2 = {};
+    try { parsed2 = JSON.parse(raw.replace(/```json|```/g,'')); } catch(e) { parsed2 = {concept:'', facts:[], struggles:'', tip:'', diagram:null}; }
+    const text = `**The Core Concept**\n${parsed2.concept||''}\n\n**Key Facts to Know**\n${(parsed2.facts||[]).map(f=>'- '+f).join('\n')}\n\n**Why Students Struggle**\n${parsed2.struggles||''}\n\n**Exam Tip**\n${parsed2.tip||''}`;
+    const diagramSvg = parsed2.diagram||null;
 
     const el = document.getElementById('learn-body');
     if (!el) return;
@@ -1316,7 +1329,8 @@ CORRECT ANSWER: ${q.correctAnswer}` : '';
       .replace(/(<li>.*<\/li>\s*)+/gs, m => '<ul style="padding-left:18px;margin:6px 0">'+m+'</ul>')
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>');
-    el.innerHTML = '<div style="text-align:left;font-size:.88rem;line-height:1.7;color:var(--text)"><p>'+formatted+'</p></div>';
+    el.innerHTML = '<div style="text-align:left;font-size:.88rem;line-height:1.7;color:var(--text)"><p>'+formatted+'</p></div>'
+      + (diagramSvg ? '<div style="margin-top:14px;background:white;border-radius:10px;padding:12px;overflow-x:auto;border:1px solid var(--border)"><div style="font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;text-transform:uppercase">📊 Concept Diagram</div>'+diagramSvg+'</div>' : '');
   } catch(e) {
     const el = document.getElementById('learn-body');
     if (el) el.innerHTML = '<div style="color:var(--wrong);font-size:.85rem">Could not load explanation: '+e.message+'</div>';
