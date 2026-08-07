@@ -1293,13 +1293,8 @@ EXAMINER'S REPORT: ${q.examinerReport}` : '';
 
 CORRECT ANSWER: ${q.correctAnswer}` : '';
     const text = await callAI(
-      \`You are a VCE Biology teacher. Explain the biological concept tested by this question in a clear, structured way. Format your response using these sections:
-**The Core Concept** — What biological topic/process does this question test?
-**Key Facts to Know** — 3-5 bullet points of the essential knowledge needed
-**Why Students Struggle** — Common mistakes or misconceptions for this type of question
-**Exam Tip** — How to approach this type of question in an exam
-Keep each section concise and targeted to a VCE student.\`,
-      [{role:'user', content: \`QUESTION: \${q.text}\${correctCtx}\${reportCtx}\`}]
+      'You are a VCE Biology teacher. Explain the biological concept tested by this question in a clear, structured way. Format your response using these sections:\n**The Core Concept** — What biological topic/process does this question test?\n**Key Facts to Know** — 3-5 bullet points of the essential knowledge needed\n**Why Students Struggle** — Common mistakes or misconceptions for this type of question\n**Exam Tip** — How to approach this type of question in an exam\nKeep each section concise and targeted to a VCE student.',
+      [{role:'user', content: 'QUESTION: '+q.text+correctCtx+reportCtx}]
     );
 
     const el = document.getElementById('learn-body');
@@ -1308,13 +1303,13 @@ Keep each section concise and targeted to a VCE student.\`,
     const formatted = text
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/^- (.+)/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>\s*)+/gs, m => \`<ul style="padding-left:18px;margin:6px 0">\${m}</ul>\`)
+      .replace(/(<li>.*<\/li>\s*)+/gs, m => '<ul style="padding-left:18px;margin:6px 0">'+m+'</ul>')
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>');
-    el.innerHTML = \`<div style="text-align:left;font-size:.88rem;line-height:1.7;color:var(--text)"><p>\${formatted}</p></div>\`;
+    el.innerHTML = '<div style="text-align:left;font-size:.88rem;line-height:1.7;color:var(--text)"><p>'+formatted+'</p></div>';
   } catch(e) {
     const el = document.getElementById('learn-body');
-    if (el) el.innerHTML = \`<div style="color:var(--wrong);font-size:.85rem">❌ Could not load explanation: \${e.message}</div>\`;
+    if (el) el.innerHTML = '<div style="color:var(--wrong);font-size:.85rem">Could not load explanation: '+e.message+'</div>';
   }
 }
 
