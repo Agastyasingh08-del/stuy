@@ -1054,53 +1054,130 @@ function showSessionQ() {
 
 
 
-// ── PDF YEAR ATTACHMENT ──
-function loadPdfForYear(year, qid) {
-  // If already loaded, render pages for this question
-  if (_examPdfs[year]) { renderPdfPagesForQ(year, qid); return; }
-  // Open file picker
+// ── PDF YEAR ATTACHMENT + AI IMAGE EXTRACTION ──
+// After attaching a PDF, Claude Vision identifies which page each image-referencing
+// question's visual is on, crops it, and stores it directly in q.images (memory only).
+
+async function pdfToImagesSmall(base64) {
+  if (typeof pdfjsLib === 'undefined') return [];
+  const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  const pdf = await pdfjsLib.getDocument({data: bytes}).promise;
+  const imgs = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const vp = page.getViewport({scale: 1.2});
+    const canvas = document.createElement('canvas');
+    canvas.width = vp.width; canvas.height = vp.height;
+    await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
+    imgs.push({dataUrl: canvas.toDataURL('image/jpeg', 0.82), w: vp.width, h: vp.height});
+  }
+  return imgs;
+}
+
+function cropImageRegion(dataUrl, w, h, x, y, cw, ch) {
+  const img = new Image();
+  img.src = dataUrl;
+  const canvas = document.createElement('canvas');
+  const pw = Math.round(cw * w), ph = Math.round(ch * h);
+  canvas.width = pw; canvas.height = ph;
+  canvas.getContext('2d').drawImage(img, x*w, y*h, pw, ph, 0, 0, pw, ph);
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+
+async function loadPdfForYear(year, qid) {
+  // If images already extracted for this year, just refresh the slot
+  const alreadyDone = S.questions.some(q => q.year == year && q.images?.some(Boolean));
+  if (alreadyDone) { refreshImageSlot(qid); return; }
+
+  if (!S.settings.apiKey) { toast('❌ Add API key in Settings to auto-extract images'); return; }
+
+  // File picker
   const inp = document.createElement('input');
   inp.type = 'file'; inp.accept = '.pdf';
   inp.onchange = async () => {
     const f = inp.files[0]; if (!f) return;
     const slot = document.getElementById('img-slot-'+qid);
-    if (slot) slot.innerHTML = '<div style="color:var(--muted);font-size:.84rem;padding:10px">⏳ Loading PDF pages…</div>';
+    if (slot) slot.innerHTML = '<div style="color:var(--muted);font-size:.84rem;padding:12px;text-align:center"><div class="spin" style="font-size:1.2rem;display:inline-block">⏳</div> Rendering PDF pages…</div>';
+
     const base64 = await new Promise(res => {
-      const r = new FileReader();
-      r.onload = e => res(e.target.result.split(',')[1]);
-      r.readAsDataURL(f);
+      const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.readAsDataURL(f);
     });
-    _examPdfs[year] = base64;
-    toast('✅ '+year+' PDF loaded');
-    renderPdfPagesForQ(year, qid);
+
+    if (slot) slot.innerHTML = '<div style="color:var(--muted);font-size:.84rem;padding:12px;text-align:center"><div class="spin" style="font-size:1.2rem;display:inline-block">🔍</div> Analysing pages with AI…</div>';
+
+    await extractImagesFromPdf(base64, year);
+    refreshImageSlot(qid);
   };
   inp.click();
 }
 
-async function renderPdfPagesForQ(year, qid) {
+async function extractImagesFromPdf(base64, year) {
+  const pages = await pdfToImagesSmall(base64);
+  // Get all image-referencing question numbers for this year
+  const imgQs = S.questions.filter(q => q.year == year && questionHasImage(q));
+  if (!imgQs.length) { toast('No image questions found for '+year); return; }
+
+  // Send pages in batches of 6 to Claude Vision
+  const BATCH = 6;
+  const pageAssignments = {}; // { qNumber: {page, x, y, w, h} }
+
+  for (let i = 0; i < pages.length; i += BATCH) {
+    const batch = pages.slice(i, i+BATCH);
+    const imgBlocks = batch.map((pg, bi) => ({
+      type: 'image',
+      source: {type: 'base64', media_type: 'image/jpeg', data: pg.dataUrl.split(',')[1]}
+    }));
+    const qNums = imgQs.map(q => q.number).join(', ');
+    const pageNums = batch.map((_, bi) => `Image ${bi+1} = page ${i+bi+1}`).join(', ');
+
+    try {
+      const resp = await callAI(
+        'You are analysing VCE Biology exam PDF pages. Identify visual elements (diagrams, graphs, micrographs, images, tables) and which question number each belongs to. Return ONLY valid JSON.',
+        [{role:'user', content: [
+          ...imgBlocks,
+          {type:'text', text:`Pages shown: ${pageNums}. Questions needing images: ${qNums}. For each image/diagram/graph/table you can see, identify the question number and its bounding box as fractions (0-1) of that page. Return ONLY JSON: {"found":[{"qNumber":"5","pageIndex":0,"x":0.0,"y":0.3,"w":1.0,"h":0.45},...]}`}
+        ]}]
+      );
+      const parsed = JSON.parse(resp.replace(/\`\`\`json|\`\`\`/g, ''));
+      for (const item of (parsed.found || [])) {
+        if (!pageAssignments[item.qNumber]) {
+          pageAssignments[item.qNumber] = {
+            pageDataUrl: pages[i + item.pageIndex]?.dataUrl,
+            pw: pages[i + item.pageIndex]?.w,
+            ph: pages[i + item.pageIndex]?.h,
+            x: item.x, y: item.y, w: item.w, h: item.h
+          };
+        }
+      }
+    } catch(e) { console.warn('Batch image extract error:', e); }
+  }
+
+  // Crop and assign images to questions
+  let assigned = 0;
+  for (const q of imgQs) {
+    const pa = pageAssignments[q.number];
+    if (pa?.pageDataUrl) {
+      const cropped = cropImageRegion(pa.pageDataUrl, pa.pw, pa.ph, pa.x, pa.y, pa.w, pa.h);
+      q.images = [cropped];
+      assigned++;
+    }
+  }
+  toast('✅ ' + assigned + ' images extracted for ' + year);
+  // Don't save to localStorage (images too large) — in memory only
+}
+
+function refreshImageSlot(qid) {
+  const q = S.questions.find(x => x.id === qid);
+  if (!q) return;
   const slot = document.getElementById('img-slot-'+qid);
   if (!slot) return;
-  slot.innerHTML = '<div style="color:var(--muted);font-size:.84rem;padding:10px">⏳ Rendering pages…</div>';
-  try {
-    const base64 = _examPdfs[year];
-    // Render all pages (cached)
-    if (!_pageCache[year]) {
-      const imgs = await pdfPageImages(base64, 1.5);
-      _pageCache[year] = imgs;
-    }
-    const pages = _pageCache[year];
-    // Show all pages in a scrollable strip — user finds the right one
-    slot.innerHTML = `<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      <div style="padding:8px 12px;background:var(--surface2);font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center">
-        <span>📄 ${year} Exam — ${pages.length} pages</span>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('pdf-pages-${qid}').style.display=document.getElementById('pdf-pages-${qid}').style.display==='none'?'block':'none'">Toggle</button>
-      </div>
-      <div id="pdf-pages-${qid}" style="max-height:600px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px">
-        ${pages.map((pg,i)=>`<div><div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;font-weight:700">Page ${i+1}</div><img src="${pg}" style="max-width:100%;border-radius:6px;border:1px solid var(--border);display:block"></div>`).join('')}
-      </div>
-    </div>`;
-  } catch(e) {
-    slot.innerHTML = '<div style="color:var(--wrong);font-size:.84rem;padding:10px">❌ Could not render PDF: '+e.message+'</div>';
+  if (q.images?.some(Boolean)) {
+    slot.innerHTML = q.images.filter(Boolean).map(img =>
+      `<img src="${img}" style="max-width:100%;border-radius:10px;margin-bottom:8px;display:block;border:1px solid var(--border)">`
+    ).join('');
+  } else {
+    const yr = q.year, qi = q.id;
+    slot.innerHTML = `<div onclick="loadPdfForYear('${yr}','${qi}')" style="border:2px dashed var(--border);border-radius:10px;padding:14px;cursor:pointer;display:flex;align-items:center;gap:10px;background:var(--surface2)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'"><span style="font-size:1.4rem">🖼️</span><div><div style="font-weight:700;font-size:.85rem">Image not extracted yet</div><div style="font-size:.76rem;color:var(--muted);margin-top:2px">Tap to attach the ${yr} exam PDF — AI extracts all images automatically</div></div></div>`;
   }
 }
 
@@ -1182,7 +1259,11 @@ function renderQView(q, revealed) {
     </div>
     <div class="q-text">${q.text}</div>
     ${q.images?.filter(Boolean).map(img=>`<img src="${img}" style="max-width:100%;border-radius:8px;margin-bottom:12px;display:block">`).join('')||''}
-    ${questionHasImage(q) ? `<div id="img-slot-${q.id}" style="margin-bottom:14px"><div onclick="loadPdfForYear('${q.year}','${q.id}')" style="border:2px dashed var(--border);border-radius:10px;padding:16px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;background:var(--surface2);transition:.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'"><span style="font-size:1.4rem">🖼️</span><div><div style="font-weight:700;font-size:.85rem">This question includes a visual</div><div style="font-size:.76rem;color:var(--muted);margin-top:2px">Tap to attach the ${q.year} exam PDF and view the image</div></div></div></div>` : ''}
+    ${questionHasImage(q) ? `<div id="img-slot-${q.id}" style="margin-bottom:14px">${
+      q.images?.some(Boolean)
+        ? q.images.filter(Boolean).map(img=>`<img src="${img}" style="max-width:100%;border-radius:10px;margin-bottom:8px;display:block;border:1px solid var(--border)">`).join('')
+        : `<div onclick="loadPdfForYear('${q.year}','${q.id}')" style="border:2px dashed var(--border);border-radius:10px;padding:14px;cursor:pointer;display:flex;align-items:center;gap:10px;background:var(--surface2)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'"><span style="font-size:1.4rem">🖼️</span><div><div style="font-weight:700;font-size:.85rem">This question includes a visual</div><div style="font-size:.76rem;color:var(--muted);margin-top:2px">Tap to attach the ${q.year} exam PDF — AI extracts all images automatically</div></div></div>`
+    }</div>` : ''}
     ${optHtml}
     ${shortArea}
     ${reportHtml}
