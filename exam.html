@@ -132,7 +132,13 @@ select.fi option{background:var(--surface)}
 .sess-topbar{padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:16px;flex-shrink:0}
 .sess-prog-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
 .sess-prog-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .35s}
+.sess-main{flex:1;display:flex;overflow:hidden}
 .sess-body{flex:1;overflow-y:auto;padding:28px 24px;max-width:760px;margin:0 auto;width:100%}
+.sess-pdf-panel{width:420px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;display:flex;flex-direction:column}
+.sess-pdf-panel.hidden{display:none}
+.pdf-panel-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.76rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surface)}
+.pdf-pages-wrap{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+@media(max-width:700px){.sess-pdf-panel{width:100%;height:45vh;border-left:none;border-top:1px solid var(--border)}.sess-main{flex-direction:column}}
 .q-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .q-text{font-size:1rem;line-height:1.7;margin-bottom:16px;font-weight:500}
 .q-num{font-family:ui-monospace,monospace;font-size:.85rem;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:2px 8px;border-radius:5px}
@@ -253,6 +259,9 @@ const STORE_KEY = 'ep_' + (location.search.replace('?','') || 'default');
 let S = { subject:'', questions:[], sessions:[], settings:{apiKey:'',accent:'#f5a623',dark:null} };
 // In-memory PDF store per year: { '2022': 'base64...', ... } — not persisted to localStorage
 const _examPdfs = {};
+// PDF pages for the current session's year (rendered once, reused across questions)
+let _sessPdfPages = null;
+let _sessPdfYear = null;
 // Page cache: { '2022_5': 'data:image/png;base64,...' }
 const _pageCache = {};
 let curView = 'dashboard';
@@ -1041,15 +1050,67 @@ function showSessionQ() {
   const isDone = !!_sess.answers[q.id];
 
   const ol = document.getElementById('session-overlay');
+  const pdfLoaded = _sessPdfPages && _sessPdfPages.length;
   ol.innerHTML = `
     <div class="sess-topbar">
       <button class="btn btn-ghost btn-sm" onclick="exitSession()">✕ Exit</button>
       <div class="sess-prog-wrap"><div class="sess-prog-bar" id="spb" style="width:${pct}%"></div></div>
       <span style="font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap">${_sessIdx+1} / ${total}</span>
+      <button class="btn btn-ghost btn-sm" id="pdf-toggle-btn" onclick="togglePdfPanel()" title="Toggle exam PDF">
+        ${pdfLoaded ? '📄 Hide PDF' : '📄 Load Exam PDF'}
+      </button>
     </div>
-    <div class="sess-body" id="sess-body">
-      ${renderQView(q, isDone)}
+    <div class="sess-main">
+      <div class="sess-body" id="sess-body">
+        ${renderQView(q, isDone)}
+      </div>
+      <div class="sess-pdf-panel ${pdfLoaded ? '' : 'hidden'}" id="sess-pdf-panel">
+        <div class="pdf-panel-head">
+          <span>📄 ${q.year || ''} Exam Paper</span>
+          <button class="btn btn-ghost btn-sm" onclick="togglePdfPanel()">✕</button>
+        </div>
+        <div class="pdf-pages-wrap" id="pdf-pages-wrap">
+          ${pdfLoaded
+            ? _sessPdfPages.map((pg,i)=>`<div><div style="font-size:.65rem;color:var(--muted);margin-bottom:2px;font-weight:700">Page ${i+1}</div><img src="${pg}" style="max-width:100%;display:block;border-radius:4px;border:1px solid var(--border)"></div>`).join('')
+            : '<div style="padding:20px;text-align:center;color:var(--muted);font-size:.84rem">No PDF loaded</div>'
+          }
+        </div>
+      </div>
     </div>`;
+}
+
+function togglePdfPanel() {
+  const panel = document.getElementById('sess-pdf-panel');
+  const btn = document.getElementById('pdf-toggle-btn');
+  if (!panel) return;
+  if (panel.classList.contains('hidden')) {
+    // Load PDF if not yet loaded
+    if (!_sessPdfPages) { attachSessionPdf(); return; }
+    panel.classList.remove('hidden');
+    if (btn) btn.textContent = '📄 Hide PDF';
+  } else {
+    panel.classList.add('hidden');
+    if (btn) btn.textContent = '📄 Load Exam PDF';
+  }
+}
+
+function attachSessionPdf() {
+  const q = _sessPool[_sessIdx];
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.pdf';
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    const btn = document.getElementById('pdf-toggle-btn');
+    if (btn) { btn.textContent = '⏳ Loading…'; btn.disabled = true; }
+    const base64 = await new Promise(res => {
+      const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.readAsDataURL(f);
+    });
+    _sessPdfPages = await pdfPageImages(base64, 1.4);
+    _sessPdfYear = q?.year;
+    // Refresh the current question view to show PDF panel
+    showSessionQ();
+  };
+  inp.click();
 }
 
 
