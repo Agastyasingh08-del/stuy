@@ -622,6 +622,110 @@ async function callAI(system, messages, extraHeaders={}) {
   return d.content[0].text;
 }
 
+// Parse VCE examiner report DOCX text — handles 2022–2025 format variations
+function parseVCEReport(docxText) {
+  const reportData = {};
+  const lines = docxText.split('\n').map(l => l.trim());
+
+  // ── Section A ──
+  // Find the header row: look for "Question" then "Correct answer" pattern
+  let tableStart = -1;
+  for (let i = 0; i < lines.length - 5; i++) {
+    if (lines[i] === 'Question' && lines[i+1] === 'Correct answer' && lines[i+2].startsWith('% A')) {
+      tableStart = i + 7; // skip 7 header rows: Q, Correct, %A, %B, %C, %D, Comments
+      break;
+    }
+  }
+
+  // Also try alternate header with no separate Comments column
+  if (tableStart === -1) {
+    for (let i = 0; i < lines.length - 3; i++) {
+      if (lines[i] === 'Question' && (lines[i+1] === 'Correct answer' || lines[i+1] === 'Correct Answer')) {
+        tableStart = i + 5; break;
+      }
+    }
+  }
+
+  if (tableStart > -1) {
+    let i = tableStart;
+    // Find where Section B questions start
+    const secBStart = lines.findIndex((l,idx) => idx > tableStart && /^Question \d/.test(l));
+    const tableEnd = secBStart > -1 ? secBStart : lines.length;
+
+    while (i < tableEnd) {
+      const num = parseInt(lines[i]);
+      if (!isNaN(num) && num >= 1 && num <= 40 && /^\d+$/.test(lines[i])) {
+        const correct = lines[i+1];
+        const pA = parseFloat(lines[i+2]);
+        const pB = parseFloat(lines[i+3]);
+        const pC = parseFloat(lines[i+4]);
+        const pD = parseFloat(lines[i+5]);
+        i += 6;
+        // Accumulate comment lines until next question number
+        const commentLines = [];
+        while (i < tableEnd) {
+          const peek = lines[i];
+          const peekNum = parseInt(peek);
+          if (!isNaN(peekNum) && /^\d+$/.test(peek) && peekNum > num && peekNum <= 40) break;
+          if (['A','B','C','D'].includes(peek)) break; // next row's correct answer
+          if (peek) commentLines.push(peek);
+          i++;
+        }
+        if (['A','B','C','D'].includes(correct) && !isNaN(pA)) {
+          reportData[String(num)] = {
+            correctAnswer: correct,
+            reportStats: {A: pA, B: pB, C: pC, D: pD},
+            examinerReport: commentLines.join(' ').trim()
+          };
+        }
+      } else { i++; }
+    }
+  }
+
+  // ── Section B ──
+  // Split on "Question N..." blocks — handles "1a.", "1a.i", "2b.ii" etc.
+  // Normalise: remove all dots, spaces → "1a", "1ai", "2bii"
+  const normNum = n => n.replace(/[\s.]/g, '');
+
+  // Find all Section B question positions
+  const qRegex = /^Question (\d+[a-z]*(?:\.[ivx]+)?\.?)\s*$/i;
+  const qPositions = [];
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(qRegex);
+    if (m) qPositions.push({line: i, rawNum: m[1]});
+  }
+
+  for (let qi = 0; qi < qPositions.length; qi++) {
+    const {line: start, rawNum} = qPositions[qi];
+    const end = qi + 1 < qPositions.length ? qPositions[qi+1].line : lines.length;
+    const block = lines.slice(start, end);
+
+    // Find max mark from distribution table
+    const markIdx = block.findIndex(l => l === 'Mark');
+    const avgIdx = block.findIndex(l => l === 'Average');
+    let maxMarks = 1;
+    if (markIdx > -1 && avgIdx > markIdx) {
+      const markNums = block.slice(markIdx+1, avgIdx).map(Number).filter(n => !isNaN(n) && n > 0);
+      if (markNums.length) maxMarks = Math.max(...markNums);
+    }
+
+    // Sample answer: after the % distribution numbers
+    const pctIdx = block.findIndex(l => l === '%');
+    let sampleAnswer = '';
+    if (pctIdx > -1) {
+      // Skip number/decimal lines after %
+      let textStart = pctIdx + 1;
+      while (textStart < block.length && /^[\d.]+$/.test(block[textStart])) textStart++;
+      sampleAnswer = block.slice(textStart).join('\n').trim();
+    }
+
+    const key = normNum(rawNum);
+    reportData[key] = {examinerReport: sampleAnswer, marks: maxMarks};
+  }
+
+  return reportData;
+}
+
 async function runExtraction() {
   const year = document.getElementById('up-year').value.trim();
   const examName = document.getElementById('up-name').value.trim();
@@ -636,79 +740,112 @@ async function runExtraction() {
   const setStatus = t => { const el=document.getElementById('ext-status'); if(el) el.textContent=t; };
 
   try {
-    setStatus('Processing exam paper…');
-    const {blocks: paperBlocks} = await fileToBlocks(_uploadFiles.paper);
-    let reportBlocks = [];
-    if (_uploadFiles.report.length) {
-      setStatus('Processing examiner report…');
-      const r = await fileToBlocks(_uploadFiles.report);
-      reportBlocks = r.blocks;
+    // ── Step 1: Extract report data (DOCX is structured — parse it directly) ──
+    let reportData = {};
+    let reportDocxText = '';
+    for (const f of _uploadFiles.report) {
+      if (f.type === 'application/docx') {
+        setStatus('Parsing examiner report…');
+        try {
+          const zip = await JSZip.loadAsync(f.data);
+          const xml = await zip.file('word/document.xml').async('string');
+          reportDocxText = xml.replace(/<w:p[ >][^>]*>/g,'\n').replace(/<[^>]+>/g,'')
+            .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\r/g,'')
+            .replace(/\n{3,}/g,'\n\n').trim();
+          reportData = parseVCEReport(reportDocxText);
+        } catch(e) { console.warn('DOCX parse error', e); }
+      }
+    }
+    // If report is PDF/image, fall back to AI extraction
+    const hasDocxReport = Object.keys(reportData).length > 0;
+    if (!hasDocxReport && _uploadFiles.report.length) {
+      setStatus('Extracting report with AI (non-DOCX format)…');
+      const {blocks: rBlocks} = await fileToBlocks(_uploadFiles.report);
+      if (rBlocks.length) {
+        const rRaw = await callAI(
+          'Extract VCE examiner report data. Return ONLY valid JSON, no markdown.',
+          [{role:'user',content:[...rBlocks,{type:'text',text:`Extract data for every question from this VCE ${S.subject} examiner report.
+Section A: for each MCQ question 1-40 extract correct answer letter and % for A,B,C,D.
+Section B: for each question (e.g. "1a", "2b", "3ai") extract the sample answer / examiner commentary and max marks awarded.
+Return ONLY: {"report":{"1":{"correctAnswer":"B","reportStats":{"A":15,"B":60,"C":20,"D":5},"examinerReport":"comment"},"1a":{"examinerReport":"sample answer...","marks":3}}}`}]}]);
+        try { reportData = JSON.parse(rRaw.replace(/```json|```/g,'')).report||{}; } catch{}
+      }
     }
 
-    setStatus('Extracting questions with AI…');
-    const qSystem = `You are extracting exam questions from a ${S.subject} exam paper. Return ONLY valid JSON, no markdown.`;
-    const qPrompt = `Extract every question from this exam paper.
-For MCQ: include the 4 options labelled A, B, C, D.
-For short/extended answer: just extract the question text and marks.
-Return ONLY this JSON:
-{"questions":[{"number":"1","type":"mcq","text":"Full question text","marks":1,"topic":"Topic name","options":[{"label":"A","text":"..."},{"label":"B","text":"..."},{"label":"C","text":"..."},{"label":"D","text":"..."}]},{"number":"2","type":"short","text":"Question text","marks":4,"topic":"Topic name"}]}
-type is one of: mcq, short, extended
-topic: your best guess at the topic/area of study for this question
-If question has sub-parts (a,b,c), treat each as a separate question with number "2a","2b" etc.`;
+    // ── Step 2: Extract questions from exam paper (PDF rendered as images) ──
+    setStatus('Rendering exam paper pages…');
+    const {blocks: paperBlocks} = await fileToBlocks(_uploadFiles.paper);
+
+    setStatus(`Extracting questions from ${_uploadFiles.paper.length} file(s)…`);
+
+    // Use larger context model for question extraction since papers can be long
+    const qSystem = `You are extracting questions from a VCE ${S.subject} exam paper. This is a Victorian Certificate of Education exam. Return ONLY valid JSON, no markdown fences.`;
+    const qPrompt = `Extract EVERY question from this VCE ${S.subject} exam paper.
+
+SECTION A — Multiple Choice (Questions 1–40, each 1 mark):
+- number: "1", "2", … "40" (plain integer as string)
+- type: "mcq"
+- marks: 1
+- Include ALL 4 options A, B, C, D with their full text
+
+SECTION B — Short/Extended Answer:
+Questions have sub-parts like "a.", "b.", "c." and further sub-sub-parts "i.", "ii.", "iii."
+- number: remove all dots and spaces → "1a", "1b", "2ai", "2aii", "3bii", "5aii" etc.
+- type: "short" if 1–2 marks, "extended" if 3+ marks
+- marks: number shown in brackets next to the question, e.g. (3 marks) → 3
+
+Topic categories for VCE Biology: "DNA & Gene Expression", "Protein Synthesis", "Biotechnology", "Cellular Respiration", "Photosynthesis", "Immune Response", "Pathogens & Disease", "Evolution", "Heredity & Genetics", "Cell Biology", "Scientific Investigation"
+
+Return ONLY valid JSON (no markdown fences):
+{"questions":[
+  {"number":"1","type":"mcq","text":"Full question stem text including any scenario/stimulus text before the options","marks":1,"topic":"Topic name","options":[{"label":"A","text":"option text"},{"label":"B","text":"..."},{"label":"C","text":"..."},{"label":"D","text":"..."}]},
+  {"number":"1a","type":"short","text":"Full question text for part a","marks":1,"topic":"Topic name"},
+  {"number":"1b","type":"extended","text":"Full question text for part b","marks":4,"topic":"Topic name"}
+]}`;
 
     const qMsg = [{role:'user',content:[...paperBlocks,{type:'text',text:qPrompt}]}];
-    const qRaw = await callAI(qSystem, qMsg);
-    let extracted;
-    try { extracted = JSON.parse(qRaw.replace(/```json|```/g,'')).questions||[]; }
-    catch { throw new Error('AI returned invalid format. Try again.'); }
+    // Use sonnet for better extraction quality on long exam papers
+    const qRes = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:8192,system:qSystem,messages:qMsg})
+    });
+    const qData = await qRes.json();
+    if (qData.error) throw new Error(qData.error.message);
+    let extracted = [];
+    try { extracted = JSON.parse(qData.content[0].text.replace(/```json|```/g,'')).questions||[]; }
+    catch { throw new Error('AI returned invalid JSON. Try again.'); }
 
-    let reportData = {};
-    if (reportBlocks.length && extracted.length) {
-      setStatus('Matching examiner report to questions…');
-      const rSystem = 'You are extracting examiner report data for each question. Return ONLY valid JSON, no markdown.';
-      const rPrompt = `Here is the examiner's report for a ${S.subject} exam. For each question number, extract:
-1. The examiner's commentary/advice/model answer
-2. The correct answer letter (MCQ only, e.g. "B")
-3. Percentage of students who chose each option (MCQ only, as numbers 0-100)
-
-The questions are: ${extracted.map(q=>`Q${q.number}(${q.type})`).join(', ')}
-
-Return ONLY this JSON:
-{"report":{"1":{"examinerReport":"Examiner commentary here...","correctAnswer":"B","reportStats":{"A":15,"B":60,"C":20,"D":5}},"2":{"examinerReport":"Commentary..."}}}
-For non-MCQ questions, omit correctAnswer and reportStats.`;
-      const rMsg = [{role:'user',content:[...reportBlocks,{type:'text',text:rPrompt}]}];
-      try {
-        const rRaw = await callAI(rSystem, rMsg);
-        reportData = JSON.parse(rRaw.replace(/```json|```/g,'')).report||{};
-      } catch{}
-    }
-
-    // Merge
+    // ── Step 3: Merge questions with report data ──
     const newQs = extracted.map(q => {
-      const rep = reportData[q.number] || {};
+      // Try exact match first, then fuzzy (e.g. "1a" vs "1a.")
+      const rep = reportData[q.number]
+        || reportData[q.number.replace(/\./g,'')]
+        || reportData[q.number+'a']
+        || {};
       return {
         id: uid(),
-        subjectId: S.subject,
         year: year || null,
         examName: examName || null,
         number: q.number,
-        topic: q.topic||'',
-        type: q.type||'short',
-        text: q.text||'',
-        marks: q.marks||1,
-        options: q.options||[],
-        correctAnswer: rep.correctAnswer||q.correctAnswer||null,
-        examinerReport: rep.examinerReport||'',
-        reportStats: rep.reportStats||{},
-        images:[],reportImages:[]
+        topic: q.topic || '',
+        type: q.type || 'short',
+        text: q.text || '',
+        marks: rep.marks || q.marks || 1,
+        options: q.options || [],
+        correctAnswer: rep.correctAnswer || null,
+        examinerReport: rep.examinerReport || '',
+        reportStats: rep.reportStats || {},
+        images: [], reportImages: []
       };
     });
 
+    const matched = newQs.filter(q=>q.examinerReport||q.correctAnswer).length;
     closeModal();
-    setTimeout(()=>reviewExtractedModal(newQs, year, examName), 50);
+    setTimeout(()=>reviewExtractedModal(newQs, year, examName, matched), 50);
   } catch(e) {
     closeModal();
-    setTimeout(()=>openModal(`<div class="modal-title">❌ Extraction Failed</div><p style="color:var(--muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
+    setTimeout(()=>openModal(`<div class="modal-title">❌ Extraction Failed</div><p style="color:var(--muted);margin-bottom:8px">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
   }
 }
 
