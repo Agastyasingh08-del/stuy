@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exam Practice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:        #f7f6f3;
+  --surface:   #ffffff;
+  --surface2:  #f0ede8;
+  --border:    #e0dbd3;
+  --text:      #1a1824;
+  --muted:     #7a7490;
+  --accent:    #c8850a;
+  --accent-bg: #fef3e2;
+  --correct:   #16a34a;
+  --wrong:     #dc2626;
+  --partial:   #d97706;
+  --sidebar-w: 220px;
+  --radius:    10px;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme=light]) {
+    --bg:        #0d1117;
+    --surface:   #161b2c;
+    --surface2:  #1c2340;
+    --border:    #252d4a;
+    --text:      #e4e8f7;
+    --muted:     #6b7599;
+    --accent:    #f5a823;
+    --accent-bg: #2a1f06;
+  }
+}
+:root[data-theme=dark] {
+  --bg:        #0d1117;
+  --surface:   #161b2c;
+  --surface2:  #1c2340;
+  --border:    #252d4a;
+  --text:      #e4e8f7;
+  --muted:     #6b7599;
+  --accent:    #f5a823;
+  --accent-bg: #2a1f06;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;font-size:15px;background:var(--bg);color:var(--text);line-height:1.5}
+
+/* ── LAYOUT ── */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;padding:0 0 12px}
+#main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* ── SIDEBAR ── */
+.sb-header{padding:20px 16px 14px;border-bottom:1px solid var(--border)}
+.sb-subject{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.sb-title{font-size:1rem;font-weight:800;letter-spacing:-.02em;color:var(--text)}
+.sb-nav{padding:10px 8px;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.85rem;color:var(--muted);font-weight:500;transition:.12s;user-select:none}
+.sb-item:hover{background:var(--surface2);color:var(--text)}
+.sb-item.active{background:var(--accent-bg);color:var(--accent);font-weight:700}
+.sb-item .ico{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sb-bottom{padding:8px}
+.sb-settings{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.82rem;color:var(--muted);transition:.12s}
+.sb-settings:hover{background:var(--surface2);color:var(--text)}
+
+/* ── TOPBAR ── */
+#topbar{padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;flex-shrink:0}
+#topbar h1{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;flex:1}
+#page-content{padding:24px;flex:1}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.card+.card,.card+.stats-row,.stats-row+.card{margin-top:14px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.stat-val{font-size:1.8rem;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--accent)}
+.stat-lbl{font-size:.75rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:1px solid transparent;font-size:.85rem;font-weight:600;cursor:pointer;transition:.12s;font-family:inherit;line-height:1}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-sm{padding:5px 11px;font-size:.78rem}
+.btn-danger{background:transparent;color:var(--wrong);border-color:var(--wrong)}
+.btn-danger:hover{background:var(--wrong);color:#fff}
+
+/* ── FORMS ── */
+.fi{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:.88rem;outline:none;transition:.12s}
+.fi:focus{border-color:var(--accent)}
+.fl{display:block;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.fg{margin-bottom:14px}
+select.fi option{background:var(--surface)}
+
+/* ── DROP ZONE ── */
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;cursor:pointer;transition:.15s;color:var(--muted)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--accent-bg);color:var(--text)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:.84rem}
+.tbl th{text-align:left;padding:8px 12px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surface2)}
+.tbl tr{cursor:pointer}
+
+/* ── TAGS ── */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--surface2);color:var(--muted)}
+.tag.mcq{background:#dbeafe;color:#1e40af}
+.tag.short{background:#dcfce7;color:#166534}
+.tag.extended{background:#fce7f3;color:#9d174d}
+:root[data-theme=dark] .tag.mcq,:root:not([data-theme=light]) .tag.mcq{background:#1e3a5f;color:#93c5fd}
+:root[data-theme=dark] .tag.short,:root:not([data-theme=light]) .tag.short{background:#14532d;color:#86efac}
+:root[data-theme=dark] .tag.extended,:root:not([data-theme=light]) .tag.extended{background:#500724;color:#f9a8d4}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .tag.mcq{background:#1e3a5f;color:#93c5fd}:root:not([data-theme=light]) .tag.short{background:#14532d;color:#86efac}:root:not([data-theme=light]) .tag.extended{background:#500724;color:#f9a8d4}}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .15s}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;width:540px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal-title{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;margin-bottom:18px}
+.mactions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── PRACTICE SESSION ── */
+#session-overlay{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;overflow:hidden}
+.sess-topbar{padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:16px;flex-shrink:0}
+.sess-prog-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.sess-prog-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .35s}
+.sess-body{flex:1;overflow-y:auto;padding:28px 24px;max-width:760px;margin:0 auto;width:100%}
+.q-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.q-text{font-size:1rem;line-height:1.7;margin-bottom:16px;font-weight:500}
+.q-num{font-family:ui-monospace,monospace;font-size:.85rem;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:2px 8px;border-radius:5px}
+.mcq-options{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.mcq-opt{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;transition:.12s;background:var(--surface)}
+.mcq-opt:hover{border-color:var(--accent);background:var(--accent-bg)}
+.mcq-opt.selected{border-color:var(--accent);background:var(--accent-bg)}
+.mcq-opt.correct{border-color:var(--correct);background:#dcfce7}
+.mcq-opt.wrong{border-color:var(--wrong);background:#fee2e2}
+:root[data-theme=dark] .mcq-opt.correct,:root:not([data-theme=light]) .mcq-opt.correct{background:#14532d}
+:root[data-theme=dark] .mcq-opt.wrong,:root:not([data-theme=light]) .mcq-opt.wrong{background:#450a0a}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .mcq-opt.correct{background:#14532d}:root:not([data-theme=light]) .mcq-opt.wrong{background:#450a0a}}
+.mcq-label{font-family:ui-monospace,monospace;font-weight:700;font-size:.9rem;color:var(--accent);width:20px;flex-shrink:0}
+.short-area{width:100%;min-height:130px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:.9rem;padding:13px;resize:vertical;line-height:1.6;outline:none;transition:.12s}
+.short-area:focus{border-color:var(--accent)}
+.report-box{margin-top:20px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.report-header{padding:10px 14px;background:var(--surface2);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.report-body{padding:14px;font-size:.88rem;line-height:1.7;color:var(--text)}
+.ai-result{margin-top:14px;padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2)}
+.ai-score-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.score-badge{padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:800;letter-spacing:.02em}
+.score-0{background:#fee2e2;color:var(--wrong)}
+.score-1{background:#fef3c7;color:var(--partial)}
+.score-2{background:#dcfce7;color:var(--correct)}
+.score-3{background:#dcfce7;color:var(--correct)}
+:root[data-theme=dark] .score-0,:root:not([data-theme=light]) .score-0{background:#450a0a}
+:root[data-theme=dark] .score-1,:root:not([data-theme=light]) .score-1{background:#422006}
+:root[data-theme=dark] .score-2,:root:not([data-theme=light]) .score-2,.score-3,:root[data-theme=dark] .score-3,:root:not([data-theme=light]) .score-3{background:#14532d}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .score-0{background:#450a0a}:root:not([data-theme=light]) .score-1{background:#422006}:root:not([data-theme=light]) .score-2{background:#14532d}:root:not([data-theme=light]) .score-3{background:#14532d}}
+.stat-bar-row{display:flex;align-items:center;gap:8px;font-size:.78rem;margin-top:4px}
+.stat-bar{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:3px;background:var(--muted);transition:width .5s}
+.stat-bar-fill.correct-opt{background:var(--correct)}
+
+/* ── RESULTS ── */
+.result-q-row{padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px}
+.result-q-row:last-child{border-bottom:none}
+.result-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px}
+
+/* ── SETUP ── */
+#setup{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center}
+.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;width:420px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.setup-icon{font-size:2.4rem;margin-bottom:12px}
+.setup-box h1{font-size:1.4rem;font-weight:900;letter-spacing:-.03em;margin-bottom:6px}
+.setup-box p{color:var(--muted);font-size:.88rem;margin-bottom:22px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:9px 18px;border-radius:20px;font-size:.83rem;font-weight:600;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
+#toast.show{opacity:1}
+
+/* ── MISC ── */
+.hidden{display:none!important}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.empty{text-align:center;padding:48px 16px;color:var(--muted);font-size:.88rem}
+.empty .emi{font-size:2.5rem;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .9s linear infinite;display:inline-block}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700;background:var(--surface2);color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+<div id="setup" class="hidden">
+  <div class="setup-box">
+    <div class="setup-icon">📋</div>
+    <h1>Exam Practice</h1>
+    <p>Set this site up for one subject. Each subject gets its own separate instance.</p>
+    <div class="fg"><label class="fl">Subject Name</label>
+      <input class="fi" id="setup-subj" placeholder="e.g. Business Management" autocomplete="off"></div>
+    <div class="fg"><label class="fl">Anthropic API Key <span style="font-weight:400;text-transform:none;color:var(--muted)">(for AI features)</span></label>
+      <input class="fi" id="setup-key" type="password" placeholder="sk-ant-…"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="finishSetup()">Get Started →</button>
+  </div>
+</div>
+
+<div id="session-overlay" class="hidden"></div>
+
+<div id="overlay-root"></div>
+
+<div id="app" class="hidden">
+  <div id="sidebar">
+    <div class="sb-header">
+      <div class="sb-subject" id="sb-subject-lbl">Subject</div>
+      <div class="sb-title" id="sb-title-lbl">Exam Practice</div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-item active" onclick="nav('dashboard')" data-view="dashboard"><span class="ico">📊</span> Dashboard</div>
+      <div class="sb-item" onclick="nav('bank')" data-view="bank"><span class="ico">🗂</span> Question Bank</div>
+      <div class="sb-item" onclick="nav('upload')" data-view="upload"><span class="ico">📤</span> Upload Exam</div>
+      <div class="sb-item" onclick="nav('practice')" data-view="practice"><span class="ico">🎯</span> Practice</div>
+      <div class="sb-item" onclick="nav('history')" data-view="history"><span class="ico">📈</span> History</div>
+    </div>
+    <div class="sb-bottom">
+      <div class="sb-settings" onclick="openSettings()"><span style="font-size:1rem">⚙️</span> Settings</div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <h1 id="topbar-title">Dashboard</h1>
+      <div id="topbar-actions"></div>
+    </div>
+    <div id="page-content"></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const STORE_KEY = 'ep_' + (location.search.replace('?','') || 'default');
+let S = { subject:'', questions:[], sessions:[], settings:{apiKey:'',accent:'#f5a623',dark:null} };
+let curView = 'dashboard';
+
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify({...S, questions: S.questions.map(q=>({...q,images:[],reportImages:[]}))})); } catch(e){} }
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { const d = JSON.parse(raw); S = {...S,...d}; }
+  } catch(e){}
+}
+function uid() { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+
+// ── INIT ──
+load();
+if (!S.subject) { document.getElementById('setup').classList.remove('hidden'); }
+else { bootApp(); }
+
+function finishSetup() {
+  const subj = document.getElementById('setup-subj').value.trim();
+  const key = document.getElementById('setup-key').value.trim();
+  if (!subj) { toast('❌ Enter a subject name'); return; }
+  S.subject = subj;
+  S.settings.apiKey = key;
+  save();
+  document.getElementById('setup').classList.add('hidden');
+  bootApp();
+}
+
+function bootApp() {
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('sb-subject-lbl').textContent = S.subject.toUpperCase();
+  document.getElementById('sb-title-lbl').textContent = 'Exam Practice';
+  document.title = S.subject + ' — Exam Practice';
+  if (S.settings.dark === true) document.documentElement.setAttribute('data-theme','dark');
+  if (S.settings.dark === false) document.documentElement.setAttribute('data-theme','light');
+  nav('dashboard');
+}
+
+// ── NAVIGATION ──
+function nav(view) {
+  curView = view;
+  document.querySelectorAll('.sb-item').forEach(el => el.classList.toggle('active', el.dataset.view === view));
+  const titles = {dashboard:'Dashboard', bank:'Question Bank', upload:'Upload Exam', practice:'Practice', history:'History'};
+  document.getElementById('topbar-title').textContent = titles[view] || view;
+  document.getElementById('topbar-actions').innerHTML = '';
+  const fn = {dashboard:renderDashboard, bank:renderBank, upload:renderUpload, practice:renderPractice, history:renderHistory}[view];
+  if (fn) fn();
+}
+
+// ── TOAST ──
+let _toastTimer;
+function toast(msg, dur=2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>el.classList.remove('show'), dur);
+}
+
+// ── MODAL ──
+function openModal(html) {
+  document.getElementById('overlay-root').innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal" onclick="event.stopPropagation()" id="modal-content">${html}</div></div>`;
+}
+function closeModal() { document.getElementById('overlay-root').innerHTML = ''; }
+
+// ── HELPERS ──
+function qTypeTag(type) {
+  const labels = {mcq:'MCQ', short:'Short Answer', extended:'Extended Response'};
+  return `<span class="tag ${type}">${labels[type]||type}</span>`;
+}
+function topics() {
+  return [...new Set(S.questions.map(q=>q.topic).filter(Boolean))].sort();
+}
+function years() {
+  return [...new Set(S.questions.map(q=>q.year).filter(Boolean))].sort((a,b)=>b-a);
+}
+function markValues() {
+  return [...new Set(S.questions.map(q=>q.marks).filter(Boolean))].sort((a,b)=>a-b);
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard() {
+  const pc = document.getElementById('page-content');
+  const qs = S.questions;
+  const sess = S.sessions;
+  const done = sess.filter(s=>s.completedAt);
+  const mcqAll = qs.filter(q=>q.type==='mcq');
+  const shortAll = qs.filter(q=>q.type!=='mcq');
+
+  // accuracy across completed sessions
+  let totalAns=0, totalCorrect=0;
+  done.forEach(s=>{
+    Object.values(s.answers||{}).forEach(a=>{
+      totalAns++;
+      if (a.correct || a.aiScore >= 2) totalCorrect++;
+    });
+  });
+  const acc = totalAns ? Math.round(totalCorrect/totalAns*100) : null;
+
+  pc.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">${qs.length}</div><div class="stat-lbl">Questions</div></div>
+      <div class="stat-card"><div class="stat-val">${mcqAll.length}</div><div class="stat-lbl">MCQ</div></div>
+      <div class="stat-card"><div class="stat-val">${shortAll.length}</div><div class="stat-lbl">Short / Extended</div></div>
+      <div class="stat-card"><div class="stat-val">${acc!==null?acc+'%':'—'}</div><div class="stat-lbl">Accuracy</div></div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div style="font-weight:800;font-size:.92rem;margin-bottom:14px;letter-spacing:-.01em">Quick Practice</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
+        ${modeCard('🔵','MCQ Quiz','Random multiple-choice questions','mcq-quiz')}
+        ${modeCard('📄','Mock Exam','Full exam paper by year','mock-exam')}
+        ${modeCard('✏️','Short Answer','Extended response questions','short-string')}
+        ${modeCard('⭐','Skills Trainer','Practice by marks allocated','skills')}
+      </div>
+    </div>
+
+    ${done.length ? `<div class="card" style="margin-top:14px">
+      <div style="font-weight:800;font-size:.92rem;margin-bottom:14px;letter-spacing:-.01em">Recent Sessions</div>
+      ${done.slice(-5).reverse().map(s=>{
+        const qc = s.qIds?.length||0;
+        const ac = Object.keys(s.answers||{}).length;
+        const sc = Object.values(s.answers||{}).filter(a=>a.correct||a.aiScore>=2).length;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:.88rem">${modeLabel(s.mode)}</div>
+            <div style="font-size:.78rem;color:var(--muted)">${fmtDate(s.startedAt)} · ${qc} questions</div>
+          </div>
+          <div style="font-size:.88rem;font-weight:700;color:${ac?'var(--accent)':'var(--muted)'}">${ac?Math.round(sc/ac*100)+'%':'—'}</div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+  `;
+}
+
+function modeCard(ico, title, desc, mode) {
+  return `<div onclick="startPracticeMode('${mode}')" style="padding:14px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;transition:.12s;background:var(--surface2)" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
+    <div style="font-size:1.4rem;margin-bottom:6px">${ico}</div>
+    <div style="font-weight:700;font-size:.88rem;margin-bottom:3px">${title}</div>
+    <div style="font-size:.76rem;color:var(--muted)">${desc}</div>
+  </div>`;
+}
+
+function modeLabel(m) {
+  return {mcq:'MCQ Quiz','mock-exam':'Mock Exam','short-string':'Short Answer','skills':'Skills Trainer'}[m]||m;
+}
+function fmtDate(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ══════════════════════════════════════════
+// QUESTION BANK
+// ══════════════════════════════════════════
+let bankFilters = {type:'', topic:'', year:'', marks:''};
+function renderBank() {
+  const pc = document.getElementById('page-content');
+  document.getElementById('topbar-actions').innerHTML = `<input class="fi" id="bank-search" style="width:200px" placeholder="Search…" oninput="renderBankList()" value="">`;
+  const ts = topics(), ys = years(), ms = markValues();
+  pc.innerHTML = `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <select class="fi" style="width:auto" onchange="bankFilters.type=this.value;renderBankList()">
+        <option value="">All types</option>
+        <option value="mcq">MCQ</option>
+        <option value="short">Short Answer</option>
+        <option value="extended">Extended</option>
+      </select>
+      <select class="fi" style="width:auto" onchange="bankFilters.topic=this.value;renderBankList()">
+        <option value="">All topics</option>
+        ${ts.map(t=>`<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <select class="fi" style="width:auto" onchange="bankFilters.year=this.value;renderBankList()">
+        <option value="">All years</option>
+        ${ys.map(y=>`<option value="${y}">${y}</option>`).join('')}
+      </select>
+      <select class="fi" style="width:auto" onchange="bankFilters.marks=this.value;renderBankList()">
+        <option value="">All marks</option>
+        ${ms.map(m=>`<option value="${m}">${m} mark${m!=1?'s':''}</option>`).join('')}
+      </select>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div id="bank-list"></div>
+    </div>`;
+  renderBankList();
+}
+
+function renderBankList() {
+  const search = document.getElementById('bank-search')?.value?.toLowerCase()||'';
+  let qs = S.questions.filter(q=>{
+    if (bankFilters.type && q.type !== bankFilters.type) return false;
+    if (bankFilters.topic && q.topic !== bankFilters.topic) return false;
+    if (bankFilters.year && q.year != bankFilters.year) return false;
+    if (bankFilters.marks && q.marks != bankFilters.marks) return false;
+    if (search && !q.text?.toLowerCase().includes(search) && !q.topic?.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const el = document.getElementById('bank-list');
+  if (!el) return;
+  if (!qs.length) { el.innerHTML = `<div class="empty"><div class="emi">🗂</div>${S.questions.length?'No questions match your filters.':'No questions yet — upload an exam paper!'}</div>`; return; }
+  el.innerHTML = `<table class="tbl"><thead><tr>
+    <th>Q</th><th>Topic</th><th>Type</th><th>Marks</th><th>Year</th><th>Report</th>
+  </tr></thead><tbody>
+    ${qs.map(q=>`<tr onclick="viewQuestion('${q.id}')">
+      <td><span class="q-num">${q.number||'?'}</span></td>
+      <td>${q.topic||'—'}</td>
+      <td>${qTypeTag(q.type)}</td>
+      <td style="font-variant-numeric:tabular-nums;font-weight:600">${q.marks||'?'}</td>
+      <td>${q.year||'—'}</td>
+      <td>${q.examinerReport?'✅':'—'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function viewQuestion(id) {
+  const q = S.questions.find(x=>x.id===id); if(!q) return;
+  const optHtml = q.type==='mcq' && q.options?.length ? `
+    <div style="margin:14px 0;display:flex;flex-direction:column;gap:7px">
+      ${q.options.map(o=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:8px;border:1.5px solid ${o.label===q.correctAnswer?'var(--correct)':'var(--border)'};background:${o.label===q.correctAnswer?'#dcfce7':'var(--surface2)'}">
+        <span style="font-family:monospace;font-weight:700;color:${o.label===q.correctAnswer?'var(--correct)':'var(--accent)'}">${o.label}</span>
+        <span style="font-size:.88rem">${o.text}</span>
+        ${o.label===q.correctAnswer?'<span style="margin-left:auto;font-size:.75rem;font-weight:700;color:var(--correct)">✓ CORRECT</span>':''}
+      </div>`).join('')}
+    </div>` : '';
+  const statsHtml = q.reportStats && Object.keys(q.reportStats).length ? `
+    <div style="margin-top:10px;font-size:.78rem;color:var(--muted);margin-bottom:6px;font-weight:700">STUDENT RESPONSES</div>
+    ${Object.entries(q.reportStats).map(([l,pct])=>`
+      <div class="stat-bar-row"><span style="font-family:monospace;font-weight:700;width:16px">${l}</span>
+        <div class="stat-bar"><div class="stat-bar-fill ${l===q.correctAnswer?'correct-opt':''}" style="width:${pct}%"></div></div>
+        <span style="width:34px;text-align:right">${pct}%</span>
+      </div>`).join('')}
+  ` : '';
+  openModal(`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span class="q-num">${q.number||'Q?'}</span>
+      ${qTypeTag(q.type)}
+      ${q.marks?`<span class="pill">${q.marks} mark${q.marks!=1?'s':''}</span>`:''}
+      ${q.year?`<span class="pill">${q.year}</span>`:''}
+      ${q.topic?`<span class="pill">${q.topic}</span>`:''}
+    </div>
+    <div class="modal-title" style="margin-top:10px;font-size:.95rem">${q.text||'(no question text)'}</div>
+    ${q.images?.filter(Boolean).map(img=>`<img src="${img}" style="max-width:100%;border-radius:8px;margin-bottom:10px;display:block">`).join('')||''}
+    ${optHtml}
+    ${q.examinerReport ? `<div class="report-box"><div class="report-header">📋 Examiner's Report</div>
+      <div class="report-body">${q.examinerReport}</div>
+      ${statsHtml}
+      ${q.reportImages?.filter(Boolean).map(img=>`<img src="${img}" style="max-width:100%;border-radius:8px;margin-top:8px;display:block">`).join('')||''}
+    </div>` : '<div style="color:var(--muted);font-size:.84rem;margin-top:10px">No examiner report attached.</div>'}
+    <div class="mactions">
+      <button class="btn btn-danger btn-sm" onclick="deleteQ('${q.id}')">🗑 Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+function deleteQ(id) {
+  S.questions = S.questions.filter(q=>q.id!==id);
+  save(); closeModal(); toast('🗑 Question deleted');
+  if(curView==='bank') renderBankList();
+}
+
+// ══════════════════════════════════════════
+// UPLOAD
+// ══════════════════════════════════════════
+let _uploadFiles = {paper:[], report:[]};
+function renderUpload() {
+  _uploadFiles = {paper:[], report:[]};
+  const pc = document.getElementById('page-content');
+  pc.innerHTML = `
+    <div class="card" style="max-width:620px">
+      <div style="font-weight:800;font-size:.95rem;margin-bottom:4px">Upload Exam + Report</div>
+      <div style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Upload the exam paper and its corresponding examiner's report. AI will extract every question and pair it with the relevant report section.</div>
+
+      <div class="fg"><label class="fl">Exam Year</label>
+        <input class="fi" id="up-year" placeholder="e.g. 2023" style="width:120px"></div>
+      <div class="fg"><label class="fl">Exam Name <span style="font-weight:400;text-transform:none">(optional)</span></label>
+        <input class="fi" id="up-name" placeholder="e.g. Unit 3&4 Exam"></div>
+
+      <div class="fg">
+        <label class="fl">📄 Exam Paper</label>
+        <div id="dz-paper" class="drop-zone" onclick="document.getElementById('fi-paper').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="event.preventDefault();this.classList.remove('drag');handleUpFiles(event.dataTransfer.files,'paper')">
+          <div style="font-size:1.6rem;margin-bottom:6px">📄</div>
+          <div style="font-weight:600;font-size:.86rem">Drop exam paper here or click</div>
+          <div style="font-size:.76rem;color:var(--muted);margin-top:4px">PDF, image, or Word (.docx)</div>
+        </div>
+        <input type="file" id="fi-paper" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.docx" multiple onchange="handleUpFiles(this.files,'paper')">
+        <div id="fi-paper-list" style="margin-top:8px;font-size:.82rem;color:var(--accent)"></div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">📋 Examiner's Report</label>
+        <div id="dz-report" class="drop-zone" onclick="document.getElementById('fi-report').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="event.preventDefault();this.classList.remove('drag');handleUpFiles(event.dataTransfer.files,'report')">
+          <div style="font-size:1.6rem;margin-bottom:6px">📋</div>
+          <div style="font-weight:600;font-size:.86rem">Drop examiner's report here or click</div>
+          <div style="font-size:.76rem;color:var(--muted);margin-top:4px">PDF, image, or Word (.docx)</div>
+        </div>
+        <input type="file" id="fi-report" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.docx" multiple onchange="handleUpFiles(this.files,'report')">
+        <div id="fi-report-list" style="margin-top:8px;font-size:.82rem;color:var(--accent)"></div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="runExtraction()">✨ Extract Questions with AI</button>
+    </div>
+  `;
+}
+
+async function handleUpFiles(rawFiles, key) {
+  const files = [...rawFiles];
+  for (const f of files) {
+    const isDocx = f.name.endsWith('.docx');
+    const data = await new Promise(res=>{
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      if (isDocx) r.readAsArrayBuffer(f); else r.readAsDataURL(f);
+    });
+    _uploadFiles[key].push({name:f.name, type: isDocx?'application/docx':f.type, data, size:f.size});
+  }
+  const listEl = document.getElementById(`fi-${key}-list`);
+  if (listEl) listEl.textContent = _uploadFiles[key].map(f=>'📎 '+f.name).join(' · ');
+}
+
+async function pdfPageImages(base64, scale=1.5) {
+  if (typeof pdfjsLib==='undefined') return [];
+  const bytes = Uint8Array.from(atob(base64), c=>c.charCodeAt(0));
+  const pdf = await pdfjsLib.getDocument({data:bytes}).promise;
+  const imgs = [];
+  for (let p=1;p<=pdf.numPages;p++) {
+    const page = await pdf.getPage(p);
+    const vp = page.getViewport({scale});
+    const canvas = document.createElement('canvas');
+    canvas.width=vp.width; canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    imgs.push(canvas.toDataURL('image/png'));
+  }
+  return imgs;
+}
+
+async function fileToBlocks(files) {
+  const blocks = []; let hasPdf=false;
+  for (const f of files) {
+    const base64 = typeof f.data==='string' ? f.data.split(',')[1]||f.data : '';
+    if (f.type==='application/docx') {
+      try {
+        const zip = await JSZip.loadAsync(f.data);
+        const xml = await zip.file('word/document.xml').async('string');
+        const text = xml.replace(/<w:p[ >][^>]*>/g,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+        blocks.push({type:'text',text:`[DOCX: ${f.name}]\n${text.slice(0,20000)}`});
+      } catch{}
+    } else if (f.type==='application/pdf') {
+      const imgs = await pdfPageImages(base64);
+      for (const img of imgs) {
+        const b64 = img.split(',')[1];
+        blocks.push({type:'image',source:{type:'base64',media_type:'image/png',data:b64}});
+      }
+      hasPdf=true;
+    } else if (f.type.startsWith('image/')) {
+      blocks.push({type:'image',source:{type:'base64',media_type:f.type,data:base64}});
+    }
+  }
+  return {blocks,hasPdf};
+}
+
+async function callAI(system, messages, extraHeaders={}) {
+  if (!S.settings.apiKey) throw new Error('No API key — add one in Settings');
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':S.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true',...extraHeaders},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:4096,system,messages})
+  });
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+  return d.content[0].text;
+}
+
+async function runExtraction() {
+  const year = document.getElementById('up-year').value.trim();
+  const examName = document.getElementById('up-name').value.trim();
+  if (!_uploadFiles.paper.length) { toast('❌ Upload the exam paper first'); return; }
+  if (!S.settings.apiKey) { toast('❌ Add an API key in Settings'); return; }
+
+  openModal(`<div class="modal-title">✨ Extracting Questions…</div>
+    <div style="text-align:center;padding:30px">
+      <div class="spin" style="font-size:2rem">⚙️</div>
+      <p id="ext-status" style="color:var(--muted);margin-top:14px;font-size:.88rem">Rendering document pages…</p>
+    </div>`);
+  const setStatus = t => { const el=document.getElementById('ext-status'); if(el) el.textContent=t; };
+
+  try {
+    setStatus('Processing exam paper…');
+    const {blocks: paperBlocks} = await fileToBlocks(_uploadFiles.paper);
+    let reportBlocks = [];
+    if (_uploadFiles.report.length) {
+      setStatus('Processing examiner report…');
+      const r = await fileToBlocks(_uploadFiles.report);
+      reportBlocks = r.blocks;
+    }
+
+    setStatus('Extracting questions with AI…');
+    const qSystem = `You are extracting exam questions from a ${S.subject} exam paper. Return ONLY valid JSON, no markdown.`;
+    const qPrompt = `Extract every question from this exam paper.
+For MCQ: include the 4 options labelled A, B, C, D.
+For short/extended answer: just extract the question text and marks.
+Return ONLY this JSON:
+{"questions":[{"number":"1","type":"mcq","text":"Full question text","marks":1,"topic":"Topic name","options":[{"label":"A","text":"..."},{"label":"B","text":"..."},{"label":"C","text":"..."},{"label":"D","text":"..."}]},{"number":"2","type":"short","text":"Question text","marks":4,"topic":"Topic name"}]}
+type is one of: mcq, short, extended
+topic: your best guess at the topic/area of study for this question
+If question has sub-parts (a,b,c), treat each as a separate question with number "2a","2b" etc.`;
+
+    const qMsg = [{role:'user',content:[...paperBlocks,{type:'text',text:qPrompt}]}];
+    const qRaw = await callAI(qSystem, qMsg);
+    let extracted;
+    try { extracted = JSON.parse(qRaw.replace(/```json|```/g,'')).questions||[]; }
+    catch { throw new Error('AI returned invalid format. Try again.'); }
+
+    let reportData = {};
+    if (reportBlocks.length && extracted.length) {
+      setStatus('Matching examiner report to questions…');
+      const rSystem = 'You are extracting examiner report data for each question. Return ONLY valid JSON, no markdown.';
+      const rPrompt = `Here is the examiner's report for a ${S.subject} exam. For each question number, extract:
+1. The examiner's commentary/advice/model answer
+2. The correct answer letter (MCQ only, e.g. "B")
+3. Percentage of students who chose each option (MCQ only, as numbers 0-100)
+
+The questions are: ${extracted.map(q=>`Q${q.number}(${q.type})`).join(', ')}
+
+Return ONLY this JSON:
+{"report":{"1":{"examinerReport":"Examiner commentary here...","correctAnswer":"B","reportStats":{"A":15,"B":60,"C":20,"D":5}},"2":{"examinerReport":"Commentary..."}}}
+For non-MCQ questions, omit correctAnswer and reportStats.`;
+      const rMsg = [{role:'user',content:[...reportBlocks,{type:'text',text:rPrompt}]}];
+      try {
+        const rRaw = await callAI(rSystem, rMsg);
+        reportData = JSON.parse(rRaw.replace(/```json|```/g,'')).report||{};
+      } catch{}
+    }
+
+    // Merge
+    const newQs = extracted.map(q => {
+      const rep = reportData[q.number] || {};
+      return {
+        id: uid(),
+        subjectId: S.subject,
+        year: year || null,
+        examName: examName || null,
+        number: q.number,
+        topic: q.topic||'',
+        type: q.type||'short',
+        text: q.text||'',
+        marks: q.marks||1,
+        options: q.options||[],
+        correctAnswer: rep.correctAnswer||q.correctAnswer||null,
+        examinerReport: rep.examinerReport||'',
+        reportStats: rep.reportStats||{},
+        images:[],reportImages:[]
+      };
+    });
+
+    closeModal();
+    setTimeout(()=>reviewExtractedModal(newQs, year, examName), 50);
+  } catch(e) {
+    closeModal();
+    setTimeout(()=>openModal(`<div class="modal-title">❌ Extraction Failed</div><p style="color:var(--muted)">${e.message}</p><div class="mactions"><button class="btn btn-primary" onclick="closeModal()">OK</button></div>`),50);
+  }
+}
+
+function reviewExtractedModal(newQs, year, examName) {
+  window._reviewQs = newQs;
+  function render() {
+    const qs = window._reviewQs;
+    document.getElementById('modal-content').innerHTML = `
+      <div class="modal-title">Review Extracted Questions</div>
+      <div style="font-size:.84rem;color:var(--muted);margin-bottom:14px">${qs.length} question${qs.length!==1?'s':''} extracted${year?' from '+year:''}. Review before saving.</div>
+      <div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        ${qs.map((q,i)=>`
+          <div style="background:var(--surface2);border-radius:10px;padding:12px;border-left:3px solid var(--accent)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span class="q-num">${q.number}</span>
+              ${qTypeTag(q.type)}
+              <input type="number" min="1" max="20" value="${q.marks}" style="width:52px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:2px 6px;font-size:.78rem" onchange="window._reviewQs[${i}].marks=+this.value" title="Marks">
+              <input value="${q.topic||''}" placeholder="Topic…" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:3px 8px;font-size:.78rem" oninput="window._reviewQs[${i}].topic=this.value">
+              <button onclick="window._reviewQs.splice(${i},1);render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem" title="Remove">✕</button>
+            </div>
+            <div style="font-size:.82rem;color:var(--muted);line-height:1.5">${q.text.slice(0,120)}${q.text.length>120?'…':''}</div>
+            ${q.examinerReport?`<div style="font-size:.75rem;color:var(--correct);margin-top:4px">✅ Examiner report matched</div>`:''}
+          </div>`).join('')}
+      </div>
+      <div class="mactions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveExtracted()">Save ${qs.length} Questions</button>
+      </div>`;
+    window.render = render;
+  }
+  window.saveExtracted = () => {
+    S.questions.push(...window._reviewQs);
+    save(); closeModal();
+    toast(`✅ ${window._reviewQs.length} questions saved`);
+    nav('bank');
+  };
+  openModal('');
+  render();
+}
+
+// ══════════════════════════════════════════
+// PRACTICE MODE SELECTOR
+// ══════════════════════════════════════════
+function renderPractice() {
+  const pc = document.getElementById('page-content');
+  pc.innerHTML = `
+    <div style="max-width:640px">
+      <div style="font-size:.88rem;color:var(--muted);margin-bottom:20px">Choose a practice mode. You can filter by topic, year, or marks.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        ${bigModeCard('🔵','MCQ Quiz','Rapid-fire multiple choice. Instant feedback with answer stats from the examiner report.','mcq-quiz')}
+        ${bigModeCard('📄','Mock Exam','Simulate a full exam paper in order. Go through every question from a specific year.','mock-exam')}
+        ${bigModeCard('✏️','Short Answer String','Work through extended response questions. AI grades each answer against the examiner report.','short-string')}
+        ${bigModeCard('⭐','Skills Trainer','Drill by marks allocated — e.g. practise all 4-mark questions to target a specific skill level.','skills')}
+      </div>
+    </div>`;
+}
+
+function bigModeCard(ico, title, desc, mode) {
+  return `<div onclick="startPracticeMode('${mode}')" style="padding:20px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;background:var(--surface);transition:.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+    <div style="font-size:2rem;margin-bottom:10px">${ico}</div>
+    <div style="font-weight:800;font-size:.95rem;margin-bottom:6px">${title}</div>
+    <div style="font-size:.8rem;color:var(--muted);line-height:1.5">${desc}</div>
+  </div>`;
+}
+
+function startPracticeMode(mode) {
+  const ts = topics(), ys = years(), ms = markValues();
+  const isMock = mode==='mock-exam';
+  const isSkills = mode==='skills';
+  const isShort = mode==='short-string';
+  const isMCQ = mode==='mcq-quiz';
+
+  openModal(`
+    <div class="modal-title">${{mcq:'🔵 MCQ Quiz','mock-exam':'📄 Mock Exam','short-string':'✏️ Short Answer String','skills':'⭐ Skills Trainer'}[mode]}</div>
+    ${isMock ? `
+      <div class="fg"><label class="fl">Exam Year</label>
+        <select class="fi" id="pm-year">
+          <option value="">All years</option>
+          ${ys.map(y=>`<option value="${y}">${y}</option>`).join('')}
+        </select></div>` : `
+      <div class="fg"><label class="fl">Topic <span style="font-weight:400;text-transform:none;color:var(--muted)">(optional)</span></label>
+        <select class="fi" id="pm-topic">
+          <option value="">All topics</option>
+          ${ts.map(t=>`<option value="${t}">${t}</option>`).join('')}
+        </select></div>`}
+    ${isSkills ? `
+      <div class="fg"><label class="fl">Marks per Question</label>
+        <select class="fi" id="pm-marks">
+          <option value="">Any</option>
+          ${ms.map(m=>`<option value="${m}">${m} mark${m!=1?'s':''}</option>`).join('')}
+        </select></div>` : ''}
+    ${!isMock ? `
+      <div class="fg"><label class="fl">Number of Questions</label>
+        <select class="fi" id="pm-count">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="0">All</option>
+        </select></div>` : ''}
+    <div class="mactions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="launchSession('${mode}')">Start →</button>
+    </div>`);
+}
+
+function launchSession(mode) {
+  const topic = document.getElementById('pm-topic')?.value||'';
+  const year  = document.getElementById('pm-year')?.value||'';
+  const marks = document.getElementById('pm-marks')?.value||'';
+  const countEl = document.getElementById('pm-count');
+  const count = countEl ? (+countEl.value||0) : 0;
+
+  let pool = S.questions.filter(q=>{
+    if (mode==='mcq-quiz' && q.type!=='mcq') return false;
+    if (mode==='short-string' && q.type==='mcq') return false;
+    if (mode==='skills' && marks && q.marks!=marks) return false;
+    if (topic && q.topic!==topic) return false;
+    if (year && q.year!=year) return false;
+    return true;
+  });
+
+  if (!pool.length) { toast('❌ No questions match those filters'); return; }
+
+  // Shuffle for non-mock modes
+  if (mode !== 'mock-exam') {
+    pool = pool.sort(()=>Math.random()-.5);
+    if (count && count < pool.length) pool = pool.slice(0, count);
+  }
+
+  const session = {
+    id:uid(), mode,
+    filters:{topic, year, marks: marks?+marks:null},
+    qIds: pool.map(q=>q.id),
+    answers:{},
+    startedAt: Date.now(),
+    completedAt: null
+  };
+  S.sessions.push(session);
+  save();
+  closeModal();
+  runSession(session, pool);
+}
+
+// ══════════════════════════════════════════
+// PRACTICE SESSION
+// ══════════════════════════════════════════
+let _sess = null, _sessPool = [], _sessIdx = 0;
+
+function runSession(session, pool) {
+  _sess = session; _sessPool = pool; _sessIdx = 0;
+  document.getElementById('session-overlay').classList.remove('hidden');
+  showSessionQ();
+}
+
+function showSessionQ() {
+  if (_sessIdx >= _sessPool.length) { endSession(); return; }
+  const q = _sessPool[_sessIdx];
+  const total = _sessPool.length;
+  const pct = Math.round(_sessIdx/total*100);
+  const isDone = !!_sess.answers[q.id];
+
+  const ol = document.getElementById('session-overlay');
+  ol.innerHTML = `
+    <div class="sess-topbar">
+      <button class="btn btn-ghost btn-sm" onclick="exitSession()">✕ Exit</button>
+      <div class="sess-prog-wrap"><div class="sess-prog-bar" id="spb" style="width:${pct}%"></div></div>
+      <span style="font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap">${_sessIdx+1} / ${total}</span>
+    </div>
+    <div class="sess-body" id="sess-body">
+      ${renderQView(q, isDone)}
+    </div>`;
+}
+
+function renderQView(q, revealed) {
+  const ans = _sess.answers[q.id];
+  const optHtml = q.type==='mcq' && q.options?.length ? `
+    <div class="mcq-options">
+      ${q.options.map(o=>{
+        let cls='mcq-opt';
+        if(revealed && ans){
+          if(o.label===q.correctAnswer) cls+=' correct';
+          else if(o.label===ans.choice) cls+=' wrong';
+        } else if(ans?.choice===o.label) cls+=' selected';
+        const clickable = !revealed ? `onclick="chooseMCQ('${q.id}','${o.label}')"` : '';
+        return `<div class="${cls}" ${clickable}>
+          <span class="mcq-label">${o.label}</span>
+          <span style="font-size:.9rem;line-height:1.5">${o.text}</span>
+          ${revealed&&o.label===q.correctAnswer?`<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:var(--correct)">✓</span>`:''}
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const statsHtml = revealed && q.reportStats && Object.keys(q.reportStats).length ? `
+    <div style="margin:10px 0;font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:.06em">STUDENT RESPONSES</div>
+    ${Object.entries(q.reportStats).map(([l,pct])=>`
+      <div class="stat-bar-row">
+        <span style="font-family:monospace;font-weight:700;width:16px;color:${l===q.correctAnswer?'var(--correct)':'var(--muted)'}">${l}</span>
+        <div class="stat-bar"><div class="stat-bar-fill ${l===q.correctAnswer?'correct-opt':''}" style="width:${Math.min(100,pct||0)}%"></div></div>
+        <span style="width:34px;text-align:right;font-size:.78rem">${pct}%</span>
+      </div>`).join('')}
+  ` : '';
+
+  const reportHtml = revealed && q.examinerReport ? `
+    <div class="report-box" style="margin-top:16px">
+      <div class="report-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        📋 Examiner's Report <span style="font-size:.8rem">▾</span>
+      </div>
+      <div class="report-body">
+        ${q.examinerReport}
+        ${statsHtml}
+      </div>
+    </div>` : '';
+
+  const aiHtml = revealed && ans?.aiFeedback ? `
+    <div class="ai-result">
+      <div class="ai-score-row">
+        <div class="score-badge score-${ans.aiScore}">${['❌ Incorrect','⚡ Partial','✅ Mostly Correct','✅ Full Marks'][ans.aiScore]}</div>
+        <span style="font-size:.8rem;color:var(--muted)">${ans.aiScore} / 3</span>
+      </div>
+      <div style="font-size:.86rem;line-height:1.6">${ans.aiFeedback}</div>
+    </div>` : '';
+
+  const shortArea = !revealed && q.type !== 'mcq' ? `
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:.04em">${q.marks} MARK${q.marks!=1?'S':''} — Write your answer below</div>
+    <textarea class="short-area" id="short-ans" placeholder="Write your answer here…"></textarea>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;margin-top:10px" id="submit-btn" onclick="submitShort('${q.id}')">Submit Answer</button>
+  ` : '';
+
+  const nextBtn = revealed ? `
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:16px" onclick="nextSessionQ()">
+      ${_sessIdx+1 < _sessPool.length ? 'Next Question →' : 'See Results 🎉'}
+    </button>` : '';
+
+  return `
+    <div class="q-label">
+      <span class="q-num">${q.number||'Q?'}</span>
+      ${qTypeTag(q.type)}
+      ${q.marks?`<span class="pill">${q.marks} mark${q.marks!=1?'s':''}</span>`:''}
+      ${q.topic?`<span style="font-size:.75rem;color:var(--muted)">${q.topic}</span>`:''}
+    </div>
+    <div class="q-text">${q.text}</div>
+    ${q.images?.filter(Boolean).map(img=>`<img src="${img}" style="max-width:100%;border-radius:8px;margin-bottom:12px;display:block">`).join('')||''}
+    ${optHtml}
+    ${shortArea}
+    ${reportHtml}
+    ${aiHtml}
+    ${nextBtn}`;
+}
+
+function chooseMCQ(qid, choice) {
+  const q = _sessPool.find(x=>x.id===qid); if(!q) return;
+  const correct = q.correctAnswer ? choice===q.correctAnswer : null;
+  _sess.answers[qid] = {choice, correct, ts:Date.now()};
+  save();
+  document.getElementById('sess-body').innerHTML = renderQView(q, true);
+}
+
+async function submitShort(qid) {
+  const q = _sessPool.find(x=>x.id===qid); if(!q) return;
+  const ans = document.getElementById('short-ans')?.value?.trim();
+  if (!ans) { toast('❌ Write an answer first'); return; }
+  const btn = document.getElementById('submit-btn');
+  if (btn) { btn.textContent='Grading…'; btn.disabled=true; }
+  _sess.answers[qid] = {text:ans, aiScore:null, aiFeedback:null, ts:Date.now()};
+
+  try {
+    const reportCtx = q.examinerReport ? `\n\nEXAMINER'S REPORT FOR THIS QUESTION:\n${q.examinerReport}` : '';
+    const feedback = await callAI(
+      'You are a strict exam marker. Grade the student answer against the question and examiner report. Return ONLY JSON: {"score":0,"feedback":"Detailed feedback explaining what was missing and what a full-marks answer needs."}. Score: 0=incorrect/irrelevant, 1=partially correct, 2=mostly correct (minor gaps), 3=full marks.',
+      [{role:'user',content:`QUESTION: ${q.text}\nMARKS: ${q.marks}${reportCtx}\n\nSTUDENT ANSWER: ${ans}`}]
+    );
+    const parsed = JSON.parse(feedback.replace(/```json|```/g,''));
+    _sess.answers[qid].aiScore = Math.min(3,Math.max(0,parsed.score));
+    _sess.answers[qid].aiFeedback = parsed.feedback||'';
+  } catch(e) {
+    _sess.answers[qid].aiScore = -1;
+    _sess.answers[qid].aiFeedback = 'Could not grade — check your API key.';
+  }
+  save();
+  document.getElementById('sess-body').innerHTML = renderQView(q, true);
+}
+
+function nextSessionQ() {
+  _sessIdx++;
+  showSessionQ();
+}
+
+function endSession() {
+  _sess.completedAt = Date.now();
+  save();
+  showResults();
+}
+
+function showResults() {
+  const ol = document.getElementById('session-overlay');
+  const qs = _sessPool;
+  const ans = _sess.answers;
+  let correct=0, total=0;
+  qs.forEach(q=>{
+    const a = ans[q.id];
+    if(!a) return;
+    total++;
+    if(a.correct||a.aiScore>=2) correct++;
+  });
+
+  const pct = total ? Math.round(correct/total*100) : 0;
+  const color = pct>=70?'var(--correct)':pct>=50?'var(--partial)':'var(--wrong)';
+
+  ol.innerHTML = `
+    <div class="sess-topbar">
+      <button class="btn btn-ghost btn-sm" onclick="exitSession()">← Back</button>
+      <div style="font-weight:800;font-size:.95rem;flex:1;text-align:center">Results</div>
+      <div style="width:80px"></div>
+    </div>
+    <div class="sess-body">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:3.5rem;font-weight:900;letter-spacing:-.06em;color:${color}">${pct}%</div>
+        <div style="color:var(--muted);margin-top:4px;font-size:.88rem">${correct} of ${total} answered correctly</div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        ${qs.map(q=>{
+          const a = ans[q.id];
+          const correct = a?.correct||a?.aiScore>=2;
+          const partial = a?.aiScore===1;
+          const dotColor = !a?'var(--muted)':correct?'var(--correct)':partial?'var(--partial)':'var(--wrong)';
+          return `<div class="result-q-row">
+            <div class="result-dot" style="background:${dotColor}"></div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+                <span class="q-num">${q.number}</span>
+                ${q.topic?`<span style="font-size:.75rem;color:var(--muted)">${q.topic}</span>`:''}
+                ${q.marks?`<span class="pill">${q.marks}m</span>`:''}
+              </div>
+              <div style="font-size:.83rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:480px">${q.text.slice(0,100)}</div>
+              ${a?.aiFeedback?`<div style="font-size:.78rem;color:var(--muted);margin-top:3px;line-height:1.4">${a.aiFeedback.slice(0,120)}…</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="exitSession()">Done</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="retrySession()">Retry ↺</button>
+      </div>
+    </div>`;
+}
+
+function retrySession() {
+  const newSess = {
+    id:uid(), mode:_sess.mode, filters:_sess.filters,
+    qIds:[..._sess.qIds], answers:{},
+    startedAt:Date.now(), completedAt:null
+  };
+  S.sessions.push(newSess); save();
+  const pool = newSess.qIds.map(id=>S.questions.find(q=>q.id===id)).filter(Boolean);
+  runSession(newSess, pool);
+}
+
+function exitSession() {
+  document.getElementById('session-overlay').classList.add('hidden');
+  nav(curView);
+}
+
+// ══════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════
+function renderHistory() {
+  const pc = document.getElementById('page-content');
+  const done = S.sessions.filter(s=>s.completedAt).reverse();
+  if (!done.length) { pc.innerHTML=`<div class="empty"><div class="emi">📈</div>No sessions yet — start practising!</div>`; return; }
+
+  pc.innerHTML = `<div class="card" style="padding:0;overflow:hidden">
+    ${done.map(s=>{
+      const qs = s.qIds?.length||0;
+      const ans = Object.values(s.answers||{});
+      const correct = ans.filter(a=>a.correct||a.aiScore>=2).length;
+      const pct = ans.length ? Math.round(correct/ans.length*100) : null;
+      const color = pct==null?'var(--muted)':pct>=70?'var(--correct)':pct>=50?'var(--partial)':'var(--wrong)';
+      return `<div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border)">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.9rem">${modeLabel(s.mode)}</div>
+          <div style="font-size:.78rem;color:var(--muted);margin-top:2px">
+            ${fmtDate(s.startedAt)} · ${qs} questions
+            ${s.filters?.topic?` · ${s.filters.topic}`:''}
+            ${s.filters?.marks?` · ${s.filters.marks}m`:''}
+            ${s.filters?.year?` · ${s.filters.year}`:''}
+          </div>
+        </div>
+        <div style="font-size:1.1rem;font-weight:800;color:${color}">${pct!=null?pct+'%':'—'}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════
+function openSettings() {
+  openModal(`
+    <div class="modal-title">⚙️ Settings</div>
+    <div class="fg"><label class="fl">Subject Name</label>
+      <input class="fi" id="set-subj" value="${S.subject||''}"></div>
+    <div class="fg"><label class="fl">Anthropic API Key</label>
+      <input class="fi" id="set-key" type="password" value="${S.settings.apiKey||''}" placeholder="sk-ant-…"></div>
+    <div class="fg"><label class="fl">Theme</label>
+      <select class="fi" id="set-theme">
+        <option value="">System default</option>
+        <option value="dark" ${S.settings.dark===true?'selected':''}>Dark</option>
+        <option value="light" ${S.settings.dark===false?'selected':''}>Light</option>
+      </select></div>
+    <hr class="divider">
+    <div style="font-size:.82rem;color:var(--wrong);cursor:pointer;font-weight:600" onclick="resetAll()">⚠️ Reset all data (clears everything)</div>
+    <div class="mactions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+    </div>`);
+}
+
+function saveSettings() {
+  S.subject = document.getElementById('set-subj').value.trim()||S.subject;
+  S.settings.apiKey = document.getElementById('set-key').value.trim();
+  const th = document.getElementById('set-theme').value;
+  S.settings.dark = th===''?null:th==='dark';
+  if(th==='dark') document.documentElement.setAttribute('data-theme','dark');
+  else if(th==='light') document.documentElement.setAttribute('data-theme','light');
+  else document.documentElement.removeAttribute('data-theme');
+  document.getElementById('sb-subject-lbl').textContent = S.subject.toUpperCase();
+  document.title = S.subject + ' — Exam Practice';
+  save(); closeModal(); toast('✅ Settings saved');
+}
+
+function resetAll() {
+  if (!confirm('Delete ALL questions, sessions, and settings? This cannot be undone.')) return;
+  localStorage.removeItem(STORE_KEY);
+  location.reload();
+}
+</script>
+</body>
+</html>
