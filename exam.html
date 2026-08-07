@@ -1012,8 +1012,17 @@ function launchSession(mode) {
 
   if (!pool.length) { toast('❌ No questions match those filters'); return; }
 
-  // Shuffle for non-mock modes
-  if (mode !== 'mock-exam') {
+  if (mode === 'mock-exam') {
+    // Sort by question number in exam order: MCQ 1-40 first, then section B by number string
+    pool = pool.sort((a, b) => {
+      const aIsNum = /^\d+$/.test(a.number);
+      const bIsNum = /^\d+$/.test(b.number);
+      if (aIsNum && bIsNum) return +a.number - +b.number;
+      if (aIsNum) return -1;
+      if (bIsNum) return 1;
+      return a.number.localeCompare(b.number, undefined, {numeric: true});
+    });
+  } else {
     pool = pool.sort(()=>Math.random()-.5);
     if (count && count < pool.length) pool = pool.slice(0, count);
   }
@@ -1316,13 +1325,16 @@ function renderQView(q, revealed) {
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;margin-top:10px" id="submit-btn" onclick="submitShort('${q.id}')">Submit Answer</button>
   ` : '';
 
-  const nextBtn = revealed ? `
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn btn-ghost" style="flex:0 0 auto" onclick="learnContent('${q.id}')">🧠 Learn Content</button>
-      <button class="btn btn-primary" style="flex:1;justify-content:center;padding:12px" onclick="nextSessionQ()">
-        ${_sessIdx+1 < _sessPool.length ? 'Next Question →' : 'See Results 🎉'}
+  const navBar = revealed ? `
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-ghost" style="flex:0 0 auto" onclick="learnContent('${q.id}')">🧠 Learn</button>
+      ${_sessIdx > 0 ? `<button class="btn btn-ghost" style="flex:0 0 auto" onclick="prevSessionQ()">← Prev</button>` : ''}
+      <button class="btn btn-primary" style="flex:1;justify-content:center;padding:12px;min-width:120px" onclick="nextSessionQ()">
+        ${_sessIdx+1 < _sessPool.length ? 'Next →' : 'See Results 🎉'}
       </button>
-    </div>` : '';
+    </div>` : `
+    ${_sessIdx > 0 ? `<div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="prevSessionQ()">← Back to previous question</button></div>` : ''}
+  `;
 
   return `
     <div class="q-label">
@@ -1342,7 +1354,7 @@ function renderQView(q, revealed) {
     ${shortArea}
     ${reportHtml}
     ${aiHtml}
-    ${nextBtn}`;
+    ${navBar}`;
 }
 
 function chooseMCQ(qid, choice) {
@@ -1386,8 +1398,13 @@ async function submitShort(qid) {
 }
 
 function nextSessionQ() {
+  if (_sessIdx + 1 >= _sessPool.length) { endSession(); return; }
   _sessIdx++;
   showSessionQ();
+}
+
+function prevSessionQ() {
+  if (_sessIdx > 0) { _sessIdx--; showSessionQ(); }
 }
 
 function endSession() {
