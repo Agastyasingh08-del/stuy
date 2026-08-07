@@ -196,6 +196,10 @@ select.fi option{background:var(--surface)}
 <body>
 
 <div id="toast"></div>
+<div id="page-loader" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <div style="font-size:2rem;animation:spin .9s linear infinite">🧬</div>
+  <div style="font-size:.9rem;color:var(--muted);font-weight:600">Loading VCE Biology…</div>
+</div>
 <div id="setup" class="hidden">
   <div class="setup-box">
     <div class="setup-icon">📋</div>
@@ -266,7 +270,7 @@ if (!S.subject && _urlSubject === 'biology') {
   S.subject = 'VCE Biology';
   save();
 }
-if (!S.subject) { document.getElementById('setup').classList.remove('hidden'); }
+if (!S.subject) { hideLoader(); document.getElementById('setup').classList.remove('hidden'); }
 else { bootApp(); }
 
 function finishSetup() {
@@ -278,6 +282,11 @@ function finishSetup() {
   save();
   document.getElementById('setup').classList.add('hidden');
   bootApp();
+}
+
+function hideLoader() {
+  const l = document.getElementById('page-loader');
+  if (l) l.style.display = 'none';
 }
 
 function bootApp() {
@@ -296,6 +305,7 @@ function bootApp() {
   document.title = S.subject + ' — Exam Practice';
   if (S.settings.dark === true) document.documentElement.setAttribute('data-theme','dark');
   if (S.settings.dark === false) document.documentElement.setAttribute('data-theme','light');
+  hideLoader();
   nav('dashboard');
 }
 
