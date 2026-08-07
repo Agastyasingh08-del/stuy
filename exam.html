@@ -138,6 +138,7 @@ select.fi option{background:var(--surface)}
 .sess-pdf-panel.hidden{display:none}
 .pdf-panel-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.76rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surface)}
 .pdf-pages-wrap{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+#pdf-drop-zone.drag{border-color:var(--accent)!important;background:var(--accent-bg)!important}
 @media(max-width:700px){.sess-pdf-panel{width:100%;height:45vh;border-left:none;border-top:1px solid var(--border)}.sess-main{flex-direction:column}}
 .q-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .q-text{font-size:1rem;line-height:1.7;margin-bottom:16px;font-weight:500}
@@ -1064,7 +1065,10 @@ function showSessionQ() {
       <div class="sess-body" id="sess-body">
         ${renderQView(q, isDone)}
       </div>
-      <div class="sess-pdf-panel ${pdfLoaded ? '' : 'hidden'}" id="sess-pdf-panel">
+      <div class="sess-pdf-panel ${pdfLoaded ? '' : 'hidden'}" id="sess-pdf-panel"
+        ondragover="event.preventDefault();document.getElementById('pdf-drop-zone').classList.add('drag')"
+        ondragleave="document.getElementById('pdf-drop-zone')?.classList.remove('drag')"
+        ondrop="event.preventDefault();document.getElementById('pdf-drop-zone')?.classList.remove('drag');handlePdfDrop(event.dataTransfer.files[0])">
         <div class="pdf-panel-head">
           <span>📄 ${q.year || ''} Exam Paper</span>
           <button class="btn btn-ghost btn-sm" onclick="togglePdfPanel()">✕</button>
@@ -1072,7 +1076,11 @@ function showSessionQ() {
         <div class="pdf-pages-wrap" id="pdf-pages-wrap">
           ${pdfLoaded
             ? _sessPdfPages.map((pg,i)=>`<div><div style="font-size:.65rem;color:var(--muted);margin-bottom:2px;font-weight:700">Page ${i+1}</div><img src="${pg}" style="max-width:100%;display:block;border-radius:4px;border:1px solid var(--border)"></div>`).join('')
-            : '<div style="padding:20px;text-align:center;color:var(--muted);font-size:.84rem">No PDF loaded</div>'
+            : `<div id="pdf-drop-zone" onclick="attachSessionPdf()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="event.preventDefault();this.classList.remove('drag');handlePdfDrop(event.dataTransfer.files[0])" style="margin:16px;border:2px dashed var(--border);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='transparent'">
+                <div style="font-size:2rem;margin-bottom:8px">📄</div>
+                <div style="font-weight:700;font-size:.88rem;margin-bottom:4px">Drop exam PDF here</div>
+                <div style="font-size:.76rem;color:var(--muted)">or click to browse</div>
+              </div>`
           }
         </div>
       </div>
@@ -1094,22 +1102,27 @@ function togglePdfPanel() {
   }
 }
 
-function attachSessionPdf() {
+async function loadPdfFile(file) {
+  if (!file || file.type !== 'application/pdf') { toast('❌ Drop a PDF file'); return; }
+  const btn = document.getElementById('pdf-toggle-btn');
+  const dz = document.getElementById('pdf-drop-zone');
+  if (dz) dz.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:.84rem"><div class="spin" style="display:inline-block;font-size:1.4rem">⏳</div><div style="margin-top:8px">Rendering pages…</div></div>';
+  if (btn) { btn.textContent = '⏳ Loading…'; btn.disabled = true; }
   const q = _sessPool[_sessIdx];
+  const base64 = await new Promise(res => {
+    const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.readAsDataURL(file);
+  });
+  _sessPdfPages = await pdfPageImages(base64, 1.4);
+  _sessPdfYear = q?.year;
+  showSessionQ();
+}
+
+function handlePdfDrop(file) { loadPdfFile(file); }
+
+function attachSessionPdf() {
   const inp = document.createElement('input');
   inp.type = 'file'; inp.accept = '.pdf';
-  inp.onchange = async () => {
-    const f = inp.files[0]; if (!f) return;
-    const btn = document.getElementById('pdf-toggle-btn');
-    if (btn) { btn.textContent = '⏳ Loading…'; btn.disabled = true; }
-    const base64 = await new Promise(res => {
-      const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.readAsDataURL(f);
-    });
-    _sessPdfPages = await pdfPageImages(base64, 1.4);
-    _sessPdfYear = q?.year;
-    // Refresh the current question view to show PDF panel
-    showSessionQ();
-  };
+  inp.onchange = () => loadPdfFile(inp.files[0]);
   inp.click();
 }
 
