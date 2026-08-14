@@ -1046,157 +1046,47 @@ function launchSession(mode) {
 // ══════════════════════════════════════════
 let _sess = null, _sessPool = [], _sessIdx = 0;
 
-// ── IndexedDB PDF cache keyed by "${STORE_KEY}-${year}" ──
-const _pdfCache = {};   // in-memory: year → rendered page array
-const _pdfPanelOpen = {v: true};
-
-function _idbOpen() {
-  return new Promise((res, rej) => {
-    const req = indexedDB.open('exam_pdfs', 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore('pdfs');
-    req.onsuccess = e => res(e.target.result);
-    req.onerror = () => rej(req.error);
-  });
-}
-async function _idbGet(key) {
-  try { const db = await _idbOpen(); return new Promise(res => { const t = db.transaction('pdfs','readonly'); t.objectStore('pdfs').get(key).onsuccess = e => res(e.target.result); }); } catch { return null; }
-}
-async function _idbSet(key, val) {
-  try { const db = await _idbOpen(); return new Promise(res => { const t = db.transaction('pdfs','readwrite'); t.objectStore('pdfs').put(val, key).onsuccess = () => res(); }); } catch {}
-}
-async function _idbDel(key) {
-  try { const db = await _idbOpen(); return new Promise(res => { const t = db.transaction('pdfs','readwrite'); t.objectStore('pdfs').delete(key).onsuccess = () => res(); }); } catch {}
-}
-async function _idbKeys() {
-  try { const db = await _idbOpen(); return new Promise(res => { const t = db.transaction('pdfs','readonly'); t.objectStore('pdfs').getAllKeys().onsuccess = e => res(e.target.result||[]); }); } catch { return []; }
-}
-
-function _pdfKey(year) { return STORE_KEY + '-' + year; }
-
-async function getPdfForYear(year) {
-  if (_pdfCache[year]) return _pdfCache[year];
-  const stored = await _idbGet(_pdfKey(year));
-  if (stored) { _pdfCache[year] = stored; return stored; }
-  return null;
-}
-
 function runSession(session, pool) {
   _sess = session; _sessPool = pool; _sessIdx = 0;
   document.getElementById('session-overlay').classList.remove('hidden');
   showSessionQ();
 }
 
-async function showSessionQ() {
+function showSessionQ() {
   if (_sessIdx >= _sessPool.length) { endSession(); return; }
   const q = _sessPool[_sessIdx];
   const total = _sessPool.length;
   const pct = Math.round(_sessIdx/total*100);
   const isDone = !!_sess.answers[q.id];
-
-  // Auto-load cached PDF for this question's year
-  if (q.year && !_pdfCache[q.year]) {
-    const cached = await getPdfForYear(q.year);
-    if (cached) { _sessPdfPages = cached; _sessPdfYear = q.year; }
-  } else if (q.year && _pdfCache[q.year] && _sessPdfYear != q.year) {
-    _sessPdfPages = _pdfCache[q.year]; _sessPdfYear = q.year;
-  }
-
   const ol = document.getElementById('session-overlay');
-  const pdfLoaded = _sessPdfPages && _sessPdfPages.length && _sessPdfYear == q.year;
-  const panelVisible = _pdfPanelOpen.v;
-
-  // Get all cached years to show in dropdown
-  const cachedYears = Object.keys(_pdfCache);
-
   ol.innerHTML = `
     <div class="sess-topbar">
       <button class="btn btn-ghost btn-sm" onclick="exitSession()">✕ Exit</button>
-      <div class="sess-prog-wrap"><div class="sess-prog-bar" id="spb" style="width:${pct}%"></div></div>
+      <div class="sess-prog-wrap"><div class="sess-prog-bar" style="width:${pct}%"></div></div>
       <span style="font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap">${_sessIdx+1} / ${total}</span>
-      <button class="btn btn-ghost btn-sm" id="pdf-toggle-btn" onclick="togglePdfPanel()" title="Toggle exam PDF">
-        ${panelVisible ? '📄 Hide PDF' : '📄 Show PDF'}
-      </button>
     </div>
-    <div class="sess-main">
-      <div class="sess-body" id="sess-body">
-        ${renderQView(q, isDone)}
-      </div>
-      <div class="sess-pdf-panel ${panelVisible ? '' : 'hidden'}" id="sess-pdf-panel"
-        ondragover="event.preventDefault();document.getElementById('pdf-drop-zone')?.classList.add('drag')"
-        ondragleave="document.getElementById('pdf-drop-zone')?.classList.remove('drag')"
-        ondrop="event.preventDefault();document.getElementById('pdf-drop-zone')?.classList.remove('drag');handlePdfDrop(event.dataTransfer.files[0])">
-        <div class="pdf-panel-head" style="gap:6px;flex-wrap:wrap">
-          <span style="font-weight:700">📄 ${q.year || ''} Exam</span>
-          ${pdfLoaded ? `<span style="font-size:.72rem;color:var(--muted)">${_sessPdfPages.length} pages cached ✓</span>` : ''}
-          <button class="btn btn-ghost btn-sm" onclick="attachSessionPdf(${q.year})" title="Load & save PDF for ${q.year}" style="font-size:.75rem">
-            ${pdfLoaded ? '🔄 Replace' : '+ Load PDF for '+q.year}
-          </button>
-          ${cachedYears.filter(y=>y!=q.year).map(y=>`<button class="btn btn-ghost btn-sm" onclick="switchPdfYear(${y})" style="font-size:.72rem">📄 ${y}</button>`).join('')}
-          <button class="btn btn-ghost btn-sm" onclick="togglePdfPanel()" style="margin-left:auto">✕</button>
-        </div>
-        <div class="pdf-pages-wrap" id="pdf-pages-wrap">
-          ${pdfLoaded
-            ? _sessPdfPages.map((pg,i)=>`<div style="margin-bottom:8px"><div style="font-size:.65rem;color:var(--muted);margin-bottom:2px;font-weight:700">Page ${i+1}</div><img src="${pg}" style="max-width:100%;display:block;border-radius:4px;border:1px solid var(--border)"></div>`).join('')
-            : `<div id="pdf-drop-zone" onclick="attachSessionPdf(${q.year})"
-                ondragover="event.preventDefault();this.classList.add('drag')"
-                ondragleave="this.classList.remove('drag')"
-                ondrop="event.preventDefault();this.classList.remove('drag');handlePdfDrop(event.dataTransfer.files[0])"
-                style="margin:16px;border:2px dashed var(--border);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:.15s"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-bg)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.background='transparent'">
-                <div style="font-size:2rem;margin-bottom:8px">📄</div>
-                <div style="font-weight:700;font-size:.88rem;margin-bottom:4px">Load ${q.year} Exam PDF</div>
-                <div style="font-size:.76rem;color:var(--muted);margin-bottom:10px">Saved in browser — only needs loading once per year</div>
-                <div style="font-size:.76rem;color:var(--muted)">Drop PDF here or click to browse</div>
-              </div>`
-          }
-        </div>
-      </div>
+    <div class="sess-body" id="sess-body" style="flex:1;overflow-y:auto;padding:24px;max-width:780px;margin:0 auto;width:100%">
+      ${renderQView(q, isDone)}
     </div>`;
 }
 
-function togglePdfPanel() {
-  _pdfPanelOpen.v = !_pdfPanelOpen.v;
-  const panel = document.getElementById('sess-pdf-panel');
-  const btn = document.getElementById('pdf-toggle-btn');
-  if (panel) panel.classList.toggle('hidden', !_pdfPanelOpen.v);
-  if (btn) btn.textContent = _pdfPanelOpen.v ? '📄 Hide PDF' : '📄 Show PDF';
-}
-
-function switchPdfYear(year) {
-  if (_pdfCache[year]) {
-    _sessPdfPages = _pdfCache[year];
-    _sessPdfYear = year;
-    showSessionQ();
-  }
-}
-
-async function loadPdfFile(file, year) {
+async function loadPdfFile(file) {
   if (!file || file.type !== 'application/pdf') { toast('❌ Drop a PDF file'); return; }
-  const btn = document.getElementById('pdf-toggle-btn');
-  const dz = document.getElementById('pdf-drop-zone');
-  if (dz) dz.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:.84rem"><div class="spin" style="display:inline-block;font-size:1.4rem">⏳</div><div style="margin-top:8px">Rendering pages… (saved for future sessions)</div></div>';
-  if (btn) { btn.textContent = '⏳ Loading…'; btn.disabled = true; }
-  const targetYear = year || _sessPool[_sessIdx]?.year;
+  const q = _sessPool[_sessIdx];
   const base64 = await new Promise(res => {
     const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.readAsDataURL(file);
   });
-  const pages = await pdfPageImages(base64, 1.4);
-  _pdfCache[targetYear] = pages;
-  _sessPdfPages = pages;
-  _sessPdfYear = targetYear;
-  // Save to IndexedDB so it persists across sessions
-  await _idbSet(_pdfKey(targetYear), pages);
-  toast('✅ PDF saved for ' + targetYear + ' — won\'t need to reload');
+  _sessPdfPages = await pdfPageImages(base64, 1.4);
+  _sessPdfYear = q?.year;
   showSessionQ();
 }
 
 function handlePdfDrop(file) { loadPdfFile(file); }
 
-function attachSessionPdf(year) {
+function attachSessionPdf() {
   const inp = document.createElement('input');
   inp.type = 'file'; inp.accept = '.pdf';
-  inp.onchange = () => loadPdfFile(inp.files[0], year);
+  inp.onchange = () => loadPdfFile(inp.files[0]);
   inp.click();
 }
 
