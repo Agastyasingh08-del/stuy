@@ -1065,8 +1065,10 @@ function showSessionQ() {
       <div class="sess-prog-wrap"><div class="sess-prog-bar" style="width:${pct}%"></div></div>
       <span style="font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap">${_sessIdx+1} / ${total}</span>
     </div>
-    <div class="sess-body" id="sess-body" style="flex:1;overflow-y:auto;padding:24px;max-width:780px;margin:0 auto;width:100%">
-      ${renderQView(q, isDone)}
+    <div class="sess-main">
+      <div class="sess-body" id="sess-body">
+        ${renderQView(q, isDone)}
+      </div>
     </div>`;
 }
 
