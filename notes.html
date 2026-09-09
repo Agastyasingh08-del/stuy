@@ -1,0 +1,898 @@
+<title>VCE Biology — Study Notes</title>
+<style>
+:root{--bg:#f8f9fa;--surface:#fff;--surface2:#f1f3f5;--border:#e2e8f0;--text:#1a202c;--muted:#64748b;--accent:#6366f1;--accent-bg:#eef2ff;--correct:#16a34a;--tip:#92400e;--tip-bg:#fffbeb;--def-bg:#f0fdf4;--def-border:#86efac;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--accent:#818cf8;--accent-bg:#1e1b4b;--correct:#4ade80;--tip:#fbbf24;--tip-bg:#1c1400;--def-bg:#052e16;--def-border:#166534}}
+:root[data-theme=dark]{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--accent:#818cf8;--accent-bg:#1e1b4b;--correct:#4ade80;--tip:#fbbf24;--tip-bg:#1c1400;--def-bg:#052e16;--def-border:#166534}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--accent)}
+.app{display:flex;height:100vh;overflow:hidden}
+/* Sidebar */
+.sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-head{padding:16px;border-bottom:1px solid var(--border);font-weight:800;font-size:.95rem;display:flex;align-items:center;gap:8px}
+.sidebar-head a{text-decoration:none;color:inherit;font-size:.78rem;font-weight:400;color:var(--muted)}
+.ch-label{padding:10px 16px 4px;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.nav-item{padding:8px 16px;cursor:pointer;font-size:.85rem;border-radius:0;transition:.12s;border-left:3px solid transparent;color:var(--text)}
+.nav-item:hover{background:var(--surface2)}
+.nav-item.active{background:var(--accent-bg);border-left-color:var(--accent);color:var(--accent);font-weight:600}
+.sidebar-footer{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:.83rem;font-weight:600;transition:.12s;text-decoration:none}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{opacity:.9;color:#fff}
+.btn-sm{padding:4px 10px;font-size:.78rem}
+/* Main */
+.main{flex:1;overflow-y:auto;padding:32px 40px;max-width:860px}
+@media(max-width:640px){.main{padding:20px 16px}.sidebar{display:none}}
+h2{font-size:1.35rem;font-weight:800;margin-bottom:6px}
+h3{font-size:1.05rem;font-weight:700;margin:22px 0 8px;color:var(--text)}
+h4{font-size:.9rem;font-weight:700;margin:14px 0 6px;color:var(--muted)}
+p{margin-bottom:10px;font-size:.9rem}
+ul,ol{padding-left:20px;margin-bottom:10px;font-size:.9rem}
+li{margin-bottom:3px}
+.topic-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.topic-badge{padding:4px 12px;border-radius:20px;background:var(--accent-bg);color:var(--accent);font-size:.75rem;font-weight:700}
+.def-box{background:var(--def-bg);border:1.5px solid var(--def-border);border-radius:10px;padding:14px 16px;margin:14px 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.86rem}
+.def-term{font-weight:700;color:var(--correct);grid-column:1;padding-top:2px;white-space:nowrap}
+.def-body{grid-column:2;color:var(--text)}
+.tip-box{background:var(--tip-bg);border-left:4px solid var(--tip);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:.85rem;color:var(--tip)}
+.summary-table{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{background:var(--surface2);padding:8px 12px;text-align:left;font-weight:700;border:1px solid var(--border)}
+td{padding:7px 12px;border:1px solid var(--border);vertical-align:top}
+/* Flashcard mode */
+.fc-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;overflow:hidden}
+.fc-topbar{padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.fc-prog-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.fc-prog-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.fc-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:20px}
+.fc-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:36px 40px;max-width:620px;width:100%;text-align:center;min-height:180px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;transition:.15s;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.fc-card:hover{border-color:var(--accent)}
+.fc-q{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.fc-a{font-size:.92rem;color:var(--muted);margin-top:14px;white-space:pre-line;text-align:left;border-top:1px solid var(--border);padding-top:14px;display:none}
+.fc-a.show{display:block}
+.fc-hint{font-size:.76rem;color:var(--muted);margin-top:10px}
+.fc-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.fc-rate{padding:9px 20px;border-radius:10px;border:2px solid;cursor:pointer;font-weight:700;font-size:.88rem;transition:.12s}
+.fc-rate:hover{opacity:.85}
+.rate-again{border-color:#ef4444;color:#ef4444}
+.rate-hard{border-color:#f59e0b;color:#f59e0b}
+.rate-good{border-color:#3b82f6;color:#3b82f6}
+.rate-easy{border-color:#10b981;color:#10b981}
+.fc-done{text-align:center;padding:40px}
+.fc-done h3{font-size:1.5rem;margin-bottom:10px}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--accent-bg);color:var(--accent)}
+.due-badge{background:#fee2e2;color:#b91c1c}
+.hidden{display:none!important}
+</style>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      🧬 Biology Notes
+      <a href="exam.html" style="margin-left:auto">← Exam Practice</a>
+    </div>
+    <div id="nav-tree"></div>
+    <div class="sidebar-footer">
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="startFlashcards()">🃏 Study Flashcards</button>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="startFlashcards('due')">📅 Due only</button>
+        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="toggleTheme()">🌙</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main" id="main-content">
+    <div style="padding:40px 0;text-align:center;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:12px">🧬</div>
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px">VCE Biology Study Notes</div>
+      <div style="font-size:.88rem">Select a topic from the sidebar to start studying.</div>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap" id="home-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Flashcard overlay -->
+<div class="fc-overlay hidden" id="fc-overlay">
+  <div class="fc-topbar">
+    <button class="btn btn-sm" onclick="closeFlashcards()">✕ Exit</button>
+    <div class="fc-prog-wrap"><div class="fc-prog-bar" id="fc-prog"></div></div>
+    <span style="font-size:.82rem;color:var(--muted);white-space:nowrap" id="fc-counter"></span>
+    <span id="fc-topic-label" style="font-size:.78rem;color:var(--muted)"></span>
+  </div>
+  <div class="fc-body" id="fc-body"></div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+// VCE Biology Notes Data — Chapters 3 & 4
+
+const CHAPTERS = [
+  {
+    id: 'ch3',
+    title: 'Chapter 3: Enzymes',
+    topics: [
+      {
+        id: '3a',
+        title: '3A — Introducing Enzymes',
+        content: `
+<h3>What are Enzymes?</h3>
+<p>Enzymes are <strong>organic (carbon-based) catalysts</strong> — mostly proteins — that speed up biochemical reactions without being consumed. They lower the <strong>activation energy</strong> required to start a reaction.</p>
+<div class="def-box">
+  <div class="def-term">Enzyme</div><div class="def-body">A biological catalyst (usually a protein) that speeds up a chemical reaction by lowering its activation energy.</div>
+  <div class="def-term">Substrate</div><div class="def-body">The reactant molecule that binds to an enzyme's active site.</div>
+  <div class="def-term">Active site</div><div class="def-body">The specific region of an enzyme where the substrate binds; complementary in shape to the substrate.</div>
+  <div class="def-term">Enzyme-substrate complex</div><div class="def-body">The temporary structure formed when enzyme and substrate are bound together at the active site.</div>
+  <div class="def-term">Conformational change</div><div class="def-body">A change in the three-dimensional shape of a molecule (e.g. the active site adjusts when a substrate binds — induced fit model).</div>
+  <div class="def-term">Activation energy</div><div class="def-body">The minimum energy required to initiate a chemical reaction. Enzymes lower this.</div>
+</div>
+
+<h3>How Enzymes Work — Induced Fit Model</h3>
+<ol>
+  <li>Substrate approaches the enzyme's active site (complementary shape)</li>
+  <li>Active site undergoes a slight <strong>conformational change</strong> to accommodate the substrate ("handshake/hug")</li>
+  <li>Enzyme-substrate complex forms; bonds (hydrogen, hydrophobic) hold them together</li>
+  <li>Reaction occurs; products are released</li>
+  <li>Enzyme is unchanged and free to catalyse again</li>
+</ol>
+<div class="tip-box">⚠️ <strong>Exam tip:</strong> The <em>induced fit</em> model (active site changes shape) is the accepted model — not the old "lock and key" model (rigid active site). Always say the active site undergoes a conformational change.</div>
+
+<h3>Key Properties of Enzymes</h3>
+<ul>
+  <li><strong>Reusable</strong> — not consumed in the reaction</li>
+  <li><strong>Specific</strong> — each enzyme has one (or few) substrates whose shape is complementary to the active site</li>
+  <li><strong>Mostly proteins</strong> — made from amino acids; 3D shape is essential to function</li>
+  <li>Can catalyse reactions in <strong>both directions</strong> (anabolic and catabolic)</li>
+  <li>Function throughout entire <strong>biochemical pathways</strong></li>
+</ul>
+
+<h3>Reaction Types</h3>
+<div class="def-box">
+  <div class="def-term">Catabolic reaction</div><div class="def-body">Breaking down of larger molecules into smaller ones (e.g. maltose → glucose + glucose by maltase). Releases energy.</div>
+  <div class="def-term">Anabolic reaction</div><div class="def-body">Building up of larger molecules from smaller ones (e.g. glucose + glucose → maltose). Requires energy.</div>
+  <div class="def-term">Biochemical pathway</div><div class="def-body">A series of enzyme-catalysed reactions where the product of one becomes the substrate of the next. Also called a metabolic pathway.</div>
+</div>
+
+<h3>Activation Energy Graphs</h3>
+<ul>
+  <li>Y-axis: energy; X-axis: time (progress of reaction)</li>
+  <li>Without enzyme: large activation energy "hill"</li>
+  <li>With enzyme: same reactants and products, but smaller activation energy hill</li>
+  <li>The overall energy change (ΔG) is the <em>same</em> — enzymes only affect activation energy, not the energetics of the reaction</li>
+</ul>
+
+<h3>Example: Carbonic Anhydrase</h3>
+<p>Catalyses CO₂ + H₂O → carbonic acid <strong>10 million times faster</strong> than the uncatalysed reaction. Illustrates how critical enzyme activity is.</p>
+`,
+        flashcards: [
+          {id:'3a-1', q:'What is an enzyme?', a:'An organic (carbon-based) biological catalyst, mostly protein, that speeds up biochemical reactions by lowering the activation energy.'},
+          {id:'3a-2', q:'What is the active site?', a:'The specific region on an enzyme where the substrate binds. It is complementary in shape to the substrate and undergoes a conformational change upon binding.'},
+          {id:'3a-3', q:'What is the induced fit model?', a:'The active site undergoes a conformational change to accommodate the substrate when it binds — like a handshake, both parties adjust. (Replaces the rigid lock-and-key model.)'},
+          {id:'3a-4', q:'What is an enzyme-substrate complex?', a:'The temporary structure formed when a substrate binds to an enzyme\'s active site. Held together by hydrogen bonds and hydrophobic interactions.'},
+          {id:'3a-5', q:'How do enzymes lower activation energy?', a:'They bring reactants closer to the transition state needed to react, reducing the energy required to initiate the reaction.'},
+          {id:'3a-6', q:'Are enzymes consumed in reactions?', a:'No — enzymes are reusable. They remain unchanged after the reaction and can catalyse further reactions.'},
+          {id:'3a-7', q:'What is a catabolic reaction?', a:'A reaction that breaks larger molecules into smaller ones (e.g. maltose → glucose + glucose). Releases energy.'},
+          {id:'3a-8', q:'What is an anabolic reaction?', a:'A reaction that builds larger molecules from smaller ones (e.g. glucose + glucose → maltose). Requires energy input.'},
+          {id:'3a-9', q:'What is a biochemical (metabolic) pathway?', a:'A series of enzyme-catalysed reactions where the product of one reaction becomes the substrate of the next.'},
+          {id:'3a-10', q:'Name three key properties of enzymes.', a:'1. Reusable (not consumed). 2. Specific to their substrate. 3. Mostly proteins. (Also: work in both directions; function in pathways; can work with coenzymes.)'},
+        ]
+      },
+      {
+        id: '3b',
+        title: '3B — Factors That Affect Enzymes',
+        content: `
+<h3>1. Temperature</h3>
+<p>As temperature increases, molecules have more kinetic energy → more frequent collisions → faster enzyme-substrate binding → increased reaction rate.</p>
+<ul>
+  <li><strong>Optimal temperature:</strong> temperature at which enzyme activity is greatest (most enzyme-substrate complexes form per second)</li>
+  <li>Human enzymes: optimal 36–38°C (body temperature ≈ 37°C)</li>
+  <li><strong>Below optimal:</strong> less kinetic energy → fewer collisions → slower rate (reversible)</li>
+  <li><strong>Freezing:</strong> causes loss of function but is <em>reversible</em> — no permanent conformational change</li>
+  <li><strong>Above optimal (denaturation):</strong> excessive heat disrupts hydrogen bonds holding active site shape → <em>irreversible</em> conformational change → enzyme non-functional</li>
+</ul>
+<div class="tip-box">⚠️ <strong>Graph shape:</strong> rises to peak at optimal temperature (X), then steeply drops — enzyme denatures (Z). Below optimal it tapers off (Y = freezing, reversible).</div>
+<div class="tip-box">⚠️ <strong>Key distinction:</strong> Freezing = reversible (low kinetic energy, no permanent change). Denaturation = irreversible (bonds broken, shape permanently altered).</div>
+
+<h3>2. pH</h3>
+<p>Each enzyme has an <strong>optimal pH</strong> at which it functions best. Both overly acidic AND overly basic conditions denature the enzyme by disrupting ionic bonds that maintain the active site shape.</p>
+<ul>
+  <li>Graph = symmetrical <strong>bell-shaped curve</strong> peaking at optimal pH</li>
+  <li>Pepsin (stomach): optimal pH ≈ 1.5–2</li>
+  <li>Pancreatic lipase: optimal pH ≈ 8</li>
+  <li>Denaturation occurs at <em>both</em> extremes (unlike temperature where only high temps denature)</li>
+</ul>
+
+<h3>3. Substrate Concentration</h3>
+<ul>
+  <li>More substrate → more enzyme-substrate complexes form → faster rate</li>
+  <li><strong>Saturation point:</strong> all enzyme active sites are occupied; adding more substrate has no effect on rate → rate <strong>plateaus</strong></li>
+  <li>Before plateau: substrate is the limiting factor/reagent</li>
+  <li>After plateau: enzyme concentration (or temperature/pH) is the limiting factor</li>
+</ul>
+
+<h3>Enzyme Concentration</h3>
+<ul>
+  <li>More enzymes → more active sites available → faster rate (assuming substrate is not limiting)</li>
+  <li>Graph: linear increase in rate as enzyme concentration rises</li>
+</ul>
+
+<h3>4. Competitive Inhibition</h3>
+<div class="def-box">
+  <div class="def-term">Competitive inhibitor</div><div class="def-body">A molecule structurally similar to the substrate that binds to the <strong>active site</strong>, blocking the substrate from binding. Does NOT trigger a reaction.</div>
+</div>
+<ul>
+  <li>Inhibitor has complementary shape to active site (similar to substrate)</li>
+  <li>Directly occupies active site → substrate cannot bind</li>
+  <li>Can be overcome by <strong>increasing substrate concentration</strong> (outcompete the inhibitor)</li>
+  <li>Usually reversible</li>
+</ul>
+
+<h3>5. Non-Competitive (Allosteric) Inhibition</h3>
+<div class="def-box">
+  <div class="def-term">Non-competitive inhibitor</div><div class="def-body">A molecule that binds to the <strong>allosteric site</strong> (NOT the active site), causing a conformational change that prevents substrate binding.</div>
+  <div class="def-term">Allosteric site</div><div class="def-body">A site on an enzyme other than the active site where a regulatory molecule (non-competitive inhibitor) can bind.</div>
+</div>
+<ul>
+  <li>Inhibitor binds at allosteric site → changes active site shape → substrate cannot bind</li>
+  <li><strong>Cannot</strong> be overcome by increasing substrate concentration</li>
+  <li>Can disrupt entire biochemical pathways (e.g. end product inhibiting first enzyme in pathway = feedback inhibition)</li>
+</ul>
+
+<h3>6. Reversible vs Irreversible Inhibition</h3>
+<div class="def-box">
+  <div class="def-term">Reversible inhibition</div><div class="def-body">Inhibitor forms weak bonds with enzyme; effects are temporary; inhibitor can dissociate → enzyme function restored.</div>
+  <div class="def-term">Irreversible inhibition</div><div class="def-body">Inhibitor forms strong covalent bonds with enzyme; effects are permanent; enzyme permanently non-functional.</div>
+</div>
+<p>Most competitive inhibitors are reversible. Some poisons (e.g. nerve agents like sarin — inhibit acetylcholinesterase) are irreversible inhibitors.</p>
+
+<h3>7. Coenzymes</h3>
+<div class="def-box">
+  <div class="def-term">Cofactor</div><div class="def-body">A molecule that assists enzyme functioning. Can be inorganic (metal ions) or organic.</div>
+  <div class="def-term">Coenzyme</div><div class="def-body">An organic, non-protein cofactor that assists enzymes in catalysing reactions. Must be recycled after each reaction.</div>
+</div>
+<ul>
+  <li>Key example: <strong>ATP (adenosine triphosphate)</strong> — transfers phosphate groups to provide energy</li>
+  <li>ATP ⇌ ADP + Pᵢ (releases energy when broken; energy required to reform ATP)</li>
+  <li>ATP assists enzymes like hexokinase (catalyses glucose → glucose-6-phosphate)</li>
+  <li>Shown in diagrams as a curved arrow beside the main reaction arrow</li>
+  <li>Other coenzymes in VCE: NADH, FADH₂, NADPH (involved in cellular respiration and photosynthesis)</li>
+</ul>
+<div class="tip-box">⚠️ <strong>Coenzymes ≠ inhibitors.</strong> Coenzymes HELP enzymes work; inhibitors BLOCK enzyme function.</div>
+`,
+        flashcards: [
+          {id:'3b-1', q:'What happens to enzyme activity at temperatures above the optimal?', a:'The enzyme denatures — excessive heat breaks hydrogen bonds maintaining active site shape, causing an irreversible conformational change and permanent loss of function.'},
+          {id:'3b-2', q:'Is freezing (low temperature) reversible or irreversible for enzymes?', a:'Reversible — freezing slows enzyme activity due to low kinetic energy, but does not cause permanent conformational changes. Function returns when warmed.'},
+          {id:'3b-3', q:'Describe the pH graph for enzyme activity.', a:'A symmetrical bell-shaped curve peaking at the optimal pH. Both excessively acidic (low pH) AND alkaline (high pH) conditions denature the enzyme, causing denaturation at both extremes.'},
+          {id:'3b-4', q:'What is the saturation point in a substrate concentration graph?', a:'The point at which all enzyme active sites are occupied. Beyond this, adding more substrate does not increase reaction rate — the graph plateaus. Enzyme concentration is now the limiting factor.'},
+          {id:'3b-5', q:'How does competitive inhibition work?', a:'A competitive inhibitor has a shape complementary to the active site. It binds the active site directly, blocking the substrate. Can be overcome by increasing substrate concentration.'},
+          {id:'3b-6', q:'How does non-competitive (allosteric) inhibition work?', a:'The inhibitor binds the allosteric site (not the active site), causing a conformational change that prevents substrate binding. Cannot be overcome by increasing substrate concentration.'},
+          {id:'3b-7', q:'What is the key difference between competitive and non-competitive inhibitors?', a:'Competitive: binds active site, can be overcome by more substrate. Non-competitive: binds allosteric site, changes active site shape, cannot be overcome by more substrate.'},
+          {id:'3b-8', q:'What is the difference between reversible and irreversible inhibition?', a:'Reversible: weak bonds, temporary, enzyme recovers. Irreversible: strong (covalent) bonds, permanent, enzyme remains non-functional.'},
+          {id:'3b-9', q:'What is a coenzyme?', a:'An organic, non-protein cofactor that assists an enzyme in catalysing a reaction. Must be recycled after each reaction cycle.'},
+          {id:'3b-10', q:'Describe the role of ATP as a coenzyme.', a:'ATP donates a phosphate group to provide energy for enzyme-catalysed reactions. ATP → ADP + Pi releases energy. ADP + Pi → ATP requires energy (e.g. from cellular respiration). Represented as a curved arrow in diagrams.'},
+          {id:'3b-11', q:'What is a limiting factor/reagent?', a:'A factor (e.g. substrate concentration, temperature) that prevents an increase in reaction rate. A limiting reagent is a limiting factor that is a reactant in the equation (i.e. the substrate before saturation point).'},
+          {id:'3b-12', q:'What is the optimal temperature for human enzymes?', a:'36–38°C (approximately body temperature of 37°C).'},
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch4',
+    title: 'Chapter 4: DNA Technology',
+    topics: [
+      {
+        id: '4a',
+        title: '4A — Enzymes that Manipulate DNA',
+        content: `
+<h3>Overview</h3>
+<p>Three main enzymes manipulate DNA in biotechnology: <strong>endonucleases</strong> (cut), <strong>ligases</strong> (join), and <strong>polymerases</strong> (synthesise).</p>
+
+<h3>1. Restriction Endonucleases ("Molecular Scissors")</h3>
+<div class="def-box">
+  <div class="def-term">Restriction endonuclease</div><div class="def-body">Enzymes that cut DNA at specific recognition sequences (4–6 nucleotides). They cleave the phosphodiester bonds in the sugar-phosphate backbone. Also called restriction enzymes.</div>
+  <div class="def-term">Recognition site</div><div class="def-body">A specific palindromic DNA sequence (4–6 bp) where a restriction endonuclease binds and cuts. Palindromic = 5'→3' sequence on template strand equals 5'→3' sequence on complementary strand.</div>
+</div>
+<ul>
+  <li>Naturally found in bacteria — defence against invading viral DNA</li>
+  <li>Named after organism of origin (e.g. <em>Eco</em>RI from <em>E. coli</em>)</li>
+  <li>Recognition sites are <strong>palindromic sequences</strong></li>
+</ul>
+
+<h4>Types of Cuts:</h4>
+<ul>
+  <li><strong>Sticky ends:</strong> staggered cut → leaves single-stranded overhanging nucleotides (can hydrogen bond with complementary sticky ends) — e.g. EcoRI, HindIII</li>
+  <li><strong>Blunt ends:</strong> straight cut across both strands → no overhangs — e.g. AluI, HaeIII</li>
+</ul>
+<div class="tip-box">⚠️ <strong>Fragment counting rule:</strong><br>• <strong>Circular</strong> DNA (e.g. plasmid): fragments = number of recognition sites<br>• <strong>Linear</strong> DNA: fragments = number of recognition sites <strong>+ 1</strong></div>
+
+<h3>2. Ligases ("Molecular Glue")</h3>
+<div class="def-box">
+  <div class="def-term">Ligase</div><div class="def-body">An enzyme that joins two DNA or RNA fragments by catalysing the formation of phosphodiester bonds between them.</div>
+</div>
+<ul>
+  <li>DNA ligase: joins DNA fragments</li>
+  <li>RNA ligase: joins RNA fragments</li>
+  <li>Reverse of endonucleases — joins rather than cuts</li>
+  <li><strong>Less specific</strong> than restriction endonucleases — can join any blunt or sticky ends</li>
+  <li>Substrate: sugar and phosphate groups (not specific nitrogenous bases)</li>
+</ul>
+
+<h3>3. Polymerases ("DNA Synthesisers")</h3>
+<div class="def-box">
+  <div class="def-term">DNA polymerase</div><div class="def-body">Synthesises new DNA strands from a template using free DNA nucleotides. Requires a primer to initiate. Works 5'→3'.</div>
+  <div class="def-term">RNA polymerase</div><div class="def-body">Synthesises RNA strands from a DNA template (transcription). Uses RNA nucleotides.</div>
+  <div class="def-term">Primer</div><div class="def-body">A short, single-stranded nucleotide chain complementary to the template strand, required for polymerase to attach and begin synthesis.</div>
+</div>
+<ul>
+  <li>Polymerases require a <strong>primer</strong> to start — cannot initiate de novo</li>
+  <li>Synthesise in <strong>5'→3' direction</strong></li>
+  <li>Taq polymerase: heat-stable DNA polymerase from <em>Thermus aquaticus</em> — used in PCR</li>
+</ul>
+
+<div class="summary-table">
+  <table>
+    <tr><th>Enzyme</th><th>Action</th><th>Bond affected</th></tr>
+    <tr><td>Restriction endonuclease</td><td>Cuts DNA at recognition sites</td><td>Phosphodiester bonds (cleaved)</td></tr>
+    <tr><td>Ligase</td><td>Joins DNA/RNA fragments</td><td>Phosphodiester bonds (formed)</td></tr>
+    <tr><td>DNA polymerase</td><td>Synthesises new DNA strand</td><td>Phosphodiester bonds (formed)</td></tr>
+    <tr><td>RNA polymerase</td><td>Synthesises new RNA strand</td><td>Phosphodiester bonds (formed)</td></tr>
+  </table>
+</div>
+`,
+        flashcards: [
+          {id:'4a-1', q:'What do restriction endonucleases do?', a:'They cut DNA at specific palindromic recognition sequences (4–6 bp) by cleaving the phosphodiester bonds in the sugar-phosphate backbone. They act as "molecular scissors".'},
+          {id:'4a-2', q:'What is a palindromic recognition site?', a:'A DNA sequence where the 5\'→3\' sequence on the template strand is the same as the 5\'→3\' sequence on the complementary strand. Restriction enzymes recognise and cut these sites.'},
+          {id:'4a-3', q:'What is the difference between sticky ends and blunt ends?', a:'Sticky ends: staggered cut leaves single-stranded overhangs that can base-pair with complementary ends (e.g. EcoRI). Blunt ends: straight cut across both strands, no overhangs (e.g. AluI).'},
+          {id:'4a-4', q:'How many fragments does a restriction enzyme create from circular vs linear DNA?', a:'Circular DNA (e.g. plasmid): fragments = number of recognition sites. Linear DNA: fragments = number of recognition sites + 1.'},
+          {id:'4a-5', q:'What do ligases do and how are they different to restriction endonucleases?', a:'Ligases join DNA/RNA fragments by catalysing phosphodiester bond formation ("molecular glue"). Unlike restriction endonucleases, ligases are non-specific — they can join any compatible blunt or sticky ends.'},
+          {id:'4a-6', q:'What is a primer and why is it needed for DNA polymerase?', a:'A short single-stranded nucleotide chain complementary to the template strand. DNA polymerase cannot initiate de novo — it needs a primer to attach to before it can extend a new strand.'},
+          {id:'4a-7', q:'What is Taq polymerase and why is it used in PCR?', a:'Taq polymerase is a heat-resistant DNA polymerase from the bacterium Thermus aquaticus. It is used in PCR because it can withstand the high denaturation temperatures (90–95°C) that would destroy normal DNA polymerase.'},
+          {id:'4a-8', q:'In which direction do polymerases synthesise new strands?', a:'5\' to 3\' direction — nucleotides are added to the 3\' end of the growing strand.'},
+          {id:'4a-9', q:'Why are restriction endonucleases sourced from bacteria?', a:'Bacteria naturally produce them as a defence mechanism against invading viral (bacteriophage) DNA. They recognise and cut foreign viral DNA at specific palindromic sequences.'},
+        ]
+      },
+      {
+        id: '4b',
+        title: '4B — CRISPR-Cas9',
+        content: `
+<h3>CRISPR-Cas9 in Bacteria (Natural Role)</h3>
+<div class="def-box">
+  <div class="def-term">CRISPR</div><div class="def-body">Clustered Regularly Interspaced Short Palindromic Repeats — a region of bacterial DNA that acts as a primitive adaptive immune system.</div>
+  <div class="def-term">Cas9</div><div class="def-body">A CRISPR-Associated endonuclease that uses guide RNA to find and cut complementary viral DNA. Creates blunt-end cuts on both strands using two active sites.</div>
+  <div class="def-term">Guide RNA (gRNA)</div><div class="def-body">RNA transcribed from CRISPR spacer sequences that guides Cas9 to the target viral DNA sequence.</div>
+  <div class="def-term">PAM sequence</div><div class="def-body">Protospacer Adjacent Motif — a short (2–6 nt) sequence recognised by Cas1/Cas2 to identify where to extract a protospacer from viral DNA. E.g. NGG in S. pyogenes. Not included in the final protospacer.</div>
+</div>
+
+<h3>3 Steps of Bacterial CRISPR Defence:</h3>
+<ol>
+  <li><strong>Acquisition:</strong> When a bacteriophage invades, Cas1+Cas2 proteins extract a short segment of viral DNA (protospacer) just before the PAM sequence. This "mugshot" is inserted between palindromic repeats in the CRISPR region of the bacterial genome.</li>
+  <li><strong>Expression:</strong> The CRISPR spacers (including the viral mugshot) are transcribed into guide RNA (gRNA). The gRNA binds to Cas9 protein → forms the CRISPR-Cas9 complex. gRNA has a hairpin loop structure from the palindromic repeats on either side.</li>
+  <li><strong>Extermination:</strong> The CRISPR-Cas9 complex scans the cell for DNA complementary to the gRNA (viral DNA). When found, Cas9 cleaves both strands (creating blunt ends) to inactivate the virus. If not inactivated, DNA repair mechanisms induce mutations that render the viral gene non-functional.</li>
+</ol>
+<div class="tip-box">⚠️ CRISPR-Cas9 = "primitive adaptive immune system in bacteria" — stores memory of past viral infections.</div>
+
+<h3>CRISPR-Cas9 in Artificial Gene Editing</h3>
+<p>Scientists adapted CRISPR-Cas9 to precisely edit any organism's genome:</p>
+<ol>
+  <li>Scientists design a synthetic <strong>single guide RNA (sgRNA)</strong> complementary to the target DNA sequence</li>
+  <li>sgRNA + Cas9 are introduced into cells (injected)</li>
+  <li>sgRNA guides Cas9 to the target sequence (Cas9 also needs PAM sequence nearby to bind)</li>
+  <li>Cas9 cuts both strands at the target site (blunt end cut)</li>
+  <li>Two possible outcomes after the cut:
+    <ul>
+      <li><strong>Gene knockout:</strong> The cell's DNA repair mechanisms (error-prone) cause mutations (insertions/deletions) → gene silenced</li>
+      <li><strong>Gene knock-in:</strong> Introduce a corrected/new DNA sequence into the cell → repair machinery incorporates it</li>
+    </ul>
+  </li>
+</ol>
+<div class="def-box">
+  <div class="def-term">Single guide RNA (sgRNA)</div><div class="def-body">A synthetic, single-stranded RNA molecule designed to guide Cas9 to a specific DNA sequence for gene editing. Functionally equivalent to gRNA in bacteria but made from one strand rather than two.</div>
+</div>
+
+<h3>Applications of CRISPR-Cas9</h3>
+<ul>
+  <li><strong>Research:</strong> identifying gene function by knocking out specific genes; attaching fluorescent proteins to locate genes</li>
+  <li><strong>Medicine:</strong> replacing deleterious alleles; adding HIV resistance genes; modifying cancer-promoting genes</li>
+  <li><strong>Agriculture:</strong> introducing pest/herbicide resistance; promoting growth rates</li>
+</ul>
+
+<h3>Limitations and Ethics</h3>
+<ul>
+  <li>Off-target cuts (lack of complete precision)</li>
+  <li>Difficulty reliably inducing substitution mutations / knock-in (DNA repair not 100% controllable)</li>
+  <li>Embryos must be treated before cell differentiation for all cells to be affected</li>
+  <li>Currently illegal to implant GM embryos into humans</li>
+  <li>Ethical concerns: equity of access, "designer babies", altering evolutionary pathways</li>
+</ul>
+
+<div class="summary-table">
+  <table>
+    <tr><th></th><th>In bacteria (natural)</th><th>In gene editing (artificial)</th></tr>
+    <tr><td><strong>Purpose</strong></td><td>Destroy invading viral DNA</td><td>Induce mutations to alter genomic DNA</td></tr>
+    <tr><td><strong>gRNA</strong></td><td>Naturally transcribed from CRISPR gene</td><td>Synthetically produced (sgRNA)</td></tr>
+    <tr><td><strong>PAM</strong></td><td>Species-specific</td><td>Cas9 modified to suit target gene</td></tr>
+    <tr><td><strong>After cut</strong></td><td>Repair mechanisms mutate viral gene → inactivation</td><td>Knock out, enhance, or change gene function</td></tr>
+  </table>
+</div>
+`,
+        flashcards: [
+          {id:'4b-1', q:'What does CRISPR stand for?', a:'Clustered Regularly Interspaced Short Palindromic Repeats — a region of bacterial DNA containing short palindromic repeats interspersed with spacer sequences (viral "mugshots").'},
+          {id:'4b-2', q:'What is the natural function of CRISPR-Cas9 in bacteria?', a:'It acts as a primitive adaptive immune system. Bacteria store segments of viral DNA (spacers) in CRISPR. When the same virus re-invades, gRNA guides Cas9 to cut and destroy it.'},
+          {id:'4b-3', q:'Describe the 3 steps of bacterial CRISPR-Cas9 immunity.', a:'1. Acquisition: Cas1+Cas2 extract protospacer from viral DNA (before PAM site) and insert into CRISPR.\n2. Expression: CRISPR spacers transcribed into gRNA; gRNA + Cas9 form CRISPR-Cas9 complex.\n3. Extermination: complex finds complementary viral DNA; Cas9 cleaves both strands (blunt ends), inactivating the virus.'},
+          {id:'4b-4', q:'What is a PAM sequence?', a:'Protospacer Adjacent Motif — a short sequence (2–6 nt) in viral DNA that Cas1/Cas2 recognise when extracting protospacers. In S. pyogenes the PAM is NGG. Cas9 also needs a PAM nearby to bind and cut during extermination. Not included in the protospacer.'},
+          {id:'4b-5', q:'What is single guide RNA (sgRNA)?', a:'A synthetic, single-stranded RNA designed by scientists to guide Cas9 to a specific target DNA sequence during artificial gene editing. Equivalent to natural gRNA but made from one strand.'},
+          {id:'4b-6', q:'What type of cut does Cas9 make?', a:'A blunt end cut — Cas9 has two active sites and cleaves both strands of the DNA double helix simultaneously, creating no overhangs.'},
+          {id:'4b-7', q:'What are the two possible outcomes after CRISPR-Cas9 cuts DNA in gene editing?', a:'1. Gene knockout: error-prone DNA repair causes insertions/deletions (indels) that disrupt gene function.\n2. Gene knock-in: scientists provide corrected/new DNA sequence; repair machinery incorporates it into the genome.'},
+          {id:'4b-8', q:'Why must embryos be treated before differentiation in CRISPR-Cas9 gene editing?', a:'To ensure every cell in the resulting organism contains the genetic modification. After differentiation, different cell types develop, making whole-organism editing much more difficult.'},
+          {id:'4b-9', q:'Name two limitations of CRISPR-Cas9 gene editing.', a:'1. Off-target cuts (Cas9 may cut unintended sites with similar sequences).\n2. Knock-in mutations are unreliable (cannot control how DNA repair incorporates new sequences).'},
+          {id:'4b-10', q:'What is the difference between gRNA and sgRNA?', a:'gRNA (guide RNA): natural in bacteria, made from two RNA molecules (crRNA + tracrRNA) that hybridise. sgRNA (single guide RNA): synthetic, used in artificial gene editing, a single RNA strand that combines the functions of both crRNA and tracrRNA.'},
+        ]
+      },
+      {
+        id: '4c',
+        title: '4C — Polymerase Chain Reaction (PCR)',
+        content: `
+<h3>Purpose of PCR</h3>
+<p>The polymerase chain reaction (PCR) is a laboratory technique that <strong>amplifies DNA</strong> — creates many identical copies from a very small initial sample.</p>
+<div class="tip-box">⚠️ In VCAA exams, write "polymerase chain reaction (PCR)" in full first, then use the abbreviation. PCR alone without prior definition is not accepted.</div>
+
+<h3>Applications</h3>
+<ul>
+  <li>Forensic analysis (bodily fluids, hair follicles, crime scenes)</li>
+  <li>Paternity testing</li>
+  <li>Genetic disease screening</li>
+  <li>Medical diagnostics (e.g. detecting viral DNA)</li>
+</ul>
+
+<h3>Components Required</h3>
+<ul>
+  <li><strong>Template DNA</strong> — the target DNA to be amplified</li>
+  <li><strong>Taq polymerase</strong> — heat-resistant DNA polymerase (from <em>Thermus aquaticus</em>); optimal temperature 72°C</li>
+  <li><strong>Forward and reverse primers</strong> — short single-stranded DNA complementary to each end of the target region; define the region to be amplified</li>
+  <li><strong>Free dNTPs (nucleotides)</strong> — building blocks for new DNA strands</li>
+  <li><strong>Buffer solution</strong> — maintains appropriate pH/salt conditions</li>
+</ul>
+
+<h3>The 4-Step Cycle (Thermal Cycling)</h3>
+<ol>
+  <li><strong>Denaturation: 90–95°C</strong> — heat breaks hydrogen bonds between complementary base pairs → double-stranded DNA separates into two single strands (templates)</li>
+  <li><strong>Annealing: 50–55°C</strong> — temperature lowered; forward and reverse primers bind (anneal) to their complementary sequences on each single-stranded template</li>
+  <li><strong>Elongation: 72°C</strong> — Taq polymerase binds to primers and synthesises new complementary strand by adding nucleotides 5'→3'; 72°C is the optimal temperature for Taq polymerase</li>
+  <li><strong>Repeat</strong> — cycle repeats from step 1, doubling DNA each time</li>
+</ol>
+
+<h3>Exponential Amplification</h3>
+<p>Each cycle doubles the amount of DNA: <strong>x = 2ⁿ</strong> (where n = number of cycles, x = number of DNA molecules)</p>
+<ul>
+  <li>10 cycles → 1024 copies</li>
+  <li>30 cycles → ~1 billion copies (2³⁰ ≈ 1.07 × 10⁹)</li>
+</ul>
+<div class="tip-box">⚠️ Must state elongation occurs at exactly <strong>72°C</strong> — this is the optimal temperature for Taq polymerase and is specifically required by VCAA.</div>
+<div class="tip-box">⚠️ Two primers are needed (forward + reverse) because after denaturation there are two separate template strands, each requiring a different primer to define the target region.</div>
+
+<h3>Forward vs Reverse Primers</h3>
+<ul>
+  <li><strong>Forward primer:</strong> binds to the 3' end of the template strand; points toward the target region</li>
+  <li><strong>Reverse primer:</strong> binds to the 3' end of the non-template (coding) strand; points toward the target region from the other direction</li>
+  <li>Together, they flank the target DNA sequence on both sides</li>
+</ul>
+`,
+        flashcards: [
+          {id:'4c-1', q:'What is the purpose of PCR?', a:'To amplify DNA — create many identical copies of a specific DNA sequence from a small initial sample. Used in forensics, paternity testing, genetic disease screening.'},
+          {id:'4c-2', q:'List the 4 steps of PCR in order with their temperatures.', a:'1. Denaturation: 90–95°C (separate DNA strands by breaking H-bonds)\n2. Annealing: 50–55°C (primers bind to single-stranded templates)\n3. Elongation: 72°C (Taq polymerase synthesises new strand from primer)\n4. Repeat cycle'},
+          {id:'4c-3', q:'Why is Taq polymerase used in PCR instead of human DNA polymerase?', a:'Taq polymerase is heat-resistant (from Thermus aquaticus bacteria in hot springs). It withstands the 90–95°C denaturation step. Human DNA polymerase would denature at these temperatures (optimal ~37°C).'},
+          {id:'4c-4', q:'What is the formula for calculating DNA copies after PCR?', a:'x = 2ⁿ, where n = number of cycles and x = number of double-stranded DNA molecules. After 30 cycles: 2³⁰ ≈ 1 billion copies.'},
+          {id:'4c-5', q:'Why are two primers needed in PCR?', a:'Because denaturation produces two separate single-stranded templates. A forward primer binds one template and a reverse primer binds the other, defining the target region to be amplified from both ends.'},
+          {id:'4c-6', q:'What temperature must you state for elongation in PCR and why?', a:'Exactly 72°C — this is the optimal temperature for Taq polymerase. VCAA specifically requires this temperature to be stated.'},
+          {id:'4c-7', q:'What components are needed for PCR?', a:'1. Template DNA\n2. Taq polymerase\n3. Forward and reverse primers\n4. Free dNTPs (nucleotides)\n5. Buffer solution'},
+          {id:'4c-8', q:'What happens during the denaturation step of PCR?', a:'Temperature raised to 90–95°C, breaking the hydrogen bonds between complementary base pairs. The double-stranded DNA separates into two single-stranded template strands.'},
+          {id:'4c-9', q:'What happens during the annealing step of PCR?', a:'Temperature lowered to 50–55°C, allowing the forward and reverse primers to bind (anneal) to their complementary sequences on the single-stranded DNA templates.'},
+        ]
+      },
+      {
+        id: '4d',
+        title: '4D — Gel Electrophoresis',
+        content: `
+<h3>Purpose</h3>
+<p>Gel electrophoresis separates DNA fragments by size, allowing scientists to analyse and compare DNA samples. Used for DNA profiling, genetic screening, and paternity testing.</p>
+
+<h3>Process — 4 Steps</h3>
+<ol>
+  <li><strong>Load samples:</strong> DNA samples (+ standard ladder) are loaded into wells at the negative end of an agarose gel using a micropipette</li>
+  <li><strong>Apply electric current:</strong> negative electrode near wells; positive electrode at far end. DNA is negatively charged (phosphate backbone) → migrates toward the positive electrode</li>
+  <li><strong>Separation by size:</strong> smaller fragments move faster and travel further through the gel pores; larger fragments move more slowly and travel less distance. After several hours, current is switched off — fragments form bands</li>
+  <li><strong>Visualise:</strong> gel stained with fluorescent dye (e.g. ethidium bromide); bands visible under UV light</li>
+</ol>
+
+<h3>Key Terms</h3>
+<div class="def-box">
+  <div class="def-term">Standard ladder</div><div class="def-body">A sample with DNA fragments of known sizes (in bp or kb) run alongside test samples. Used to estimate the size of unknown fragments by comparison.</div>
+  <div class="def-term">Base pair (bp)</div><div class="def-body">Unit of molecular size for nucleic acid sequences (1 bp = 1 nucleotide pair). Kilobase (kb) = 1000 bp.</div>
+  <div class="def-term">Lane</div><div class="def-body">A column in the gel where one sample is loaded and migrates.</div>
+</div>
+
+<h3>Interpreting Gel Results</h3>
+<ul>
+  <li>Bands further from wells = smaller fragments (moved more)</li>
+  <li>Bands closer to wells = larger fragments (moved less)</li>
+  <li>Band position aligned with ladder band → estimate fragment size in bp</li>
+  <li>Number of bands = number of different sized fragments in that sample</li>
+  <li>Thickness of band = amount/volume of DNA (thicker = more DNA)</li>
+  <li>Same band position in two lanes = same size fragment → possible match</li>
+</ul>
+<div class="tip-box">⚠️ Standard ladders are essential because the same sized fragment may travel different distances in different gels (due to voltage, gel density, buffer). Always compare to the ladder, never to another gel.</div>
+
+<h3>DNA Profiling Applications</h3>
+<ul>
+  <li><strong>Forensics:</strong> matching crime scene DNA to suspects</li>
+  <li><strong>Paternity testing:</strong> child should share bands with each biological parent</li>
+  <li><strong>Genetic screening:</strong> detecting specific alleles (e.g. mutations causing disease)</li>
+  <li><strong>Conservation biology:</strong> determining relatedness of species or individuals</li>
+</ul>
+
+<h3>Genotyping with Gel Electrophoresis</h3>
+<ul>
+  <li>If a restriction enzyme cuts at a mutation site: heterozygous individual shows bands from BOTH alleles (cut and uncut)</li>
+  <li>Homozygous dominant (mutation): shows only the cut bands</li>
+  <li>Homozygous recessive (no mutation): shows only the uncut band (larger)</li>
+</ul>
+
+<h3>Factors Affecting Results</h3>
+<ul>
+  <li>Voltage — higher voltage → faster migration</li>
+  <li>Gel density — denser gel → slower migration, better resolution for small fragments</li>
+  <li>Buffer concentration</li>
+  <li>Time current is applied</li>
+</ul>
+`,
+        flashcards: [
+          {id:'4d-1', q:'Why does DNA migrate toward the positive electrode in gel electrophoresis?', a:'DNA is negatively charged due to the phosphate groups in its sugar-phosphate backbone. Negative charges are attracted to the positive electrode.'},
+          {id:'4d-2', q:'Why do smaller DNA fragments travel further in gel electrophoresis?', a:'Smaller fragments can pass through the pores in the agarose gel more easily (like a fox through a forest vs an elephant). Larger fragments get impeded by the gel matrix and travel less distance.'},
+          {id:'4d-3', q:'What is a standard ladder in gel electrophoresis?', a:'A sample containing DNA fragments of known sizes loaded alongside test samples. It allows estimation of the size of unknown fragments by comparing their band positions to the ladder.'},
+          {id:'4d-4', q:'Describe the 4 steps of gel electrophoresis.', a:'1. Load DNA samples + ladder into wells (negative end).\n2. Apply electric current — DNA migrates toward positive electrode.\n3. Smaller fragments travel further, forming size-based bands.\n4. Stain with fluorescent dye (ethidium bromide) and visualise under UV light.'},
+          {id:'4d-5', q:'What does a thicker band in gel electrophoresis indicate?', a:'A greater volume/amount of DNA at that fragment size (more copies of that fragment were present in the sample).'},
+          {id:'4d-6', q:'In a paternity test using gel electrophoresis, what would you expect to see?', a:'The child\'s DNA profile should contain bands that are present in either the mother or the father. Every band in the child must be accounted for by one parent. A band with no match in either parent rules out paternity.'},
+          {id:'4d-7', q:'Why must you always compare band positions to the standard ladder rather than between gels?', a:'Because the same sized fragment may travel different distances in different gels depending on variables like voltage, gel density, and buffer. The ladder provides an internal reference for each individual gel run.'},
+          {id:'4d-8', q:'What dye is used to visualise DNA bands in gel electrophoresis?', a:'Ethidium bromide (fluorescent dye). The gel is viewed under an ultraviolet (UV) lamp to see the bands.'},
+        ]
+      },
+      {
+        id: '4e',
+        title: '4E — Recombination and Transformation',
+        content: `
+<h3>Why Transform Bacteria?</h3>
+<p>Bacteria containing recombinant plasmids can produce large quantities of specific proteins cheaply and efficiently. Key proteins produced this way:</p>
+<ul>
+  <li>Insulin (diabetes management)</li>
+  <li>Erythropoietin (treat anaemia)</li>
+  <li>Chymosin (cheese production)</li>
+  <li>Interferon (cancer treatment)</li>
+  <li>Growth hormone (growth disorders)</li>
+  <li>Hepatitis B surface antigen (vaccine)</li>
+</ul>
+
+<h3>Making a Recombinant Plasmid</h3>
+<div class="def-box">
+  <div class="def-term">Recombinant plasmid</div><div class="def-body">A plasmid that has been modified to incorporate a foreign gene of interest.</div>
+  <div class="def-term">Plasmid vector</div><div class="def-body">A circular piece of bacterial DNA modified to be ideal for carrying genes into bacteria. Contains restriction sites, antibiotic resistance gene, reporter gene, and ORI.</div>
+  <div class="def-term">cDNA (complementary DNA)</div><div class="def-body">DNA synthesised from mRNA using reverse transcriptase. Contains no introns — suitable for expression in bacteria (which lack splicing machinery).</div>
+  <div class="def-term">Reverse transcriptase</div><div class="def-body">An enzyme that synthesises DNA from an mRNA template (mRNA → cDNA). Used to produce intron-free gene copies.</div>
+</div>
+
+<h3>Steps to Create Recombinant Plasmid</h3>
+<ol>
+  <li><strong>Isolate gene of interest</strong> — must exclude introns (bacteria can't splice them out). Use:
+    <ul>
+      <li>Synthetic DNA: made in lab without introns, OR</li>
+      <li>cDNA: made from mRNA using reverse transcriptase (mRNA already has introns removed by splicing)</li>
+    </ul>
+  </li>
+  <li><strong>Select plasmid vector</strong> containing: restriction sites, antibiotic resistance gene, reporter gene, ORI</li>
+  <li><strong>Cut both plasmid AND gene of interest</strong> with the <em>same</em> restriction endonuclease → produces complementary sticky ends</li>
+  <li><strong>Mix and ligate:</strong> gene of interest + cut plasmid mixed together → complementary sticky ends base-pair → DNA ligase catalyses phosphodiester bonds → recombinant plasmid</li>
+</ol>
+
+<h3>Plasmid Vector Components</h3>
+<ul>
+  <li><strong>Restriction endonuclease sites:</strong> where the plasmid is cut to insert the gene of interest</li>
+  <li><strong>Antibiotic resistance gene:</strong> bacteria that took up the plasmid survive on antibiotic agar; others die</li>
+  <li><strong>Reporter gene:</strong> (e.g. GFP — green fluorescent protein) inserted at restriction site; if gene of interest disrupts reporter → reporter gene is inactive → bacteria don't fluoresce → confirms gene of interest was inserted</li>
+  <li><strong>Origin of replication (ORI):</strong> signals where DNA replication starts; ensures plasmid replicates when bacteria divides</li>
+</ul>
+
+<h3>Bacterial Transformation</h3>
+<p>Introducing recombinant plasmids into bacteria:</p>
+<div class="def-box">
+  <div class="def-term">Heat shock method</div><div class="def-body">Bacteria + plasmid placed in CaCl₂ solution on ice (Ca²⁺ ions make membrane more permeable). Rapidly heated to 37–42°C for 25–45 seconds → returned to ice. Sudden temperature change increases membrane permeability → plasmid enters bacteria. Bacteria then spread on antibiotic agar.</div>
+  <div class="def-term">Electroporation</div><div class="def-body">An electrical current is applied to bacterial cells, temporarily increasing membrane permeability to allow plasmid entry.</div>
+</div>
+
+<h3>Selecting Transformed Bacteria</h3>
+<ol>
+  <li>Plate all bacteria on antibiotic agar → only bacteria with the plasmid survive (antibiotic resistance gene)</li>
+  <li>Check reporter gene expression → bacteria NOT expressing reporter = gene of interest inserted at reporter site = successful transformation</li>
+</ol>
+
+<h3>Insulin Production — Case Study</h3>
+<ul>
+  <li>Human insulin: quaternary structure with 2 chains (alpha and beta subunits)</li>
+  <li>Requires <strong>2 recombinant plasmids</strong> → 2 different transformed bacteria (one per subunit)</li>
+  <li>Subunits extracted separately, then combined</li>
+  <li>Old method: pig/cow insulin (less effective, required killing animals)</li>
+  <li>First produced in bacteria: late 1970s</li>
+</ul>
+`,
+        flashcards: [
+          {id:'4e-1', q:'Why must introns be removed from the gene of interest before inserting it into a bacterium?', a:'Bacteria lack the splicing machinery to remove introns. If introns remain, the bacteria cannot produce the correct protein. Introns are excluded by using synthetic DNA (made without introns) or cDNA (made from spliced mRNA using reverse transcriptase).'},
+          {id:'4e-2', q:'What is cDNA and how is it made?', a:'Complementary DNA (cDNA) is made from mRNA using reverse transcriptase (an enzyme that synthesises DNA from an RNA template). Because mRNA has already had introns spliced out, cDNA contains no introns — suitable for expression in bacteria.'},
+          {id:'4e-3', q:'What are the four components of a plasmid vector?', a:'1. Restriction endonuclease sites — for inserting gene of interest\n2. Antibiotic resistance gene — selects for transformed bacteria\n3. Reporter gene (e.g. GFP) — confirms gene of interest was inserted\n4. Origin of replication (ORI) — ensures plasmid replicates with bacteria'},
+          {id:'4e-4', q:'Why must the same restriction endonuclease be used to cut both the plasmid and the gene of interest?', a:'Using the same enzyme produces complementary sticky ends on both fragments. These sticky ends can then base-pair together, allowing DNA ligase to join them into a recombinant plasmid.'},
+          {id:'4e-5', q:'Describe the heat shock method for bacterial transformation.', a:'Bacteria + plasmid placed in CaCl₂ solution on ice (Ca²⁺ increases membrane permeability). Rapidly heated to 37–42°C for 25–45 seconds, then returned to ice. The sudden temperature change further increases membrane permeability, allowing plasmid to enter. Bacteria are spread on antibiotic agar.'},
+          {id:'4e-6', q:'How is the antibiotic resistance gene used to select transformed bacteria?', a:'After transformation, bacteria are plated on agar containing the antibiotic. Only bacteria that took up the plasmid (containing the antibiotic resistance gene) survive. Bacteria without the plasmid die.'},
+          {id:'4e-7', q:'How is the reporter gene used to confirm a gene of interest has been inserted?', a:'The gene of interest is inserted at the restriction site within the reporter gene, disrupting it. Bacteria with successful insertions cannot express the reporter gene (e.g. don\'t fluoresce with GFP). Bacteria with intact reporter = plasmid taken up but gene NOT inserted.'},
+          {id:'4e-8', q:'Why does human insulin production require two recombinant plasmids?', a:'Human insulin has a quaternary structure with two polypeptide chains (alpha and beta subunits). Each chain is encoded by a different gene, so two separate recombinant plasmids (and two transformed bacteria cultures) are needed — one for each subunit.'},
+          {id:'4e-9', q:'What is electroporation?', a:'A transformation method that uses an electric current to temporarily increase bacterial membrane permeability, allowing plasmids to enter the bacterial cell.'},
+          {id:'4e-10', q:'Name three proteins produced by transformed bacteria and their uses.', a:'1. Insulin — regulates blood glucose (diabetes)\n2. Erythropoietin — stimulates red blood cell production (anaemia)\n3. Growth hormone — manages growth disorders\n(Also: chymosin for cheese, interferon for cancer, hepatitis B antigen for vaccine)'},
+        ]
+      },
+      {
+        id: '4f',
+        title: '4F — Genetic Engineering & GMOs',
+        content: `
+<h3>Key Definitions</h3>
+<div class="def-box">
+  <div class="def-term">Genetically modified organism (GMO)</div><div class="def-body">Any organism whose genome has been altered using genetic engineering technology. Includes organisms where genes are silenced, inserted, removed, or altered.</div>
+  <div class="def-term">Cisgenic organism</div><div class="def-body">A GMO that has genes from the <strong>same species</strong> inserted into its genome (cisgenesis — genes could have been transferred by conventional breeding).</div>
+  <div class="def-term">Transgenic organism</div><div class="def-body">A GMO that has genes from a <strong>different species</strong> inserted into its genome (transgenesis — foreign DNA from a separate species).</div>
+</div>
+<div class="tip-box">⚠️ Transgenic organisms are a type of GMO. GMO is the umbrella term; transgenic is a specific subset (foreign species DNA). Cisgenic is another subset (same species).</div>
+
+<h3>Producing Transgenic Plants — 3 Stages</h3>
+<ol>
+  <li><strong>Gene identification:</strong> Identify and isolate the gene of interest (usually from another species) that confers a desirable characteristic (e.g. drought tolerance, pest resistance, nutritional improvement)</li>
+  <li><strong>Gene delivery:</strong> Insert the gene into host organism cells via:
+    <ul>
+      <li>Direct insertion into the plant's genomic DNA, OR</li>
+      <li>Bacterial plasmid vector (e.g. <em>Agrobacterium tumefaciens</em> naturally transfers DNA to plants)</li>
+    </ul>
+  </li>
+  <li><strong>Gene expression:</strong> Transformed cells cultured under sterile conditions (plant tissue culture), regenerated into full plants, then applied in the field. Host organism expresses the new transgene as a functional protein.</li>
+</ol>
+
+<h3>Agricultural Uses of GMOs</h3>
+<h4>1. Increasing Crop Productivity</h4>
+<ul>
+  <li>More efficient photosynthesis genes</li>
+  <li>Improved drought/salt tolerance</li>
+  <li>More efficient nutrient uptake (less fertiliser needed)</li>
+  <li>Improved nutritional content (e.g. Golden Rice — produces beta-carotene/vitamin A)</li>
+  <li>Faster growth rates</li>
+</ul>
+
+<h4>2. Increasing Disease Resistance</h4>
+<ul>
+  <li>Genes conferring resistance to fungal/bacterial/viral pathogens</li>
+  <li>Herbicide tolerance (e.g. glyphosate-resistant crops → targeted weed control)</li>
+  <li>Pest resistance — Bt crops contain gene from <em>Bacillus thuringiensis</em> producing insecticidal proteins → reduces pesticide use</li>
+  <li>Importance: ~30% of global crop yield lost to pathogens/pests annually; need to increase food production by 60% by 2050</li>
+</ul>
+
+<h3>Issues Surrounding GMOs</h3>
+<div class="summary-table">
+  <table>
+    <tr><th></th><th>Pros</th><th>Cons</th></tr>
+    <tr>
+      <td><strong>Biological</strong></td>
+      <td>• Better crop yields from less land<br>• Fewer pesticides<br>• Improved nutritional content</td>
+      <td>• Pests/weeds may evolve resistance<br>• Loss of genetic diversity<br>• Cross-pollination with wild species (gene flow)</td>
+    </tr>
+    <tr>
+      <td><strong>Social</strong></td>
+      <td>• Greater food security<br>• Cheaper production</td>
+      <td>• Corporate control of food supply<br>• Inequitable access to technology<br>• Labelling and consumer choice concerns</td>
+    </tr>
+    <tr>
+      <td><strong>Ethical</strong></td>
+      <td>• Reduces animal suffering (e.g. no need to kill animals for insulin)</td>
+      <td>• "Playing God" concerns<br>• Altering evolutionary pathways of species<br>• Unknown long-term health effects</td>
+    </tr>
+  </table>
+</div>
+`,
+        flashcards: [
+          {id:'4f-1', q:'What is the difference between a GMO and a transgenic organism?', a:'GMO (genetically modified organism) is the umbrella term for any organism with an altered genome. A transgenic organism is a specific type of GMO where genes from a DIFFERENT species are inserted (foreign DNA). A cisgenic organism has genes from the SAME species inserted.'},
+          {id:'4f-2', q:'What are the 3 stages of producing transgenic plants?', a:'1. Gene identification: identify and isolate the gene of interest from another species.\n2. Gene delivery: insert the gene into host plant cells (directly or via plasmid vector).\n3. Gene expression: culture transformed cells under sterile conditions; regenerate whole plants; deploy in field.'},
+          {id:'4f-3', q:'Give two examples of GMO use to increase crop productivity.', a:'1. Golden Rice: engineered to produce beta-carotene (precursor to vitamin A) — improves nutritional content.\n2. Drought-resistant crops: genes for efficient water use reduce crop losses in arid conditions.\n(Also: improved photosynthesis efficiency, faster growth rates, reduced fertiliser dependency)'},
+          {id:'4f-4', q:'What are Bt crops and how do they work?', a:'Bt crops contain a gene from the bacterium Bacillus thuringiensis that encodes an insecticidal protein (Bt toxin). When insects eat the plant, the toxin kills them. This reduces the need for chemical pesticides.'},
+          {id:'4f-5', q:'Name two biological cons of using GMO crops.', a:'1. Pests/weeds may evolve resistance to GM traits over time (reducing long-term effectiveness).\n2. Cross-pollination between GM crops and wild species/weeds can cause unintended gene flow into wild populations.\n(Also: loss of genetic diversity in crop populations)'},
+          {id:'4f-6', q:'What is cisgenesis vs transgenesis?', a:'Cisgenesis: inserting genes from the SAME species — organisms that could otherwise be bred together. Transgenesis: inserting genes from a DIFFERENT species — results in an organism with foreign DNA from a separate species.'},
+          {id:'4f-7', q:'Why is approximately 30% of global crop yield lost annually, and what does this have to do with GMOs?', a:'About 30% of global crop yield is lost to plant pathogens and pests, with losses highest in food-insecure regions. GMO technology (e.g. disease-resistant crops) can help reduce these losses and address the need to increase food production by 60% by 2050.'},
+          {id:'4f-8', q:'Name one social and one ethical concern about GMOs.', a:'Social: Corporate control of food supply — large agribusinesses control GMO patents, creating dependency and inequitable access for developing farmers.\nEthical: Altering evolutionary pathways of species — GMO traits spreading to wild populations can have unpredictable long-term evolutionary consequences.'},
+        ]
+      }
+    ]
+  }
+];
+
+
+// ── SPACED REPETITION (SM-2) ──────────────────────────────────────────────────
+const SR_KEY = 'bio_notes_sr';
+function srLoad(){try{return JSON.parse(localStorage.getItem(SR_KEY)||'{}')}catch{return{}}}
+function srSave(d){localStorage.setItem(SR_KEY,JSON.stringify(d))}
+
+function srGetCard(id){
+  const d=srLoad();
+  return d[id]||{interval:0,ease:2.5,due:0,reps:0};
+}
+function srReview(id,rating){
+  // rating: 0=again,1=hard,2=good,3=easy
+  const d=srLoad();
+  let c=d[id]||{interval:0,ease:2.5,due:0,reps:0};
+  const now=Date.now();
+  if(rating===0){c.interval=1;c.reps=0;}
+  else if(rating===1){c.interval=Math.max(1,Math.round(c.interval*1.2));c.ease=Math.max(1.3,c.ease-0.15);}
+  else if(rating===2){c.interval=c.reps===0?1:c.reps===1?4:Math.round(c.interval*c.ease);c.reps++;c.ease=Math.max(1.3,c.ease-0.05);}
+  else{c.interval=c.reps===0?1:c.reps===1?4:Math.round(c.interval*c.ease*1.3);c.reps++;c.ease=Math.min(3.5,c.ease+0.1);}
+  c.due=now+c.interval*86400000;
+  c.lastRating=rating;
+  d[id]=c;
+  srSave(d);
+}
+function isDue(id){const c=srGetCard(id);return c.due<=Date.now();}
+function dueCount(){
+  let n=0;
+  CHAPTERS.forEach(ch=>ch.topics.forEach(t=>t.flashcards.forEach(fc=>{if(isDue(fc.id))n++;})));
+  return n;
+}
+function allCards(){const all=[];CHAPTERS.forEach(ch=>ch.topics.forEach(t=>t.flashcards.forEach(fc=>all.push({...fc,topicTitle:t.title}))));return all;}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+let curTopic=null;
+function buildNav(){
+  const tree=document.getElementById('nav-tree');
+  tree.innerHTML='';
+  CHAPTERS.forEach(ch=>{
+    const cl=document.createElement('div');
+    cl.className='ch-label';cl.textContent=ch.title;tree.appendChild(cl);
+    ch.topics.forEach(t=>{
+      const d=document.createElement('div');
+      d.className='nav-item';d.textContent=t.title;
+      d.onclick=()=>showTopic(t.id);
+      d.id='nav-'+t.id;
+      tree.appendChild(d);
+    });
+  });
+}
+function showTopic(id){
+  curTopic=id;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navEl=document.getElementById('nav-'+id);
+  if(navEl)navEl.classList.add('active');
+  let topic=null,chTitle='';
+  CHAPTERS.forEach(ch=>ch.topics.forEach(t=>{if(t.id===id){topic=t;chTitle=ch.title;}}));
+  if(!topic)return;
+  const due=topic.flashcards.filter(fc=>isDue(fc.id)).length;
+  document.getElementById('main-content').innerHTML=`
+    <div class="topic-header">
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">${chTitle}</div>
+        <h2>${topic.title}</h2>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${due>0?`<span class="badge due-badge">📅 ${due} due</span>`:'<span class="badge" style="background:var(--def-bg);color:var(--correct)">✅ Up to date</span>'}
+        <button class="btn btn-sm" onclick="startFlashcards('${id}')">🃏 ${topic.flashcards.length} flashcards</button>
+      </div>
+    </div>
+    <div class="topic-body">${topic.content}</div>
+  `;
+}
+function showHome(){
+  curTopic=null;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const due=dueCount();
+  document.getElementById('main-content').innerHTML=`
+    <div style="padding:40px 0;text-align:center;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:12px">🧬</div>
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px;color:var(--text)">VCE Biology Study Notes</div>
+      <div style="font-size:.88rem">Select a topic from the sidebar to start studying.</div>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        ${due>0?`<span class="badge due-badge" style="font-size:.85rem;padding:6px 14px">📅 ${due} flashcards due for review</span>`:'<span class="badge" style="background:var(--def-bg);color:var(--correct);font-size:.85rem;padding:6px 14px">✅ All flashcards up to date</span>'}
+        <button class="btn btn-primary btn-sm" onclick="startFlashcards()">🃏 Study All Flashcards</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── FLASHCARDS ────────────────────────────────────────────────────────────────
+let _fcDeck=[],_fcIdx=0,_fcAnswerShown=false;
+function startFlashcards(filter){
+  let deck;
+  if(!filter||filter==='all'){
+    deck=allCards();
+  } else if(filter==='due'){
+    deck=allCards().filter(fc=>isDue(fc.id));
+    if(!deck.length){alert('No flashcards due for review today! 🎉');return;}
+  } else {
+    // topic id
+    let topic=null;
+    CHAPTERS.forEach(ch=>ch.topics.forEach(t=>{if(t.id===filter)topic=t;}));
+    if(!topic)return;
+    deck=topic.flashcards.map(fc=>({...fc,topicTitle:topic.title}));
+  }
+  // Shuffle
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  _fcDeck=deck;_fcIdx=0;_fcAnswerShown=false;
+  document.getElementById('fc-overlay').classList.remove('hidden');
+  renderFC();
+}
+function closeFlashcards(){document.getElementById('fc-overlay').classList.add('hidden');}
+function renderFC(){
+  if(_fcIdx>=_fcDeck.length){showFCDone();return;}
+  const fc=_fcDeck[_fcIdx];
+  const pct=Math.round(_fcIdx/_fcDeck.length*100);
+  document.getElementById('fc-prog').style.width=pct+'%';
+  document.getElementById('fc-counter').textContent=`${_fcIdx+1} / ${_fcDeck.length}`;
+  document.getElementById('fc-topic-label').textContent=fc.topicTitle||'';
+  _fcAnswerShown=false;
+  document.getElementById('fc-body').innerHTML=`
+    <div class="fc-card" onclick="showFCAnswer()" id="fc-card">
+      <div class="fc-q">${fc.q}</div>
+      <div class="fc-a" id="fc-ans">${fc.a.replace(/\n/g,'<br>')}</div>
+      <div class="fc-hint" id="fc-hint">Tap to reveal answer</div>
+    </div>
+    <div class="fc-btns hidden" id="fc-rate-btns">
+      <button class="fc-rate rate-again" onclick="rateFC(0)">😵 Again</button>
+      <button class="fc-rate rate-hard" onclick="rateFC(1)">😬 Hard</button>
+      <button class="fc-rate rate-good" onclick="rateFC(2)">🙂 Good</button>
+      <button class="fc-rate rate-easy" onclick="rateFC(3)">😄 Easy</button>
+    </div>
+  `;
+}
+function showFCAnswer(){
+  if(_fcAnswerShown)return;
+  _fcAnswerShown=true;
+  document.getElementById('fc-ans').classList.add('show');
+  document.getElementById('fc-hint').style.display='none';
+  document.getElementById('fc-rate-btns').classList.remove('hidden');
+}
+function rateFC(rating){
+  const fc=_fcDeck[_fcIdx];
+  srReview(fc.id,rating);
+  _fcIdx++;
+  renderFC();
+}
+function showFCDone(){
+  document.getElementById('fc-prog').style.width='100%';
+  document.getElementById('fc-counter').textContent='Done!';
+  document.getElementById('fc-body').innerHTML=`
+    <div class="fc-done">
+      <div style="font-size:3rem;margin-bottom:16px">🎉</div>
+      <h3>Session Complete!</h3>
+      <p style="color:var(--muted);margin-top:8px">You reviewed ${_fcDeck.length} card${_fcDeck.length!==1?'s':''}. Keep it up!</p>
+      <div style="margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="startFlashcards('all')">🔄 Study Again</button>
+        <button class="btn" onclick="startFlashcards('due')">📅 Review Due</button>
+        <button class="btn" onclick="closeFlashcards()">✕ Exit</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const root=document.documentElement;
+  const cur=root.getAttribute('data-theme');
+  if(cur==='dark')root.setAttribute('data-theme','light');
+  else root.setAttribute('data-theme','dark');
+  try{localStorage.setItem('bio_notes_theme',root.getAttribute('data-theme'))}catch{}
+}
+try{const th=localStorage.getItem('bio_notes_theme');if(th)document.documentElement.setAttribute('data-theme',th);}catch{}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildNav();
+showHome();
+// auto-show first topic if URL hash set
+if(location.hash){const id=location.hash.slice(1);setTimeout(()=>showTopic(id),50);}
+</script>
