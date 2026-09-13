@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twelfth Night — VCE English</title>
+<style>
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3352;
+  --text:#e8eaf6;--muted:#7c84b0;--accent:#7c6af7;--accent2:#a78bfa;
+  --green:#10b981;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;
+  --sidebar:260px
+}
+[data-theme="light"]{
+  --bg:#f7f8fc;--surface:#ffffff;--surface2:#eef0f8;--border:#d4d8ee;
+  --text:#1a1d2e;--muted:#6b7494;--accent:#6d5ef0;--accent2:#8b7af5
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:.2s}
+#sidebar-header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#sidebar-header h1{font-size:.95rem;font-weight:800;color:var(--accent2);line-height:1.2}
+#sidebar-header span{font-size:.7rem;color:var(--muted);font-weight:500}
+#nav{flex:1;overflow-y:auto;padding:10px 0}
+.nav-section{padding:6px 16px 2px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.nav-item{padding:8px 16px 8px 20px;font-size:.83rem;color:var(--muted);cursor:pointer;border-radius:0;transition:.12s;display:flex;align-items:center;gap:8px;border-left:3px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--accent2);border-left-color:var(--accent);background:var(--surface2);font-weight:700}
+.nav-item .ni{font-size:.8rem;width:18px;flex-shrink:0;text-align:center}
+#sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topbar{padding:12px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;flex-shrink:0}
+#topbar h2{font-size:1rem;font-weight:700;flex:1}
+#content{flex:1;overflow-y:auto;padding:28px 32px;max-width:900px}
+
+/* BUTTONS */
+.btn{padding:7px 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:.83rem;font-weight:600;transition:.12s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{opacity:.88;color:#fff}
+.btn-sm{padding:5px 11px;font-size:.77rem}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* CARDS & BOXES */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px}
+.def-box{background:var(--surface2);border-radius:10px;padding:16px 18px;margin:14px 0;border-left:3px solid var(--accent)}
+.def-term{font-weight:800;font-size:.82rem;color:var(--accent2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.def-body{font-size:.88rem;line-height:1.6;color:var(--text)}
+.tip-box{background:#f59e0b18;border:1.5px solid var(--amber);border-radius:10px;padding:14px 16px;margin:14px 0;font-size:.88rem;line-height:1.6}
+.quote-box{background:var(--surface2);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:12px 0;font-style:italic;font-size:.92rem;line-height:1.7}
+.quote-attr{font-style:normal;font-size:.78rem;color:var(--muted);margin-top:6px;font-weight:600}
+.green-box{background:#10b98118;border:1.5px solid var(--green);border-radius:10px;padding:14px 16px;margin:14px 0;font-size:.88rem;line-height:1.6}
+.red-box{background:#ef444418;border:1.5px solid var(--red);border-radius:10px;padding:14px 16px;margin:14px 0;font-size:.88rem;line-height:1.6}
+
+/* TYPOGRAPHY */
+h2{font-size:1.55rem;font-weight:900;margin-bottom:6px;line-height:1.2}
+h3{font-size:1.1rem;font-weight:800;margin:20px 0 8px;color:var(--accent2)}
+h4{font-size:.95rem;font-weight:700;margin:14px 0 6px;color:var(--text)}
+p{font-size:.9rem;line-height:1.7;margin-bottom:10px;color:var(--text)}
+ul,ol{font-size:.9rem;line-height:1.8;padding-left:22px;margin-bottom:10px}
+li{margin-bottom:3px}
+strong{color:var(--text);font-weight:700}
+a{color:var(--accent2);text-decoration:none}
+
+/* SUMMARY TABLE */
+.summary-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.85rem}
+.summary-table th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:700;color:var(--muted);border-bottom:2px solid var(--border)}
+.summary-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
+.summary-table tr:last-child td{border-bottom:none}
+.summary-table tr:hover td{background:var(--surface2)}
+
+/* TAGS */
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;margin:2px 2px 2px 0}
+.tag-theme{background:#7c6af720;color:var(--accent2);border:1px solid #7c6af740}
+.tag-char{background:#10b98120;color:#34d399;border:1px solid #10b98140}
+.tag-quote{background:#f59e0b20;color:#fcd34d;border:1px solid #f59e0b40}
+.tag-act{background:#3b82f620;color:#93c5fd;border:1px solid #3b82f640}
+
+/* CHARACTER CARDS */
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:16px 0}
+.char-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:.15s}
+.char-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(124,106,247,.15)}
+.char-name{font-size:1rem;font-weight:800;margin-bottom:4px}
+.char-role{font-size:.75rem;color:var(--muted);margin-bottom:10px;font-weight:600}
+.char-tags{display:flex;flex-wrap:wrap;gap:4px}
+
+/* ACT TIMELINE */
+.act-block{border-left:3px solid var(--accent);padding-left:16px;margin-bottom:20px}
+.act-label{font-size:.75rem;font-weight:800;color:var(--accent2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.scene-item{background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:.86rem;line-height:1.6}
+
+/* ANNOTATED PARA */
+.annotated-para{background:var(--surface2);border-radius:12px;padding:20px;margin:14px 0;font-size:.88rem;line-height:1.8;position:relative}
+.anno-label{position:absolute;top:-10px;left:16px;background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;padding:2px 10px;border-radius:20px;text-transform:uppercase}
+.anno-contention{color:#a78bfa;font-weight:700}
+.anno-context{color:#34d399}
+.anno-quote{color:#fcd34d;font-style:italic}
+.anno-analysis{color:#93c5fd}
+.anno-link{color:#f9a8d4}
+.anno-legend{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px;font-size:.75rem}
+.anno-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+
+/* ESSAY BUILDER */
+.builder-section{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.builder-label{font-size:.72rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:8px}
+textarea.build-input,input.build-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:.88rem;font-family:inherit;outline:none;transition:.15s;resize:vertical}
+textarea.build-input:focus,input.build-input:focus{border-color:var(--accent)}
+.para-builder{border:1.5px dashed var(--border);border-radius:12px;padding:18px;margin-bottom:12px;background:var(--surface2)}
+.para-num{font-size:.75rem;font-weight:800;color:var(--accent2);margin-bottom:10px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field-label{font-size:.73rem;font-weight:700;color:var(--muted);margin-bottom:4px}
+.essay-output{background:var(--surface2);border:1.5px solid var(--green);border-radius:12px;padding:24px;margin-top:16px;display:none;white-space:pre-wrap;font-size:.88rem;line-height:1.8}
+.essay-output h4{color:var(--green);margin:16px 0 6px;text-transform:uppercase;font-size:.75rem;letter-spacing:.06em}
+.essay-output .contention-out{color:var(--accent2);font-weight:700;font-size:.92rem}
+.essay-output .para-out{margin:14px 0;padding:14px;background:var(--surface);border-radius:8px;border-left:3px solid var(--accent)}
+
+/* PROMPT BANK */
+.prompt-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:.15s;display:flex;align-items:flex-start;gap:14px}
+.prompt-card:hover{border-color:var(--accent);background:var(--surface2)}
+.prompt-card.selected{border-color:var(--accent);background:#7c6af710}
+.prompt-num{font-size:.75rem;font-weight:800;color:var(--accent2);background:var(--surface2);padding:4px 9px;border-radius:6px;flex-shrink:0}
+.prompt-text{font-size:.88rem;line-height:1.5;font-weight:600}
+.prompt-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+
+/* AI MARKING */
+.ai-mark-area{background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.mark-result{border-radius:10px;padding:16px;margin-top:12px;font-size:.88rem;line-height:1.7;white-space:pre-wrap}
+.mark-result.excellent{background:#10b98120;border:1.5px solid var(--green)}
+.mark-result.good{background:#3b82f620;border:1.5px solid var(--blue)}
+.mark-result.partial{background:#f59e0b20;border:1.5px solid var(--amber)}
+.mark-result.poor{background:#ef444420;border:1.5px solid var(--red)}
+
+/* OVERLAY (character detail) */
+.char-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.char-overlay-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;padding:32px;position:relative}
+.char-overlay-close{position:absolute;top:16px;right:16px;background:var(--surface2);border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;border-radius:8px;padding:4px 10px}
+
+/* HOME HERO */
+.hero{background:linear-gradient(135deg,#1a1d27 0%,#1e1b4b 100%);border:1px solid var(--border);border-radius:18px;padding:36px;margin-bottom:24px;position:relative;overflow:hidden}
+.hero::before{content:'🎭';position:absolute;right:24px;top:20px;font-size:5rem;opacity:.15}
+.hero h1{font-size:1.9rem;font-weight:900;margin-bottom:6px;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--muted);font-size:.9rem;max-width:520px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center}
+.modal-box{background:var(--surface);border-radius:16px;padding:28px;max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.modal-box h3{margin-bottom:8px}
+.modal-box input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--bg);color:var(--text);font-size:.9rem;margin:12px 0;outline:none}
+.modal-box input:focus{border-color:var(--accent)}
+.hidden{display:none!important}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <div>
+      <h1>Twelfth Night</h1>
+      <span>VCE English Study Hub</span>
+    </div>
+  </div>
+  <div id="nav">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="showSection('home')" id="nav-home"><span class="ni">🏠</span> Home</div>
+    <div class="nav-item" onclick="showSection('context')" id="nav-context"><span class="ni">📜</span> Context & Form</div>
+
+    <div class="nav-section">The Text</div>
+    <div class="nav-item" onclick="showSection('plot')" id="nav-plot"><span class="ni">📖</span> Plot Summary</div>
+    <div class="nav-item" onclick="showSection('characters')" id="nav-characters"><span class="ni">🎭</span> Characters</div>
+    <div class="nav-item" onclick="showSection('themes')" id="nav-themes"><span class="ni">💡</span> Themes</div>
+    <div class="nav-item" onclick="showSection('quotes')" id="nav-quotes"><span class="ni">💬</span> Key Quotes</div>
+
+    <div class="nav-section">Essay Skills</div>
+    <div class="nav-item" onclick="showSection('paragraphs')" id="nav-paragraphs"><span class="ni">✍️</span> Exemplar Paragraphs</div>
+    <div class="nav-item" onclick="showSection('builder')" id="nav-builder"><span class="ni">🏗️</span> Essay Builder</div>
+    <div class="nav-item" onclick="showSection('prompts')" id="nav-prompts"><span class="ni">💪</span> Prompt Bank</div>
+  </div>
+  <div id="sidebar-footer">
+    <button class="btn btn-sm" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn btn-sm" onclick="showApiModal()">🔑 API Key</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <h2 id="page-title">Home</h2>
+    <button class="btn btn-sm" onclick="showSection('builder')">🏗️ Build Essay</button>
+    <button class="btn btn-sm btn-primary" onclick="showSection('prompts')">💪 Practice</button>
+  </div>
+  <div id="content"></div>
+</div>
+
+<!-- Character overlay -->
+<div class="char-overlay hidden" id="char-overlay">
+  <div class="char-overlay-box" id="char-overlay-box">
+    <button class="char-overlay-close" onclick="closeCharOverlay()">✕</button>
+    <div id="char-overlay-content"></div>
+  </div>
+</div>
+
+<!-- API key modal -->
+<div class="modal-overlay hidden" id="api-modal">
+  <div class="modal-box">
+    <h3>🔑 Anthropic API Key</h3>
+    <p style="font-size:.84rem;color:var(--muted);margin-bottom:4px">Used for AI essay plan generation and marking. Stored locally only.</p>
+    <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveApiKey()">Save</button>
+      <button class="btn" onclick="closeApiModal()">Cancel</button>
+    </div>
+    <p style="font-size:.73rem;color:var(--muted);margin-top:10px">Get a key free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CHARACTERS = {
+  viola: {
+    name: 'Viola / Cesario',
+    role: 'Protagonist',
+    tags: ['identity','love','disguise','agency'],
+    emoji: '🎭',
+    colour: '#a78bfa',
+    overview: `Viola is the play's moral and emotional centre. Shipwrecked on Illyria's shores, she adopts the male disguise of "Cesario" to navigate a hostile world — an act that drives the plot's central comic and philosophical tensions. She represents intelligence, adaptability, and genuine love in a world full of performed emotions.`,
+    analysis: [
+      { heading: 'Agency and Adaptability', body: `Viola's decision to disguise herself is one of pragmatic survival, not deception for personal gain. Unlike Malvolio, who schemes for social ascent, Viola's disguise allows her to exercise wit and intelligence in a patriarchal society that would otherwise restrict her. Shakespeare uses her cross-dressing to interrogate the arbitrary nature of gender roles.` },
+      { heading: 'Genuine Love vs Performed Love', body: `Viola's love for Orsino is unperformed and selfless — she suppresses it entirely while dutifully wooing Olivia on his behalf. Her soliloquy in Act 2 Scene 2 ("I am the man") crystallises the dramatic irony: she alone sees the absurdity of the love triangle, and her restraint is coded as emotional maturity against Orsino's theatrical excess.` },
+      { heading: 'Identity and the Self', body: `Her line "I am not what I am" (3.1) — an inversion of Iago's famous claim — suggests identity's fluidity and the gap between appearance and reality. Yet Viola never fully loses herself in the disguise; her inner truth persists, making her the play's anchor in a world of unstable identity.` },
+      { heading: 'VCE Essay Angle', body: `Argue that Shakespeare presents Viola as a figure who reveals the constructedness of gender by performing femininity and masculinity simultaneously, challenging the audience to question whether identity is innate or performed.` },
+    ],
+    quotes: [
+      { q: `"I am not what I am."`, act: '3.1', note: `Paradoxical self-definition; identity as performance.` },
+      { q: `"She never told her love, / But let concealment, like a worm i' the bud, / Feed on her damask cheek."`, act: '2.4', note: `Viola describing her own hidden love while pretending it is a fictional 'sister' — emotional restraint and suppression.` },
+      { q: `"Make me a willow cabin at your gate, / And call upon my soul within the house."`, act: '1.5', note: `Cesario's passionate speech to Olivia — Viola ventriloquises genuine romantic feeling through her male persona.` },
+      { q: `"I am all the daughters of my father's house, / And all the brothers too."`, act: '2.4', note: `Grief for Sebastian and ambiguous self-articulation — she contains multitudes.` },
+    ]
+  },
+  orsino: {
+    name: 'Duke Orsino',
+    role: 'Duke of Illyria',
+    tags: ['self-love','love','power','transformation'],
+    emoji: '👑',
+    colour: '#60a5fa',
+    overview: `Orsino opens the play with one of English literature's most famous declarations of romantic excess. His love for Olivia is arguably more about the performance of love than its substance — he is in love with the idea of being in love. His character arc, from narcissism to genuine connection with Viola, is central to the play's examination of love.`,
+    analysis: [
+      { heading: 'Performative vs Genuine Love', body: `Orsino's opening speech — "If music be the food of love, play on" — immediately codes him as a figure of excess and self-indulgence. He never visits Olivia himself; he sends proxies. His love is about his own emotional experience rather than Olivia as a person. Shakespeare satirises Petrarchan love conventions through Orsino.` },
+      { heading: 'Patriarchal Assumptions', body: `Orsino repeatedly makes claims about the inferiority of women's capacity for love (Act 2 Scene 4), which is dramatically undercut by the audience's knowledge that the most devoted lover present is Viola. His misogyny makes his eventual love for "Cesario" — whom he knows as coded-feminine — dramatically complex.` },
+      { heading: 'Transformation', body: `The resolution requires us to believe Orsino has genuinely changed — that he loves Viola, not just the role she has played. Whether this transformation is complete or whether he simply redirects his performance is a key interpretive question for essays.` },
+    ],
+    quotes: [
+      { q: `"If music be the food of love, play on, / Give me excess of it."`, act: '1.1', note: `Opening lines; love as appetite, excess as self-indulgence; saturate himself to cure love-sickness.` },
+      { q: `"For women are as roses, whose fair flower, / Being once displayed, doth fall that very hour."`, act: '2.4', note: `Orsino's objectification of women; love framed as possession and transience.` },
+      { q: `"Her father and my father were alone. / Come, boy, with me; my thoughts are ripe in mischief."`, act: '5.1', note: `Momentary rage — threatens to kill Viola ("I'll sacrifice the lamb I do love") — reveals instability beneath romantic pose.` },
+    ]
+  },
+  olivia: {
+    name: 'Olivia',
+    role: 'Countess of Illyria',
+    tags: ['grief','love','autonomy','comedy'],
+    emoji: '🌹',
+    colour: '#f472b6',
+    overview: `Olivia begins the play in performative grief — she has vowed seven years of mourning for her brother. Her rapid infatuation with Cesario exposes the irrationality of her grief-performance and makes her a comic figure, even as Shakespeare grants her genuine agency in pursuing what she desires.`,
+    analysis: [
+      { heading: 'Performative Grief and Its Abandonment', body: `Olivia's mourning is excessive and self-dramatising — Shakespeare signals from the outset that it is a performance (Feste punctures it immediately in 1.5). Her almost instantaneous love for Cesario shows that the veil of grief lifts the moment something genuinely compelling appears. This parallels Orsino's excess — both perform emotion rather than feel it.` },
+      { heading: 'Autonomy and Social Power', body: `Despite her comic entrapment in loving a disguised woman, Olivia is one of Shakespeare's most independent female characters. She rejects Orsino's suit repeatedly and with wit; she proposes marriage to Sebastian without hesitation. She controls her own household and defends Malvolio more than others do.` },
+      { heading: 'Comic Victim', body: `The comedy of Olivia's situation — her genuine desire for Cesario will never be fulfilled — positions her as a comic victim of the plot's complications. Yet Shakespeare ensures she is not humiliated; she gets a husband (Sebastian) of equivalent value. The question of whether this is satisfying or a comic deflation is worth exploring.` },
+    ],
+    quotes: [
+      { q: `"Make your proof."`, act: '1.5', note: `Challenging Cesario's claim to have a message — confident, direct, curious beneath the facade of grief.` },
+      { q: `"O, you are sick of self-love, Malvolio, and taste with a distempered appetite."`, act: '1.5', note: `Ironic given her own self-performed grief; but she correctly diagnoses Malvolio's central flaw.` },
+      { q: `"Fate, show thy force; ourselves we do not owe. / What is decreed must be, and be this so."`, act: '1.5', note: `After falling for Cesario — comic surrender to irrational love, and acceptance of loss of rational self-control.` },
+    ]
+  },
+  malvolio: {
+    name: 'Malvolio',
+    role: `Olivia's Steward`,
+    tags: ['ambition','social class','Puritanism','comedy','tragedy'],
+    emoji: '🟡',
+    colour: '#fbbf24',
+    overview: `Malvolio is the play's most complex and contested figure. On the surface a comic butt, he has attracted significant critical reappraisal as a proto-tragic victim. His ambition, self-love, and Puritanical rigidity make him an object of ridicule, but the dark room scene and his final exit ("I'll be revenged on the whole pack of you") leave a troubling residue.`,
+    analysis: [
+      { heading: 'Self-Love and Ambition', body: `Olivia diagnoses Malvolio as "sick of self-love" — he fantasises about marriage into nobility (his daydream in Act 2 is Shakespeare's most vivid depiction of class fantasy) and sees himself as uniquely virtuous. His willingness to believe the forged letter reveals that his self-regard is his fatal flaw — he is deceived by his own desires.` },
+      { heading: 'Puritanism and the Festive World', body: `Malvolio represents the anti-festive, Puritan impulse antithetical to the play's carnivalesque spirit. His conflict with Sir Toby ("Dost thou think, because thou art virtuous, there shall be no more cakes and ale?") is a culture war between festivity and sobriety, excess and discipline. The play sides with festivity — but at a cost.` },
+      { heading: 'Tragic Reading', body: `Charles Lamb and later critics have argued Malvolio is the play's real tragic victim. His "imprisonment" in a dark room is genuine cruelty; his dignity is systematically destroyed. His exit without reconciliation is jarring in a comedy where all others pair off. Shakespeare refuses him redemption or integration, asking us to consider what the festive comedy excludes and at what cost.` },
+      { heading: 'VCE Essay Angle', body: `Argue that Malvolio functions as a site of ideological contest — his exclusion from the play's resolution reveals that Illyria's "happiness" rests on the suppression and humiliation of those who challenge its social hierarchies.` },
+    ],
+    quotes: [
+      { q: `"Some are born great, some achieve greatness, and some have greatness thrust upon 'em."`, act: '2.5', note: `From Maria's forged letter — encapsulates Malvolio's social ambitions and the ease with which they are weaponised against him.` },
+      { q: `"I'll be revenged on the whole pack of you."`, act: '5.1', note: `Final exit — unresolved anger, refusal of comic reconciliation. Haunts the play's happy ending.` },
+      { q: `"I am not of your element."`, act: '3.4', note: `Self-distancing, social snobbery — Malvolio constantly performs his superiority.` },
+      { q: `"By my life, this is my lady's hand."`, act: '2.5', note: `Immediate credulity — his self-love so complete he doesn't question the letter's authenticity.` },
+    ]
+  },
+  feste: {
+    name: 'Feste',
+    role: "Olivia's Fool / Jester",
+    tags: ['wisdom','mortality','outsider','festivity','truth'],
+    emoji: '🃏',
+    colour: '#34d399',
+    overview: `Feste is the play's most philosophically sophisticated figure — a professional fool whose wit contains more wisdom than those who employ him. He moves freely between households, observing and commenting with detachment. His songs encode the play's darker undertones about time, mortality, and the transience of pleasure.`,
+    analysis: [
+      { heading: 'The Wise Fool', body: `Shakespeare's fools consistently see through social performance in ways that "serious" characters cannot. Feste immediately exposes Olivia's grief as self-indulgent (the catechism in 1.5); he recognises Viola's disguise more readily than others; he alone seems undeceived. His wit operates through indirection — "Better a witty fool than a foolish wit."` },
+      { heading: 'Mortality and the Passage of Time', body: `Feste's songs — particularly "Come away, come away, death" (2.4) and the closing "When that I was and a little tiny boy" (5.1) — are elegiac and melancholic, standing in sharp contrast to the play's comic surface. They introduce themes of time's passing, youth's transience, and the approaching winter — a world where the festive cannot last.` },
+      { heading: 'Social Outsider', body: `Feste belongs to no single household; he is simultaneously everywhere and nowhere in Illyrian society. His freedom of movement and speech — licensed by his role as fool — gives him an outsider's perspective, but also means he is never fully integrated into the play's happy ending.` },
+    ],
+    quotes: [
+      { q: `"Foolery, sir, does walk about the orb like the sun; it shines everywhere."`, act: '3.1', note: `Self-definition — folly is universal, not limited to the official fool.` },
+      { q: `"The rain it raineth every day."`, act: '5.1', note: `Closing song — reminder that the festive space of comedy is temporary; reality (rain, winter, time) waits outside.` },
+      { q: `"Better a witty fool than a foolish wit."`, act: '1.5', note: `Paradox that encapsulates his social role — intelligence inverted through the licence of folly.` },
+      { q: `"What is love? 'Tis not hereafter; / Present mirth hath present laughter."`, act: '2.3', note: `Carpe diem philosophy — the play's festive spirit distilled, but also its limitation.` },
+    ]
+  },
+  toby: {
+    name: 'Sir Toby Belch',
+    role: "Olivia's Uncle",
+    tags: ['festivity','excess','comedy','parasitic'],
+    emoji: '🍺',
+    colour: '#f97316',
+    overview: `Sir Toby is the play's embodiment of festive excess — a knight who eats, drinks, and schemes, living as a parasite in Olivia's household. His relationship with the carnivalesque spirit is complex: he enables the festivity that exposes Malvolio, but his exploitation of Sir Andrew exposes the cruelty beneath comic exuberance.`,
+    analysis: [
+      { heading: 'Champion of Festivity', body: `Toby's famous challenge — "Dost thou think, because thou art virtuous, there shall be no more cakes and ale?" — is the play's most explicit defence of festivity against Puritan repression. He represents the festive world of Twelfth Night itself, the holiday of excess before order reasserts itself.` },
+      { heading: 'Parasitic and Exploitative', body: `Toby cynically exploits Sir Andrew for money, keeping him in Illyria on false pretenses. He is cruel to Malvolio (the dark room scene is largely his doing) and careless of consequences. Shakespeare complicates our sympathy — the festive world has a dark side.` },
+      { heading: 'Resolution', body: `Toby's sudden marriage to Maria (mentioned almost in passing) is the play's least examined resolution. It absorbs them both into the happy ending but hardly transforms them.` },
+    ],
+    quotes: [
+      { q: `"Dost thou think, because thou art virtuous, there shall be no more cakes and ale?"`, act: '2.3', note: `The play's great defence of festivity — but directed at Malvolio by a figure who exploits others.` },
+      { q: `"I am a fellow o' the strangest mind i' the world; I delight in masques and revels sometimes altogether."`, act: '1.3', note: `Self-description that aligns him with the play's festive world.` },
+    ]
+  },
+  sebastian: {
+    name: 'Sebastian',
+    role: "Viola's Twin Brother",
+    tags: ['identity','love','resolution'],
+    emoji: '⚓',
+    colour: '#38bdf8',
+    overview: `Sebastian's primary function is structural — his arrival enables the comic resolution. As Viola's twin, he literalises the play's themes of doubling and identity. His willingness to marry Olivia (a stranger) without hesitation raises questions about the nature of the love that resolves the plot.`,
+    analysis: [
+      { heading: 'Foil and Mirror', body: `Sebastian mirrors Viola's situation — both are strangers in Illyria, both have each other as their deepest emotional bond. But where Viola exercises careful restraint, Sebastian acts impulsively (accepting Olivia's proposal without hesitation). His ease suggests either a deeper trust in fortune or a less complex interiority.` },
+      { heading: 'Problematic Resolution', body: `Olivia's marriage to Sebastian rather than Cesario is the play's central romantic resolution — but Olivia does not know who Sebastian is. She marries a man she has known for hours, believing him to be someone else. Does the play ask us to accept this as satisfying? The ambiguity is rich essay territory.` },
+    ],
+    quotes: [
+      { q: `"What relish is in this? How runs the stream? / Or I am mad, or else this is a dream."`, act: '4.1', note: `Sebastian's bewilderment at Olivia's love — he accepts the dream rather than questioning it.` },
+    ]
+  },
+  andrew: {
+    name: 'Sir Andrew Aguecheek',
+    role: 'Knight, Toby\'s companion',
+    tags: ['comedy','parody','class','folly'],
+    emoji: '🤡',
+    colour: '#a78bfa',
+    overview: `Sir Andrew is the play's most thoroughgoing comic butt — a foolish knight who wastes his money in Illyria on a romantic pursuit that Sir Toby tells him has no hope. He is a parody of the courtly lover and the social climber, lacking both the wit and means to succeed.`,
+    analysis: [
+      { heading: 'Parody of Courtly Love', body: `Andrew's incompetent wooing of Olivia (whom he never actually speaks to coherently) parodies the Petrarchan ideal that Orsino also embodies, but in a degraded register. He copies the forms of courtship (duelling, wit, music) without the substance.` },
+    ],
+    quotes: [
+      { q: `"I was adored once too."`, act: '2.3', note: `One of the play's most poignant lines — delivered in passing, it reveals genuine pathos beneath the comedy.` },
+    ]
+  }
+};
+
+const THEMES = [
+  {
+    id: 'love',
+    icon: '💘',
+    title: 'Love and Its Manifestations',
+    colour: '#a78bfa',
+    overview: `Twelfth Night presents love not as a singular, pure emotion but as a spectrum ranging from genuine devotion to narcissistic performance. Shakespeare examines romantic love, self-love, platonic love, and obsessive infatuation, interrogating which forms are truly admirable and which are self-deluding.`,
+    points: [
+      { h: 'Performative Love (Orsino)', b: `Orsino's love is theatrical, indulgent, and ultimately directed at himself. He orchestrates elaborate scenes of melancholy — music, soliloquy, messengers — but never actually visits Olivia. His opening "If music be the food of love, play on" frames love as appetite; he seeks satiation rather than connection.` },
+      { h: 'Genuine Love (Viola)', b: `Viola's love for Orsino is restrained, selfless, and unperformed. She serves him faithfully while concealing her own feelings — a form of devotion that stands in sharp contrast to his excess. Shakespeare uses this contrast to imply that genuine love is characterised by sacrifice, not spectacle.` },
+      { h: 'Self-Love (Malvolio)', b: `Olivia diagnoses Malvolio as "sick of self-love" — his fantasy of marrying Olivia is fundamentally about his own elevation, not about her. Self-love is presented as the antithesis of genuine love, making those who suffer from it susceptible to deception.` },
+      { h: 'Comic / Irrational Love (Olivia for Cesario)', b: `Olivia's love for a disguised woman whom she believes to be a boy satirises love at first sight and the Petrarchan ideal. It cannot be fulfilled; it is a comic trap. Yet Shakespeare does not render it as entirely ridiculous — her emotional sincerity is genuine.` },
+    ],
+    quotes: [
+      `"If music be the food of love, play on." — Orsino (1.1)`,
+      `"She never told her love, but let concealment, like a worm i' the bud, feed on her damask cheek." — Viola (2.4)`,
+      `"O, you are sick of self-love, Malvolio." — Olivia (1.5)`,
+    ]
+  },
+  {
+    id: 'identity',
+    icon: '🎭',
+    title: 'Identity, Gender, and Disguise',
+    colour: '#60a5fa',
+    overview: `The play's central mechanism — Viola's cross-dressing — allows Shakespeare to explore how gender identity is constructed through performance rather than being biologically fixed. The instability created by disguise ripples through every relationship in the play, raising questions about the nature of selfhood.`,
+    points: [
+      { h: 'Gender as Performance', b: `Viola as Cesario performs masculinity convincingly enough to deceive everyone except (possibly) Feste. This suggests that gender is a set of behaviours and costumes rather than an innate essence — a strikingly modern premise for a 1601 text.` },
+      { h: '"I am not what I am"', b: `Viola's paradox — echoing and inverting Iago's "I am not what I am" (Othello) — encapsulates the play's meditation on authentic selfhood. If the performance is convincing and sustained, when does it become "real"? Orsino falls for Cesario, not Viola — the distinction dissolves.` },
+      { h: 'Sebastian as Doppelgänger', b: `Sebastian's arrival multiplies the identity crisis — he is the "real" version of Cesario's illusion. The doubling of twins literalises the theme: identity is unstable, doubles exist, the self is not unique.` },
+      { h: 'The Festive Inversion', b: `The Twelfth Night festival itself (Epiphany) was a time of licensed gender and social inversion — masters served servants, women dressed as men. Shakespeare's play embeds this festive tradition, suggesting that Viola's disguise is not aberrant but an intensification of normal holiday practice.` },
+    ],
+    quotes: [
+      `"I am not what I am." — Viola (3.1)`,
+      `"What country, friends, is this?" — Viola (1.2) — identity question as opening gesture`,
+      `"One face, one voice, one habit, and two persons!" — Antonio (5.1)`,
+    ]
+  },
+  {
+    id: 'deception',
+    icon: '🎪',
+    title: 'Deception and Appearance vs Reality',
+    colour: '#f472b6',
+    overview: `Almost every character in Twelfth Night is deceived — by others, by circumstances, or by themselves. Shakespeare uses multiple overlapping deceptions to create a world in which appearances systematically mislead, and in which self-deception (Malvolio, Orsino) is as dangerous as external trickery.`,
+    points: [
+      { h: 'The Forged Letter', b: `Maria's letter is the play's most elaborate external deception — it exploits Malvolio's self-love so perfectly that he deceives himself into believing what he desires. The text's lesson is that we see what we wish to see.` },
+      { h: `Viola's Disguise`, b: `The most sustained deception — and the only one with moral complexity. Viola's disguise is necessary for survival but creates real harm (Olivia's impossible love). Shakespeare never lets the audience forget that the comic resolution depends on a fundamental untruth.` },
+      { h: 'Self-Deception', b: `Orsino deceives himself about the nature of his love; Olivia deceives herself about the value of prolonged mourning; Malvolio deceives himself about Olivia's feelings. Shakespeare suggests that self-deception is more dangerous than external trickery because it is self-perpetuating.` },
+    ],
+    quotes: [
+      `"What a caterwauling do you keep here!" — Malvolio, being deceived by his own credulity (2.3)`,
+      `"By my life, this is my lady's hand." — Malvolio, seeing what he wishes to see (2.5)`,
+    ]
+  },
+  {
+    id: 'class',
+    icon: '👑',
+    title: 'Social Order, Class, and Festivity',
+    colour: '#fbbf24',
+    overview: `Twelfth Night is set in a time of social festivity (the Twelfth Night of Christmas) characterised by licensed inversion of hierarchy. The play explores the tension between festive disorder (represented by Sir Toby and the revellers) and the drive to restore social order (Malvolio), ultimately asking whether the comic resolution represents genuine inclusion or the reassertion of existing hierarchies.`,
+    points: [
+      { h: 'Carnival and Festivity', b: `The festive world of Illyria — parties, music, drunken revels — operates according to Mikhail Bakhtin's concept of the carnivalesque: a temporary space where normal hierarchies are suspended. But "Twelfth Night" is specifically the last night of Christmas — after which order returns. The festive spirit is always temporary.` },
+      { h: 'Malvolio vs the Revellers', b: `The conflict between Malvolio and Sir Toby is explicitly a class and ideological conflict. Malvolio represents the rising middling class — aspirant, disciplined, Puritan — threatening the old festive nobility. Sir Toby (however parasitic) represents the old festive order. The play's treatment of Malvolio is its most ideologically revealing moment.` },
+      { h: "Who is excluded from the comic ending?", b: `The play's final pairing (Orsino/Viola, Olivia/Sebastian, Toby/Maria) excludes Malvolio, Antonio, and Sir Andrew. Their exclusion raises the question of what the "happy" ending actually achieves — is it a comedy of inclusion or a comedy that simply reasserts the existing social order with new romantic partnerships?` },
+    ],
+    quotes: [
+      `"Dost thou think, because thou art virtuous, there shall be no more cakes and ale?" — Sir Toby (2.3)`,
+      `"I'll be revenged on the whole pack of you." — Malvolio (5.1)`,
+      `"The whirligig of time brings in his revenges." — Feste (5.1)`,
+    ]
+  },
+  {
+    id: 'time',
+    icon: '⏳',
+    title: 'Time, Mortality, and the Transience of Pleasure',
+    colour: '#34d399',
+    overview: `Feste's songs and the play's festive setting combine to create an undertow of melancholy beneath the comic surface. The festive world cannot last; youth passes; pleasure is fleeting. Shakespeare uses Feste as a vehicle for this darker vision, which complicates any straightforward reading of the play as simple comedy.`,
+    points: [
+      { h: "Feste's Songs", b: `"Come away, come away, death" (2.4) and the closing "When that I was and a little tiny boy" function as lyric interruptions to the comic plot, introducing mortality and the passage of time. The closing song is ambiguous — is it celebratory or elegiac? "And we'll strive to please you every day" can be read as hope or as resignation.` },
+      { h: 'The Festive Frame', b: `Twelfth Night (the festival) is literally the last night of Christmas — the eve of the return to ordinary time. The play's comic world exists in this liminal space. The revenges and resolutions of Act 5 represent the return of "real" time after the holiday's suspension.` },
+    ],
+    quotes: [
+      `"What's to come is still unsure: / In delay there lies no plenty." — Feste (2.3)`,
+      `"The rain it raineth every day." — Feste (5.1)`,
+      `"Youth's a stuff will not endure." — Feste (2.3)`,
+    ]
+  }
+];
+
+const PROMPTS = [
+  { id:1, text:`"In Twelfth Night, Shakespeare ultimately presents love as a form of self-deception." To what extent do you agree?`, themes:['love','deception'], chars:['orsino','malvolio','olivia'] },
+  { id:2, text:`How does Shakespeare use Viola's disguise to challenge assumptions about gender and identity?`, themes:['identity'], chars:['viola','orsino','olivia'] },
+  { id:3, text:`"Malvolio is the play's most tragic figure." Discuss.`, themes:['class','deception'], chars:['malvolio','toby','feste'] },
+  { id:4, text:`Explore how Shakespeare presents the tension between social order and festive disorder in Twelfth Night.`, themes:['class'], chars:['malvolio','toby','feste'] },
+  { id:5, text:`"The comic resolution of Twelfth Night is ultimately unsatisfying." To what extent do you agree?`, themes:['love','class','identity'], chars:['malvolio','viola','andrew'] },
+  { id:6, text:`How does Feste function as a vehicle for the play's darker themes?`, themes:['time','deception'], chars:['feste','orsino','malvolio'] },
+  { id:7, text:`"Orsino's love for Olivia tells us more about Orsino than it does about love." Discuss.`, themes:['love'], chars:['orsino','viola','olivia'] },
+  { id:8, text:`To what extent does Shakespeare present Illyria as a world where appearances deceive?`, themes:['deception','identity'], chars:['viola','malvolio','olivia'] },
+  { id:9, text:`"In Twelfth Night, those who refuse to play the game of festivity are punished." Discuss.`, themes:['class'], chars:['malvolio','toby','feste'] },
+  { id:10, text:`How does Shakespeare use Viola to explore what it means to love selflessly?`, themes:['love','identity'], chars:['viola','orsino'] },
+];
+
+const EXEMPLAR_PARAS = [
+  {
+    prompt: `"In Twelfth Night, Shakespeare ultimately presents love as a form of self-deception."`,
+    argument: `Shakespeare presents Orsino's love as a performance of self-indulgence that reveals the tendency of desire to create its own object`,
+    para: `In the play's opening moments, Shakespeare immediately establishes Orsino's love as a form of narcissistic excess rather than genuine devotion. His imperative "If music be the food of love, play on, / Give me excess of it" frames romantic desire as an appetite to be satiated — a hunger directed at the experience of longing itself rather than at a real person. The verb "play on" positions Orsino as a director, orchestrating his own emotional spectacle; love becomes a performance he stages for his own consumption. This self-regarding quality is underscored by the dramatic irony of his never visiting Olivia directly, instead deploying the disguised Viola as a proxy — his love exists as a private theatre of feeling rather than genuine relational effort. When read alongside Olivia's diagnosis of Malvolio as "sick of self-love," Shakespeare implies that Illyria's most prominent lovers share the same fundamental pathology: they love reflections of their own desires rather than the actual people before them. Ultimately, Orsino's opening speech functions as Shakespeare's most concentrated critique of Petrarchan love conventions, exposing the extent to which romantic love can be a vehicle for self-aggrandisement.`,
+    annotations: {
+      contention: [0, 0], // marked in text
+      context: [1, 1],
+      quote: [2, 3],
+      analysis: [4, 5],
+      link: [6, 6]
+    }
+  },
+  {
+    prompt: `How does Shakespeare use Viola's disguise to challenge assumptions about gender and identity?`,
+    argument: `Through Viola's sustained performance of masculinity, Shakespeare suggests that gender is a socially constructed performance rather than a biological essence`,
+    para: `Viola's cross-dressing as "Cesario" functions not merely as a plot convenience but as Shakespeare's most sustained interrogation of gender as performance. By creating a character who persuasively inhabits both masculine and feminine roles simultaneously — wooing Olivia on Orsino's behalf while her own love for him remains suppressed — Shakespeare reveals gender to be a set of learnable behaviours and costumes rather than an innate truth. This is encapsulated in her paradoxical self-declaration "I am not what I am" (3.1), an inversion of the Socratic axiom that at once claims and denies authentic selfhood; Viola exists in the gap between appearance and reality, and Shakespeare presents this as a position of epistemological insight rather than moral compromise. Crucially, the audience knows what no character on stage does: that the "masculine" qualities Orsino and Olivia admire in Cesario — wit, emotional intelligence, eloquence — are actually Viola's, making the play's gender assumptions collapse inward. The resolution, far from restoring stable gender identities, simply exchanges one set of performances for another; Orsino's final lines name her "Cesario" still, acknowledging that the woman he loves is partly constituted by the male role she played. Through this ending, Shakespeare implies that identity — far from being fixed — is always a negotiation between self and social expectation.`,
+    annotations: {}
+  }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI
+// ─────────────────────────────────────────────────────────────────────────────
+
+function showSection(id){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const ni=document.getElementById('nav-'+id);
+  if(ni) ni.classList.add('active');
+  const titles={home:'Home',context:'Context & Form',plot:'Plot Summary',characters:'Characters',themes:'Themes',quotes:'Key Quotes',paragraphs:'Exemplar Paragraphs',builder:'Essay Builder',prompts:'Prompt Bank'};
+  document.getElementById('page-title').textContent=titles[id]||id;
+  const fn={home:renderHome,context:renderContext,plot:renderPlot,characters:renderCharacters,themes:renderThemes,quotes:renderQuotes,paragraphs:renderParagraphs,builder:renderBuilder,prompts:renderPrompts};
+  if(fn[id]) fn[id]();
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function renderHome(){
+  document.getElementById('content').innerHTML=`
+<div class="hero">
+  <h1>Twelfth Night</h1>
+  <p style="color:#a78bfa;font-weight:700;margin-bottom:8px">William Shakespeare, c.1601 &nbsp;·&nbsp; VCE English Study Hub</p>
+  <p>Everything you need to excel at analytical essay writing — from plot and character analysis to exemplar paragraphs, an essay builder, and AI-powered marking.</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px">
+  ${[
+    {icon:'📖',label:'Plot Summary',id:'plot',desc:'Act-by-act breakdown with key scenes'},
+    {icon:'🎭',label:'Characters',id:'characters',desc:'Deep dives on all major characters'},
+    {icon:'💡',label:'Themes',id:'themes',desc:'5 key themes with analysis'},
+    {icon:'💬',label:'Key Quotes',id:'quotes',desc:'Exam-ready quotes by theme & character'},
+    {icon:'✍️',label:'Exemplar Paras',id:'paragraphs',desc:'Annotated A+ body paragraphs'},
+    {icon:'🏗️',label:'Essay Builder',id:'builder',desc:'Build a full essay plan interactively'},
+    {icon:'💪',label:'Prompt Bank',id:'prompts',desc:'10 prompts + AI essay plan + marking'},
+  ].map(c=>`
+    <div class="card" style="cursor:pointer;padding:18px" onclick="showSection('${c.id}')">
+      <div style="font-size:1.8rem;margin-bottom:8px">${c.icon}</div>
+      <div style="font-weight:800;font-size:.9rem;margin-bottom:4px">${c.label}</div>
+      <div style="font-size:.78rem;color:var(--muted)">${c.desc}</div>
+    </div>`).join('')}
+</div>
+<div class="card">
+  <h3 style="margin-top:0">📌 Quick Reference</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div class="def-term" style="margin-bottom:6px">Main Argument Types</div>
+      <ul style="font-size:.84rem">
+        <li>Love as self-deception vs genuine devotion</li>
+        <li>Gender as performance / social construction</li>
+        <li>Festivity vs order — at whose cost?</li>
+        <li>Malvolio as comic victim or proto-tragic figure</li>
+        <li>The inadequacy of the comic resolution</li>
+      </ul>
+    </div>
+    <div>
+      <div class="def-term" style="margin-bottom:6px">Must-Know Quotes</div>
+      <ul style="font-size:.84rem">
+        <li>"If music be the food of love, play on" — Orsino</li>
+        <li>"I am not what I am" — Viola</li>
+        <li>"Some are born great..." — the letter</li>
+        <li>"Sick of self-love" — Olivia on Malvolio</li>
+        <li>"I'll be revenged on the whole pack of you" — Malvolio</li>
+        <li>"The rain it raineth every day" — Feste</li>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+}
+
+// ── CONTEXT ───────────────────────────────────────────────────────────────────
+function renderContext(){
+  document.getElementById('content').innerHTML=`
+<h2>Context & Form</h2>
+<p style="color:var(--muted);margin-bottom:20px">Understanding the world that produced Twelfth Night is essential for sophisticated analysis.</p>
+<div class="card">
+  <h3>Historical and Cultural Context</h3>
+  <div class="def-box"><div class="def-term">The Twelfth Night Festival</div><div class="def-body">Twelfth Night (the eve of Epiphany, 6 January) was the last night of the Christmas festivities — a time of licensed disorder, gender inversion, and social subversion. Masters served servants; women dressed as men; normal hierarchies were suspended. Shakespeare's play is steeped in this carnivalesque tradition. The festive space it creates is always temporary — order must return.</div></div>
+  <div class="def-box"><div class="def-term">Elizabethan Gender and Theatre</div><div class="def-body">Women were forbidden from acting on the Elizabethan stage — all female roles were played by boy actors. Viola/Cesario was thus a boy actor playing a woman playing a man, creating a layered performance of gender. Shakespeare exploits this theatrical fact to interrogate the performance of gender identity itself.</div></div>
+  <div class="def-box"><div class="def-term">Petrarchan Love Conventions</div><div class="def-body">Petrarchan love poetry (from Italian poet Petrarch) presented love as idealised, painful, and unrequited — the beloved is elevated and distant; the lover suffers gloriously. Orsino is a parody of the Petrarchan lover — Shakespeare uses this convention to critique the narcissism of performed romantic suffering.</div></div>
+  <div class="def-box"><div class="def-term">Puritanism and Festivity</div><div class="def-body">By 1601, Puritan attitudes to theatre, festivity, and pleasure were increasingly prominent. The conflict between Malvolio and Sir Toby dramatises a real social tension between Puritan sobriety and traditional festive culture. The Globe's audience would have recognised and debated which side Shakespeare endorses.</div></div>
+</div>
+<div class="card">
+  <h3>Form and Genre</h3>
+  <div class="def-box"><div class="def-term">Romantic Comedy</div><div class="def-body">Twelfth Night follows the conventions of Shakespearean romantic comedy: separation, disguise, misunderstanding, and eventual reunion/marriage. But it also subverts these conventions — Malvolio's exclusion, the ambiguous final scene, and Feste's melancholic songs complicate the "happy ending."</div></div>
+  <div class="def-box"><div class="def-term">The Problem Play</div><div class="def-body">Some critics classify Twelfth Night as a "problem play" — its comic resolution raises as many questions as it answers. Malvolio's exit, the hasty marriages, and Sebastian's quick decision to marry a stranger all resist easy satisfaction. It rewards analysis that attends to what the comedy cannot resolve.</div></div>
+  <div class="def-box"><div class="def-term">Verse and Prose</div><div class="def-body">Shakespeare uses verse (iambic pentameter) for elevated, noble characters and for serious emotional content; prose for comic scenes and lower-class characters. Viola speaks verse when sincere, prose when playing a social role. Feste moves between both — his fluidity signals his unique position. Attending to these shifts enriches textual analysis.</div></div>
+</div>
+<div class="tip-box">📝 <strong>VCE Tip:</strong> Contextual knowledge should inform your analysis but not replace it. Integrate context into your argument — don't just list facts. E.g. instead of "Shakespeare was writing in Elizabethan times when women couldn't act," write "Shakespeare exploits the theatrical convention of the boy actor to layer the gender performance — Cesario is a boy playing a woman playing a man."</div>
+`;
+}
+
+// ── PLOT ──────────────────────────────────────────────────────────────────────
+function renderPlot(){
+  const acts=[
+    {act:'Act I',colour:'#a78bfa',scenes:[
+      {sc:'1.1',txt:`<strong>Orsino's court.</strong> Orsino opens with "If music be the food of love, play on" — he is lovesick for Olivia. He sends Valentino to woo her but she refuses all contact, mourning her dead brother. Establishes the play's central romantic impasse.`},
+      {sc:'1.2',txt:`<strong>The sea-coast.</strong> Viola is shipwrecked, fears her twin Sebastian is dead. Decides to disguise herself as a male page ("Cesario") and enter Orsino's service. Establishes the central mechanism of the plot — cross-dressing.`},
+      {sc:'1.3',txt:`<strong>Olivia's house.</strong> Sir Toby Belch (Olivia's uncle) and the foolish Sir Andrew Aguecheek are introduced — Sir Toby is exploiting Andrew's money on the pretext of wooing Olivia. Comic subplot established.`},
+      {sc:'1.4',txt:`Viola (as Cesario) is already Orsino's favourite — he sends "him" to woo Olivia. Viola realises she loves Orsino herself.`},
+      {sc:'1.5',txt:`<strong>Olivia's house.</strong> Feste's wit-battle with Olivia — he demolishes her performative grief (she is a "fool to mourn for your brother's soul" if it's in heaven). Cesario arrives and delivers Orsino's message with such passion that Olivia falls in love with the messenger, not the message. Sends Malvolio after Cesario with a ring.`},
+    ]},
+    {act:'Act II',colour:'#60a5fa',scenes:[
+      {sc:'2.1',txt:`Sebastian (Viola's twin) is alive — he was saved by Antonio. He heads for Orsino's court. Antonio warns he has enemies there but follows from devotion.`},
+      {sc:'2.2',txt:`Malvolio delivers Olivia's ring to Cesario. Viola realises Olivia loves her/him — "I am the man" soliloquy. She sees the impossibility of the triangle: she loves Orsino, who loves Olivia, who loves Cesario (who is Viola).`},
+      {sc:'2.3',txt:`<strong>Late-night revelry.</strong> Sir Toby, Andrew, and Feste carouse and sing. Malvolio appears to reprimand them — Sir Toby's great line: "Dost thou think, because thou art virtuous, there shall be no more cakes and ale?" Maria plots to forge a letter to deceive Malvolio.`},
+      {sc:'2.4',txt:`Orsino and Cesario/Viola discuss love — Feste sings "Come away, come away, death." Viola describes her "sister" who "never told her love" — actually herself. Orsino claims women can't love as deeply as men; Viola's restraint contradicts this.`},
+      {sc:'2.5',txt:`<strong>The letter scene.</strong> Malvolio finds Maria's forged letter — he is deceived into believing Olivia loves him and instructs him to wear yellow stockings and cross-garters. His delighted credulity exposes his self-love. Sir Toby and company observe from hiding.`},
+    ]},
+    {act:'Act III',colour:'#34d399',scenes:[
+      {sc:'3.1',txt:`Viola/Cesario and Feste exchange wit; Feste recognises there's more to Cesario than meets the eye. Viola meets Olivia, who declares her love openly — Viola/Cesario must gently refuse.`},
+      {sc:'3.2',txt:`Sir Andrew, jealous of Cesario's closeness with Olivia, plans to leave. Sir Toby encourages a duel — he will send Andrew a challenge letter.`},
+      {sc:'3.3',txt:`Antonio and Sebastian in Illyria. Antonio, who has enemies at Orsino's court, entrusts his money to Sebastian for safekeeping.`},
+      {sc:'3.4',txt:`<strong>Malvolio appears in yellow stockings, cross-gartered, smiling — Olivia thinks he's mad.</strong> Maria engineers his confinement as a "lunatic." Meanwhile, Sir Toby manoeuvres Viola and Sir Andrew into a reluctant duel. Antonio, thinking Viola is Sebastian, rescues Cesario and asks for his money back — Viola doesn't know what he's talking about.`},
+    ]},
+    {act:'Act IV',colour:'#fbbf24',scenes:[
+      {sc:'4.1',txt:`Sebastian is mistaken for Cesario by Sir Andrew (who attacks him) and then by Olivia (who offers her love). Sebastian, confused but delighted, accepts Olivia's affection.`},
+      {sc:'4.2',txt:`Malvolio is imprisoned in a dark room — Feste torments him as "Sir Topas the curate." Malvolio's dignity is systematically destroyed. He is allowed paper to write to Olivia.`},
+      {sc:'4.3',txt:`Olivia and Sebastian marry in a private ceremony — Sebastian accepts the offer of love from a beautiful stranger without question.`},
+    ]},
+    {act:'Act V',colour:'#f472b6',scenes:[
+      {sc:'5.1',txt:`<strong>The resolution.</strong> All characters converge before Olivia's house. Antonio accuses Cesario of betrayal (thinking it is Sebastian). Orsino, discovering Olivia has married, threatens to kill Cesario. Sebastian appears — the twins are reunited. Olivia realises she married Sebastian, not Cesario; she accepts this. Orsino immediately transfers his love to Viola.`},
+      {sc:'5.1b',txt:`Malvolio is released — he reads his letter in court. The trick is revealed; he exits in fury: "I'll be revenged on the whole pack of you." Olivia says he has been "notoriously abused." The play ends with Feste's melancholic closing song.`},
+    ]},
+  ];
+  let html=`<h2>Plot Summary</h2><p style="color:var(--muted);margin-bottom:20px">Act-by-act breakdown of key scenes and their significance.</p>`;
+  acts.forEach(a=>{
+    html+=`<div class="act-block" style="border-left-color:${a.colour}">
+      <div class="act-label" style="color:${a.colour}">${a.act}</div>
+      ${a.scenes.map(s=>`<div class="scene-item"><span class="tag tag-act">${s.sc}</span> ${s.txt}</div>`).join('')}
+    </div>`;
+  });
+  document.getElementById('content').innerHTML=html;
+}
+
+// ── CHARACTERS ────────────────────────────────────────────────────────────────
+function renderCharacters(){
+  let html=`<h2>Characters</h2><p style="color:var(--muted);margin-bottom:20px">Click any character for detailed analysis, key quotes, and essay angles.</p><div class="char-grid">`;
+  Object.entries(CHARACTERS).forEach(([id,c])=>{
+    html+=`<div class="char-card" onclick="openCharOverlay('${id}')">
+      <div class="char-name">${c.emoji} ${c.name}</div>
+      <div class="char-role">${c.role}</div>
+      <div class="char-tags">${c.tags.map(t=>`<span class="tag tag-theme">${t}</span>`).join('')}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('content').innerHTML=html;
+}
+
+function openCharOverlay(id){
+  const c=CHARACTERS[id];
+  if(!c)return;
+  let html=`<div style="color:${c.colour};font-size:2.5rem;margin-bottom:8px">${c.emoji}</div>
+    <h2 style="font-size:1.4rem;margin-bottom:4px">${c.name}</h2>
+    <div style="color:var(--muted);font-size:.83rem;margin-bottom:14px;font-weight:600">${c.role}</div>
+    <div class="char-tags" style="margin-bottom:16px">${c.tags.map(t=>`<span class="tag tag-theme">${t}</span>`).join('')}</div>
+    <p style="font-size:.9rem;line-height:1.7;margin-bottom:16px;color:var(--muted)">${c.overview}</p>`;
+  if(c.analysis){
+    html+=`<h3>Analysis</h3>`;
+    c.analysis.forEach(a=>{
+      html+=`<div class="def-box"><div class="def-term">${a.heading}</div><div class="def-body">${a.body}</div></div>`;
+    });
+  }
+  if(c.quotes){
+    html+=`<h3>Key Quotes</h3>`;
+    c.quotes.forEach(q=>{
+      html+=`<div class="quote-box">${q.q}<div class="quote-attr">Act ${q.act} — ${q.note}</div></div>`;
+    });
+  }
+  document.getElementById('char-overlay-content').innerHTML=html;
+  document.getElementById('char-overlay').classList.remove('hidden');
+}
+function closeCharOverlay(){document.getElementById('char-overlay').classList.add('hidden');}
+
+// ── THEMES ────────────────────────────────────────────────────────────────────
+function renderThemes(){
+  let html=`<h2>Themes</h2><p style="color:var(--muted);margin-bottom:20px">Five core themes with analysis points and key quotes.</p>`;
+  THEMES.forEach(t=>{
+    html+=`<div class="card">
+      <h3 style="color:${t.colour};margin-top:0">${t.icon} ${t.title}</h3>
+      <p style="font-size:.88rem;line-height:1.7;color:var(--muted);margin-bottom:12px">${t.overview}</p>
+      ${t.points.map(p=>`<div class="def-box" style="border-left-color:${t.colour}"><div class="def-term">${p.h}</div><div class="def-body">${p.b}</div></div>`).join('')}
+      <h4 style="margin-top:14px">Key Quotes for this Theme</h4>
+      ${t.quotes.map(q=>`<div class="quote-box">${q}</div>`).join('')}
+    </div>`;
+  });
+  document.getElementById('content').innerHTML=html;
+}
+
+// ── QUOTES ────────────────────────────────────────────────────────────────────
+function renderQuotes(){
+  const all=[
+    {char:'Orsino',act:'1.1',q:`"If music be the food of love, play on, / Give me excess of it."`,note:`Opening lines; love as appetite and excess; Petrarchan self-indulgence.`,themes:['love']},
+    {char:'Orsino',act:'2.4',q:`"For women are as roses, whose fair flower, / Being once displayed, doth fall that very hour."`,note:`Objectification and the transience of female beauty; patriarchal assumptions Viola silently refutes.`,themes:['love','identity']},
+    {char:'Viola',act:'3.1',q:`"I am not what I am."`,note:`Paradoxical self-definition; identity as performance; cf. Iago.`,themes:['identity','deception']},
+    {char:'Viola',act:'2.4',q:`"She never told her love, / But let concealment, like a worm i' the bud, / Feed on her damask cheek."`,note:`Viola speaking of herself obliquely; emotional suppression; contrast with Orsino's excess.`,themes:['love','identity']},
+    {char:'Viola',act:'1.5',q:`"Make me a willow cabin at your gate, / And call upon my soul within the house."`,note:`Viola's passion breaking through the Cesario performance; ventriloquising genuine love.`,themes:['love','identity']},
+    {char:'Viola',act:'2.4',q:`"I am all the daughters of my father's house, / And all the brothers too."`,note:`Grief, multiplicity of self, anticipation of Sebastian's survival.`,themes:['identity']},
+    {char:'Olivia',act:'1.5',q:`"O, you are sick of self-love, Malvolio, and taste with a distempered appetite."`,note:`Ironic self-diagnosis; she has her own form of self-indulgent performance.`,themes:['love','deception']},
+    {char:'Olivia',act:'1.5',q:`"Fate, show thy force; ourselves we do not owe."`,note:`Surrender to irrational love; loss of rational autonomy.`,themes:['love','deception']},
+    {char:'Malvolio',act:'2.5',q:`"Some are born great, some achieve greatness, and some have greatness thrust upon 'em."`,note:`The forged letter's most famous line; Malvolio's social ambitions weaponised against him.`,themes:['class','deception']},
+    {char:'Malvolio',act:'5.1',q:`"I'll be revenged on the whole pack of you."`,note:`Final exit; unresolved anger; refusal of comic reconciliation; complicates the happy ending.`,themes:['class']},
+    {char:'Sir Toby',act:'2.3',q:`"Dost thou think, because thou art virtuous, there shall be no more cakes and ale?"`,note:`Defence of festivity; culture war between Puritan sobriety and traditional revelry.`,themes:['class']},
+    {char:'Feste',act:'3.1',q:`"Foolery, sir, does walk about the orb like the sun; it shines everywhere."`,note:`Folly as universal — not restricted to the official fool.`,themes:['deception','time']},
+    {char:'Feste',act:'5.1',q:`"The rain it raineth every day."`,note:`Closing song; festive world ends; real life (rain, winter) waits outside.`,themes:['time']},
+    {char:'Feste',act:'5.1',q:`"The whirligig of time brings in his revenges."`,note:`Time as agent of justice; comic and ominous; especially relevant to Malvolio's exit.`,themes:['time','class']},
+    {char:'Feste',act:'2.3',q:`"Youth's a stuff will not endure."`,note:`Carpe diem; mortality beneath the festive surface.`,themes:['time']},
+    {char:'Sir Andrew',act:'2.3',q:`"I was adored once too."`,note:`Most poignant line — passing, unnoticed, yet revealing genuine pathos beneath comic role.`,themes:['love','class']},
+    {char:'Antonio',act:'5.1',q:`"His life I gave him, and did thereto add / My love without retention or restraint."`,note:`Selfless devotion; possible homoerotic reading; Antonio is excluded from the comic resolution.`,themes:['love']},
+    {char:'Sebastian',act:'4.1',q:`"What relish is in this? How runs the stream? / Or I am mad, or else this is a dream."`,note:`Sebastian's bewilderment — he accepts the dream rather than questioning it.`,themes:['deception','love']},
+  ];
+  let html=`<h2>Key Quotes</h2><p style="color:var(--muted);margin-bottom:16px">All essential quotes with context and analysis. Sorted by character.</p>`;
+  const grouped={};
+  all.forEach(q=>{if(!grouped[q.char])grouped[q.char]=[];grouped[q.char].push(q);});
+  Object.entries(grouped).forEach(([char,qs])=>{
+    const c=Object.values(CHARACTERS).find(c=>c.name.includes(char));
+    html+=`<h3 style="color:${c?c.colour:'var(--accent2)'}">${c?c.emoji:''} ${char}</h3>`;
+    qs.forEach(q=>{
+      html+=`<div class="quote-box">
+        ${q.q}
+        <div class="quote-attr">Act ${q.act} &nbsp;·&nbsp; ${q.note}</div>
+        <div style="margin-top:6px">${q.themes.map(t=>`<span class="tag tag-theme">${t}</span>`).join('')}</div>
+      </div>`;
+    });
+  });
+  document.getElementById('content').innerHTML=html;
+}
+
+// ── EXEMPLAR PARAGRAPHS ───────────────────────────────────────────────────────
+function renderParagraphs(){
+  const legend=`<div class="anno-legend">
+    <span><span class="anno-dot" style="background:#a78bfa"></span>Topic sentence / argument</span>
+    <span><span class="anno-dot" style="background:#34d399"></span>Context / introduction of evidence</span>
+    <span><span class="anno-dot" style="background:#fcd34d"></span>Quotation</span>
+    <span><span class="anno-dot" style="background:#93c5fd"></span>Analysis</span>
+    <span><span class="anno-dot" style="background:#f9a8d4"></span>Link to argument / contention</span>
+  </div>`;
+
+  let html=`<h2>Exemplar Body Paragraphs</h2><p style="color:var(--muted);margin-bottom:8px">Annotated A+ paragraphs with colour-coded structure. Use these as models — understand the moves, then adapt them.</p>${legend}`;
+
+  EXEMPLAR_PARAS.forEach((ep,i)=>{
+    html+=`<div class="card" style="margin-bottom:24px">
+      <div class="tag tag-act" style="margin-bottom:10px">Paragraph ${i+1}</div>
+      <div class="tip-box" style="margin-bottom:10px">
+        <strong>Prompt:</strong> ${ep.prompt}<br>
+        <strong>Argument:</strong> ${ep.argument}
+      </div>
+      <div class="annotated-para">
+        <div class="anno-label">Annotated Paragraph</div>
+        <div style="line-height:2;font-size:.9rem">${annotateParaHTML(ep.para)}</div>
+      </div>
+      <div class="green-box" style="margin-top:10px;font-size:.84rem">
+        <strong>What makes this paragraph strong:</strong>
+        <ul style="margin-top:6px">
+          <li>Opens with a specific analytical argument (not a plot summary)</li>
+          <li>Embeds short, precise quotations rather than long block quotes</li>
+          <li>Every quotation is followed by close linguistic analysis (e.g. "The verb 'play on' positions Orsino...")</li>
+          <li>Connects the specific example back to the broader contention</li>
+          <li>Maintains formal register throughout</li>
+        </ul>
+      </div>
+    </div>`;
+  });
+
+  html+=`<div class="card">
+    <h3>TEEL Structure Guide</h3>
+    <table class="summary-table">
+      <tr><th>Element</th><th>What it does</th><th>Length</th></tr>
+      <tr><td><strong style="color:#a78bfa">Topic Sentence</strong></td><td>States your argument for this paragraph — not a plot point, but an analytical claim about the text</td><td>1–2 sentences</td></tr>
+      <tr><td><strong style="color:#34d399">Evidence / Context</strong></td><td>Introduces the scene/moment and embeds the quotation. "When Shakespeare has Orsino declare..."</td><td>1 sentence</td></tr>
+      <tr><td><strong style="color:#fcd34d">Embedded Quote</strong></td><td>Short, precise quotation — integrate into your sentence, do not drop as a block</td><td>A phrase or clause</td></tr>
+      <tr><td><strong style="color:#93c5fd">Explanation / Analysis</strong></td><td>Close language analysis — what specific word, technique, or image does, and what it means. This is where marks are made.</td><td>2–4 sentences</td></tr>
+      <tr><td><strong style="color:#f9a8d4">Link</strong></td><td>Connects back to your argument / contention — "Ultimately, Shakespeare suggests..."</td><td>1 sentence</td></tr>
+    </table>
+  </div>`;
+
+  document.getElementById('content').innerHTML=html;
+}
+
+function annotateParaHTML(para){
+  // Colour key sentences by approximate position
+  const sentences=para.split(/(?<=[.!?])\s+/);
+  const colours=['#a78bfa','#34d399','var(--text)','#93c5fd','#93c5fd','#93c5fd','#93c5fd','#f9a8d4'];
+  return sentences.map((s,i)=>{
+    const col=colours[Math.min(i,colours.length-1)];
+    return `<span style="color:${col}">${s} </span>`;
+  }).join('');
+}
+
+// ── ESSAY BUILDER ─────────────────────────────────────────────────────────────
+let _plan={contention:'',intro:'',paras:[{claim:'',evidence:'',analysis:'',link:''},{claim:'',evidence:'',analysis:'',link:''},{claim:'',evidence:'',analysis:'',link:''}],conclusion:''};
+
+function renderBuilder(){
+  document.getElementById('content').innerHTML=`
+<h2>Essay Builder</h2>
+<p style="color:var(--muted);margin-bottom:20px">Build your essay plan step by step. Fill in each section and click <strong>Generate Plan</strong> to see it assembled.</p>
+
+<div class="builder-section">
+  <div class="builder-label">📝 Prompt / Question</div>
+  <textarea class="build-input" rows="2" id="bld-prompt" placeholder="Paste the essay prompt here..." oninput="_plan.prompt=this.value"></textarea>
+</div>
+
+<div class="builder-section">
+  <div class="builder-label">💡 Your Contention</div>
+  <p style="font-size:.83rem;color:var(--muted);margin-bottom:8px">Your contention is your answer to the question — a clear, arguable claim that your essay will prove. It should not simply restate the prompt.</p>
+  <textarea class="build-input" rows="3" id="bld-contention" placeholder="e.g. 'While Shakespeare initially presents Orsino's love as narcissistic performance, the play ultimately suggests that genuine devotion — embodied by Viola — is the only love capable of transcending the self.'" oninput="_plan.contention=this.value"></textarea>
+</div>
+
+${[0,1,2].map(i=>`
+<div class="para-builder">
+  <div class="para-num">BODY PARAGRAPH ${i+1}</div>
+  <div class="field-label">Topic Sentence / Analytical Claim</div>
+  <textarea class="build-input" rows="2" id="bld-p${i}-claim" placeholder="Make a specific argument that supports your contention..." oninput="_plan.paras[${i}].claim=this.value" style="margin-bottom:10px"></textarea>
+  <div class="field-row">
+    <div>
+      <div class="field-label">Key Quotation(s)</div>
+      <textarea class="build-input" rows="3" id="bld-p${i}-ev" placeholder='"If music be the food of love, play on" (1.1)' oninput="_plan.paras[${i}].evidence=this.value"></textarea>
+    </div>
+    <div>
+      <div class="field-label">Analysis / Technique</div>
+      <textarea class="build-input" rows="3" id="bld-p${i}-an" placeholder="The imperative 'play on' positions Orsino as a director of his own emotional spectacle..." oninput="_plan.paras[${i}].analysis=this.value"></textarea>
+    </div>
+  </div>
+  <div class="field-label">Link to Contention</div>
+  <textarea class="build-input" rows="2" id="bld-p${i}-lnk" placeholder="Ultimately, Shakespeare uses X to suggest Y, reinforcing that..." oninput="_plan.paras[${i}].link=this.value" style="margin-bottom:0"></textarea>
+</div>`).join('')}
+
+<div class="builder-section">
+  <div class="builder-label">🏁 Conclusion Notes (optional)</div>
+  <textarea class="build-input" rows="2" id="bld-conc" placeholder="Restate contention with new insight; broader significance..." oninput="_plan.conclusion=this.value"></textarea>
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+  <button class="btn btn-primary" onclick="generatePlan()">📋 Generate Essay Plan</button>
+  <button class="btn" onclick="aiImprovePlan()">🤖 AI Improve Plan</button>
+  <button class="btn btn-sm" onclick="clearPlan()">🗑 Clear</button>
+</div>
+
+<div id="plan-output" style="margin-top:16px"></div>
+`;
+}
+
+function generatePlan(){
+  const prompt=document.getElementById('bld-prompt').value;
+  const contention=document.getElementById('bld-contention').value;
+  const paras=[0,1,2].map(i=>({
+    claim:document.getElementById(`bld-p${i}-claim`).value,
+    evidence:document.getElementById(`bld-p${i}-ev`).value,
+    analysis:document.getElementById(`bld-p${i}-an`).value,
+    link:document.getElementById(`bld-p${i}-lnk`).value,
+  }));
+  const conc=document.getElementById('bld-conc').value;
+
+  if(!contention.trim()){showToast('Enter a contention first!');return;}
+
+  let html=`<div style="background:var(--surface2);border:1.5px solid var(--green);border-radius:14px;padding:24px;margin-top:8px">
+    <h4 style="color:var(--green);text-transform:uppercase;font-size:.73rem;letter-spacing:.06em;margin-bottom:14px">📋 Essay Plan</h4>`;
+
+  if(prompt) html+=`<div style="margin-bottom:12px"><strong style="font-size:.75rem;color:var(--muted);text-transform:uppercase">Prompt</strong><p style="font-size:.88rem;margin-top:4px">${prompt}</p></div>`;
+
+  html+=`<div style="background:var(--surface);border-radius:10px;padding:16px;margin-bottom:14px;border-left:4px solid var(--accent)">
+    <strong style="font-size:.75rem;color:var(--accent2);text-transform:uppercase">Contention</strong>
+    <p style="margin-top:6px;font-size:.92rem;line-height:1.6;font-weight:600">${contention||'(none entered)'}</p>
+  </div>`;
+
+  paras.forEach((p,i)=>{
+    if(!p.claim&&!p.evidence) return;
+    html+=`<div style="background:var(--surface);border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid var(--accent)">
+      <strong style="font-size:.73rem;color:var(--muted);text-transform:uppercase">Body Paragraph ${i+1}</strong>
+      ${p.claim?`<p style="margin-top:8px;font-size:.9rem;font-weight:700">${p.claim}</p>`:''}
+      ${p.evidence?`<div class="quote-box" style="margin-top:10px">${p.evidence}</div>`:''}
+      ${p.analysis?`<p style="font-size:.85rem;color:var(--muted);margin-top:8px;font-style:italic">${p.analysis}</p>`:''}
+      ${p.link?`<p style="font-size:.85rem;color:var(--accent2);margin-top:8px">→ ${p.link}</p>`:''}
+    </div>`;
+  });
+
+  if(conc) html+=`<div style="background:var(--surface);border-radius:10px;padding:14px;border-left:4px solid var(--green)">
+    <strong style="font-size:.73rem;color:var(--muted);text-transform:uppercase">Conclusion</strong>
+    <p style="margin-top:6px;font-size:.88rem">${conc}</p>
+  </div>`;
+
+  html+=`<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-green btn-sm" onclick="aiMarkPlan()">🤖 AI Mark this Plan</button>
+    <button class="btn btn-sm" onclick="copyPlanText()">📋 Copy as Text</button>
+  </div>`;
+
+  html+=`</div>`;
+  document.getElementById('plan-output').innerHTML=html;
+}
+
+function clearPlan(){
+  document.getElementById('content').innerHTML='';
+  renderBuilder();
+}
+
+async function aiImprovePlan(){
+  const key=getApiKey();
+  if(!key){showApiModal();return;}
+  const contention=document.getElementById('bld-contention').value;
+  if(!contention.trim()){showToast('Enter a contention first!');return;}
+
+  const paras=[0,1,2].map(i=>({
+    claim:document.getElementById(`bld-p${i}-claim`).value,
+    evidence:document.getElementById(`bld-p${i}-ev`).value,
+  }));
+  const out=document.getElementById('plan-output');
+  out.innerHTML=`<div class="tip-box">⏳ AI is reviewing your plan...</div>`;
+
+  const prompt=`You are a VCE English teacher reviewing a student's essay plan for Twelfth Night by Shakespeare.
+
+Contention: ${contention}
+Para 1: ${paras[0].claim} | Evidence: ${paras[0].evidence}
+Para 2: ${paras[1].claim} | Evidence: ${paras[1].evidence}
+Para 3: ${paras[2].claim} | Evidence: ${paras[2].evidence}
+
+Give concise feedback (4-6 dot points):
+- Is the contention arguable and specific?
+- Are the paragraph arguments clearly linked to the contention?
+- Are the quotations well-chosen and precise?
+- What is the strongest aspect of this plan?
+- One specific suggestion to improve the argument's sophistication.
+
+Be direct, constructive, and use VCE marking criteria language.`;
+
+  try{
+    const res=await callClaude(prompt,400);
+    out.innerHTML=`<div class="ai-mark-area"><div class="builder-label">🤖 AI Feedback on Your Plan</div><div class="mark-result good">${res.replace(/\n/g,'<br>')}</div></div>`;
+  }catch(e){
+    out.innerHTML=`<div class="red-box">❌ ${e.message}</div>`;
+  }
+}
+
+async function aiMarkPlan(){
+  const key=getApiKey();
+  if(!key){showApiModal();return;}
+  const contention=document.getElementById('bld-contention').value||'';
+  const out=document.getElementById('plan-output');
+  const existing=out.innerHTML;
+  out.innerHTML=existing+`<div id="ai-mark-result"><div class="tip-box">⏳ AI is marking your plan...</div></div>`;
+
+  const paras=[0,1,2].map(i=>({
+    claim:document.getElementById(`bld-p${i}-claim`).value,
+    evidence:document.getElementById(`bld-p${i}-ev`).value,
+    analysis:document.getElementById(`bld-p${i}-an`).value,
+  }));
+
+  const prompt=`You are a VCE English examiner marking a student's essay plan for Twelfth Night.
+
+Contention: ${contention}
+${paras.map((p,i)=>`Body Para ${i+1} — Argument: ${p.claim}\nEvidence: ${p.evidence}\nAnalysis notes: ${p.analysis}`).join('\n\n')}
+
+Using VCE criteria (Knowledge & Understanding of text, Analysis of how language & structure creates meaning, Controlled use of expressive and analytical language):
+
+1. Predicted score out of 20 with brief justification
+2. Strengths (2 points)
+3. Areas for improvement (2 points)
+4. One specific rewrite suggestion for the weakest paragraph argument
+
+Be specific, honest, and constructive.`;
+
+  try{
+    const res=await callClaude(prompt,500);
+    const cls=res.includes('16')||res.includes('17')||res.includes('18')||res.includes('19')||res.includes('20')?'excellent':res.includes('13')||res.includes('14')||res.includes('15')?'good':'partial';
+    document.getElementById('ai-mark-result').innerHTML=`<div class="ai-mark-area"><div class="builder-label">🎓 VCE Marking Feedback</div><div class="mark-result ${cls}">${res.replace(/\n/g,'<br>')}</div></div>`;
+  }catch(e){
+    document.getElementById('ai-mark-result').innerHTML=`<div class="red-box">❌ ${e.message}</div>`;
+  }
+}
+
+// ── PROMPTS ───────────────────────────────────────────────────────────────────
+let _selectedPrompt=null;
+
+function renderPrompts(){
+  let html=`<h2>Prompt Bank</h2>
+  <p style="color:var(--muted);margin-bottom:20px">Select a prompt, generate an AI essay plan, write your own plan, or get it marked.</p>
+  <div id="prompt-list">`;
+  PROMPTS.forEach(p=>{
+    html+=`<div class="prompt-card" id="pc-${p.id}" onclick="selectPrompt(${p.id})">
+      <span class="prompt-num">${p.id}</span>
+      <div>
+        <div class="prompt-text">${p.text}</div>
+        <div class="prompt-tags">
+          ${p.themes.map(t=>`<span class="tag tag-theme">${t}</span>`).join('')}
+          ${p.chars.map(c=>`<span class="tag tag-char">${c}</span>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  });
+  html+=`</div>
+  <div id="prompt-workspace" style="margin-top:20px"></div>`;
+  document.getElementById('content').innerHTML=html;
+}
+
+function selectPrompt(id){
+  _selectedPrompt=PROMPTS.find(p=>p.id===id);
+  document.querySelectorAll('.prompt-card').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('pc-'+id).classList.add('selected');
+  document.getElementById('prompt-workspace').innerHTML=`
+  <div class="card">
+    <div class="tag tag-act" style="margin-bottom:10px">Selected Prompt ${id}</div>
+    <p style="font-size:.95rem;font-weight:700;margin-bottom:16px">${_selectedPrompt.text}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="aiGeneratePlan()">🤖 AI Generate Essay Plan</button>
+      <button class="btn" onclick="openBuilderWithPrompt()">🏗️ Build My Own Plan</button>
+    </div>
+    <div id="ai-plan-output"></div>
+  </div>
+  <div class="card" id="self-marking-area" style="display:none">
+    <h3 style="margin-top:0">✍️ Write Your Essay Plan / Body Paragraph</h3>
+    <p style="font-size:.84rem;color:var(--muted);margin-bottom:10px">Write your essay plan or a body paragraph below, then get AI marking.</p>
+    <textarea class="build-input" rows="10" id="self-para-input" placeholder="Write your contention, paragraph arguments, or a full body paragraph here..."></textarea>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn btn-primary" onclick="aiMarkSelfPara()">🤖 Mark with AI</button>
+      <button class="btn btn-sm" onclick="document.getElementById('self-para-input').value=''">Clear</button>
+    </div>
+    <div id="self-mark-output"></div>
+  </div>
+  `;
+}
+
+function openBuilderWithPrompt(){
+  if(!_selectedPrompt)return;
+  showSection('builder');
+  setTimeout(()=>{
+    const el=document.getElementById('bld-prompt');
+    if(el){el.value=_selectedPrompt.text;_plan.prompt=_selectedPrompt.text;}
+  },100);
+}
+
+async function aiGeneratePlan(){
+  const key=getApiKey();
+  if(!key){showApiModal();return;}
+  const out=document.getElementById('ai-plan-output');
+  out.innerHTML=`<div class="tip-box">⏳ Generating essay plan...</div>`;
+
+  const chars=_selectedPrompt.chars.map(c=>CHARACTERS[c]?CHARACTERS[c].name:c).join(', ');
+  const themes=_selectedPrompt.themes.join(', ');
+
+  const prompt=`You are an expert VCE English teacher creating a model essay plan for a student studying Twelfth Night by Shakespeare.
+
+Essay question: "${_selectedPrompt.text}"
+Key characters to consider: ${chars}
+Key themes: ${themes}
+
+Provide:
+1. A sophisticated contention (2-3 sentences)
+2. Three body paragraph arguments, each with:
+   - A clear analytical topic sentence
+   - The best supporting quotation with act/scene
+   - A brief language analysis point (what technique, what effect)
+3. A brief conclusion strategy
+
+Use VCE English register. Be specific to the text. Aim for sophistication over plot summary.`;
+
+  try{
+    const res=await callClaude(prompt,700);
+    out.innerHTML=`<div class="ai-mark-area">
+      <div class="builder-label">🤖 AI Model Essay Plan</div>
+      <div style="background:var(--surface2);border-radius:10px;padding:18px;font-size:.88rem;line-height:1.8;white-space:pre-wrap">${res}</div>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('self-marking-area').style.display='block';document.getElementById('self-marking-area').scrollIntoView({behavior:'smooth'})">✍️ Now Write Your Own</button>
+      </div>
+    </div>`;
+  }catch(e){
+    out.innerHTML=`<div class="red-box">❌ ${e.message}</div>`;
+  }
+}
+
+async function aiMarkSelfPara(){
+  const key=getApiKey();
+  if(!key){showApiModal();return;}
+  const text=document.getElementById('self-para-input').value.trim();
+  if(!text){showToast('Write something first!');return;}
+  const out=document.getElementById('self-mark-output');
+  out.innerHTML=`<div class="tip-box">⏳ Marking...</div>`;
+
+  const prompt=`You are a VCE English examiner. Mark the following student response to this question: "${_selectedPrompt?_selectedPrompt.text:'Twelfth Night essay question'}"
+
+Student's response:
+${text}
+
+Provide:
+1. Score out of 10 for this section (with brief rationale using VCE criteria: knowledge of text, analysis of language, controlled writing)
+2. What the student did well (2 specific points)
+3. What needs improvement (2 specific points with specific suggestions)
+4. One example of how to rewrite a weak sentence to make it more analytical
+
+Be direct, specific, and constructive. Reference the student's actual words.`;
+
+  try{
+    const res=await callClaude(prompt,600);
+    const cls=res.match(/[89]\/10|10\/10/)?'excellent':res.match(/[67]\/10/)?'good':res.match(/[45]\/10/)?'partial':'poor';
+    out.innerHTML=`<div class="ai-mark-area" style="margin-top:12px">
+      <div class="builder-label">🎓 AI Marking</div>
+      <div class="mark-result ${cls}">${res.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }catch(e){
+    out.innerHTML=`<div class="red-box">❌ ${e.message}</div>`;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getApiKey(){try{return localStorage.getItem('anthropic_api_key')||'';}catch{return '';}}
+function showApiModal(){
+  document.getElementById('api-key-input').value=getApiKey();
+  document.getElementById('api-modal').classList.remove('hidden');
+}
+function closeApiModal(){document.getElementById('api-modal').classList.add('hidden');}
+function saveApiKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  try{localStorage.setItem('anthropic_api_key',k);}catch{}
+  closeApiModal();
+  if(k) showToast('API key saved ✓');
+}
+
+async function callClaude(prompt, maxTokens=500){
+  const key=getApiKey();
+  if(!key) throw new Error('No API key — click 🔑 API Key to add one');
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'content-type':'application/json',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:maxTokens,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!res.ok){
+    const e=await res.json().catch(()=>({}));
+    throw new Error(e.error?.message||`HTTP ${res.status} — check API key`);
+  }
+  const data=await res.json();
+  return data.content[0].text;
+}
+
+function showToast(msg){
+  let t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',background:'var(--accent)',color:'#fff',padding:'10px 20px',borderRadius:'8px',fontWeight:'700',fontSize:'.9rem',zIndex:500,transition:'opacity .3s',whiteSpace:'nowrap'});
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},2200);
+}
+
+function toggleTheme(){
+  const r=document.documentElement;
+  r.setAttribute('data-theme',r.getAttribute('data-theme')==='dark'?'light':'dark');
+  try{localStorage.setItem('tn_theme',r.getAttribute('data-theme'));}catch{}
+}
+try{const th=localStorage.getItem('tn_theme');if(th)document.documentElement.setAttribute('data-theme',th);}catch{}
+
+function copyPlanText(){
+  const el=document.getElementById('plan-output');
+  if(!el)return;
+  navigator.clipboard.writeText(el.innerText).then(()=>showToast('Copied to clipboard ✓')).catch(()=>showToast('Copy failed'));
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderHome();
+</script>
+</body>
+</html>
