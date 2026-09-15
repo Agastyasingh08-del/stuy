@@ -78,6 +78,26 @@ td{padding:7px 12px;border:1px solid var(--border);vertical-align:top}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--accent-bg);color:var(--accent)}
 .due-badge{background:#fee2e2;color:#b91c1c}
 .hidden{display:none!important}
+/* ── To-Do ── */
+.todo-wrap{max-width:680px}
+.todo-date-row{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+.todo-date-btn{background:none;border:none;cursor:pointer;font-size:1.3rem;color:var(--muted);padding:4px;line-height:1}
+.todo-date-label{font-weight:800;font-size:1.15rem;flex:1;text-align:center}
+.todo-add-row{display:flex;gap:8px;margin-bottom:18px}
+.todo-input{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;background:var(--bg);color:var(--text);font-size:.9rem;outline:none;font-family:inherit}
+.todo-input:focus{border-color:var(--accent)}
+.todo-list{display:flex;flex-direction:column;gap:6px}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;transition:.12s}
+.todo-item.done{opacity:.5}
+.todo-item.done .todo-text{text-decoration:line-through;color:var(--muted)}
+.todo-cb{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.todo-text{flex:1;font-size:.9rem;word-break:break-word}
+.todo-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:2px 4px;border-radius:4px;opacity:.6;transition:.12s;line-height:1}
+.todo-del:hover{opacity:1;color:#ef4444}
+.todo-empty{text-align:center;color:var(--muted);font-size:.88rem;padding:32px 0}
+.todo-progress{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:18px}
+.todo-prog-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.todo-stats{font-size:.78rem;color:var(--muted);text-align:right;margin-bottom:6px}
 </style>
 
 <div class="app">
@@ -86,6 +106,9 @@ td{padding:7px 12px;border:1px solid var(--border);vertical-align:top}
     <div class="sidebar-head">
       🧬 Biology Notes
       <a href="exam.html" style="margin-left:auto">← Exam Practice</a>
+    </div>
+    <div style="padding:8px 16px 4px">
+      <button class="btn btn-sm" style="width:100%;justify-content:center;background:var(--accent-bg);border-color:var(--accent);color:var(--accent)" onclick="showTodo()">📋 Daily To-Do</button>
     </div>
     <div id="nav-tree"></div>
     <div class="sidebar-footer">
@@ -1958,6 +1981,102 @@ function showFCDone(){
       </div>
     </div>
   `;
+}
+
+// ── TO-DO ─────────────────────────────────────────────────────────────────────
+let _todoDate = todayKey();
+
+function todayKey(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todoDateLabel(key){
+  const [y,m,d]=key.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const diff=Math.round((dt-today)/86400000);
+  const dayName=dt.toLocaleDateString('en-AU',{weekday:'long'});
+  const dateStr=dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+  if(diff===0) return `Today — ${dayName}, ${dateStr}`;
+  if(diff===-1) return `Yesterday — ${dayName}, ${dateStr}`;
+  if(diff===1) return `Tomorrow — ${dayName}, ${dateStr}`;
+  return `${dayName}, ${dateStr}`;
+}
+function getTodos(key){
+  try{return JSON.parse(localStorage.getItem('bio_todo_'+key)||'[]');}catch{return [];}
+}
+function saveTodos(key,arr){
+  try{localStorage.setItem('bio_todo_'+key,JSON.stringify(arr));}catch{}
+}
+function showTodo(){
+  curTopic=null;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  renderTodoPage();
+}
+function renderTodoPage(){
+  const todos=getTodos(_todoDate);
+  const done=todos.filter(t=>t.done).length;
+  const pct=todos.length?Math.round(done/todos.length*100):0;
+  document.getElementById('main-content').innerHTML=`
+    <div class="todo-wrap">
+      <div class="topic-header" style="margin-bottom:6px">
+        <h2>📋 Daily To-Do</h2>
+      </div>
+      <div class="todo-date-row">
+        <button class="todo-date-btn" onclick="todoShiftDay(-1)" title="Previous day">◀</button>
+        <div class="todo-date-label">${todoDateLabel(_todoDate)}</div>
+        <button class="todo-date-btn" onclick="todoShiftDay(1)" title="Next day">▶</button>
+      </div>
+      <div class="todo-add-row">
+        <input class="todo-input" id="todo-new-input" placeholder="Add a task…" onkeydown="if(event.key==='Enter')todoAdd()" maxlength="200">
+        <button class="btn btn-primary btn-sm" onclick="todoAdd()">＋ Add</button>
+      </div>
+      ${todos.length?`
+        <div class="todo-stats">${done}/${todos.length} completed</div>
+        <div class="todo-progress"><div class="todo-prog-bar" style="width:${pct}%"></div></div>
+      `:''}
+      <div class="todo-list" id="todo-list">
+        ${todos.length===0?`<div class="todo-empty">🎉 No tasks yet — add one above!</div>`:''}
+        ${todos.map((t,i)=>`
+          <div class="todo-item${t.done?' done':''}" id="todo-item-${i}">
+            <input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="todoToggle(${i})">
+            <span class="todo-text">${escHtml(t.text)}</span>
+            <button class="todo-del" onclick="todoDel(${i})" title="Delete">🗑</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('todo-new-input').focus();
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function todoShiftDay(delta){
+  const [y,m,d]=_todoDate.split('-').map(Number);
+  const dt=new Date(y,m-1,d+delta);
+  _todoDate=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  renderTodoPage();
+}
+function todoAdd(){
+  const inp=document.getElementById('todo-new-input');
+  const text=inp.value.trim();
+  if(!text)return;
+  const todos=getTodos(_todoDate);
+  todos.push({text,done:false});
+  saveTodos(_todoDate,todos);
+  inp.value='';
+  renderTodoPage();
+}
+function todoToggle(i){
+  const todos=getTodos(_todoDate);
+  todos[i].done=!todos[i].done;
+  saveTodos(_todoDate,todos);
+  renderTodoPage();
+}
+function todoDel(i){
+  const todos=getTodos(_todoDate);
+  todos.splice(i,1);
+  saveTodos(_todoDate,todos);
+  renderTodoPage();
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────────
