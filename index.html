@@ -230,6 +230,29 @@ select.fi option{background:var(--surface2);}
 .accent-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.15s;}
 .accent-swatch.sel{border-color:#fff;transform:scale(1.15);}
 
+/* TO-DO */
+.todo-page{max-width:640px;padding:8px 0;}
+.todo-date-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.todo-arrow{background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--text-muted);padding:6px 10px;border-radius:8px;transition:.12s;line-height:1;}
+.todo-arrow:hover{background:var(--surface2);color:var(--text);}
+.todo-day-label{flex:1;text-align:center;font-size:1.05rem;font-weight:700;color:var(--text);}
+.todo-add-row{display:flex;gap:8px;margin-bottom:16px;}
+.todo-inp{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:.88rem;outline:none;font-family:inherit;transition:.15s;}
+.todo-inp:focus{border-color:var(--accent);}
+.todo-prog-wrap{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.todo-prog-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .35s;}
+.todo-stat-row{font-size:.75rem;color:var(--text-muted);text-align:right;margin-bottom:14px;}
+.todo-list{display:flex;flex-direction:column;gap:6px;}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:.15s;}
+.todo-item:hover{border-color:var(--accent);}
+.todo-item.done{opacity:.45;}
+.todo-item.done .todo-lbl{text-decoration:line-through;color:var(--text-muted);}
+.todo-cb{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.todo-lbl{flex:1;font-size:.88rem;word-break:break-word;}
+.todo-del{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.9rem;padding:3px 6px;border-radius:5px;opacity:.5;transition:.12s;}
+.todo-del:hover{opacity:1;color:var(--red);}
+.todo-empty{text-align:center;color:var(--text-muted);font-size:.85rem;padding:40px 0;}
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.85rem;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideUp .3s ease;display:flex;align-items:center;gap:8px;}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:none;opacity:1;}}
@@ -247,6 +270,7 @@ select.fi option{background:var(--surface2);}
 
   <div class="nav-sect">Overview</div>
   <div class="nav-item active" data-view="dashboard"><span class="ni">🏠</span> Dashboard</div>
+  <div class="nav-item" data-view="todo"><span class="ni">📋</span> To-Do</div>
   <div class="nav-item" data-view="schedule"><span class="ni">📅</span> Schedule</div>
   <div class="nav-item" data-view="stats"><span class="ni">📊</span> Stats</div>
 
@@ -410,6 +434,9 @@ select.fi option{background:var(--surface2);}
 
     <!-- SETTINGS -->
     <div class="view" id="view-settings"><div id="settings-inner"></div></div>
+
+    <!-- TO-DO -->
+    <div class="view" id="view-todo"><div id="todo-inner"></div></div>
 
   </div>
 </div>
@@ -577,7 +604,7 @@ function setView(v){
   curView=v;
   const titles={dashboard:'Dashboard',schedule:'Schedule',subjects:'Subjects',flashcards:'Flashcards',
     notes:'Notes',uploads:'Resources',pomodoro:'Pomodoro',stats:'Stats',settings:'Settings',ai:'🤖 AI Tutor',
-    'subject-detail':'Subject','study':'Study Mode','note-editor':'Note'};
+    todo:'📋 To-Do','subject-detail':'Subject','study':'Study Mode','note-editor':'Note'};
   document.getElementById('tb-title').textContent=titles[v]||'';
   renderTbActions(v);
   if(v==='dashboard')renderDashboard();
@@ -591,6 +618,7 @@ function setView(v){
   else if(v==='settings')renderSettings();
   else if(v==='ai')renderAI();
   else if(v==='lesson')renderLesson();
+  else if(v==='todo')renderTodo();
 }
 function setViewRaw(v,title){
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
@@ -2734,6 +2762,77 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openSearch();}
   if(e.key==='n'&&!e.metaKey&&!e.ctrlKey&&curView==='notes'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){openAddNote();}
 });
+
+// ─── TO-DO ───────────────────────────────────────────────────────────────────
+let _todoDate = _todayKey();
+function _todayKey(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function _todoLabel(key){
+  const [y,m,d]=key.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const today=new Date();today.setHours(0,0,0,0);
+  const diff=Math.round((dt-today)/86400000);
+  const day=dt.toLocaleDateString('en-AU',{weekday:'long'});
+  const date=dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+  if(diff===0)return `Today — ${day}, ${date}`;
+  if(diff===-1)return `Yesterday — ${day}, ${date}`;
+  if(diff===1)return `Tomorrow — ${day}, ${date}`;
+  return `${day}, ${date}`;
+}
+function _getTodos(k){try{return JSON.parse(localStorage.getItem('sh_todo_'+k)||'[]');}catch{return[];}}
+function _saveTodos(k,a){try{localStorage.setItem('sh_todo_'+k,JSON.stringify(a));}catch{}}
+function renderTodo(){
+  const todos=_getTodos(_todoDate);
+  const done=todos.filter(t=>t.done).length;
+  const pct=todos.length?Math.round(done/todos.length*100):0;
+  document.getElementById('todo-inner').innerHTML=`
+    <div class="todo-page">
+      <div class="todo-date-nav">
+        <button class="todo-arrow" onclick="_todoShift(-1)">◀</button>
+        <div class="todo-day-label">${_todoLabel(_todoDate)}</div>
+        <button class="todo-arrow" onclick="_todoShift(1)">▶</button>
+      </div>
+      <div class="todo-add-row">
+        <input class="todo-inp" id="todo-inp" placeholder="Add a task… (Enter to add)" maxlength="200"
+          onkeydown="if(event.key==='Enter')_todoAdd()">
+        <button class="btn btn-primary" onclick="_todoAdd()">＋ Add</button>
+      </div>
+      ${todos.length?`
+        <div class="todo-prog-wrap"><div class="todo-prog-bar" style="width:${pct}%"></div></div>
+        <div class="todo-stat-row">${done} of ${todos.length} done${pct===100?' 🎉':''}</div>
+      `:''}
+      <div class="todo-list">
+        ${todos.length===0?`<div class="todo-empty">✨ Nothing here — add a task above!</div>`:''}
+        ${todos.map((t,i)=>`
+          <div class="todo-item${t.done?' done':''}">
+            <input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="_todoToggle(${i})">
+            <span class="todo-lbl">${t.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
+            <button class="todo-del" onclick="_todoDel(${i})" title="Delete">🗑</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('todo-inp')?.focus(),50);
+}
+function _todoShift(d){
+  const [y,m,day]=_todoDate.split('-').map(Number);
+  const dt=new Date(y,m-1,day+d);
+  _todoDate=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  renderTodo();
+}
+function _todoAdd(){
+  const inp=document.getElementById('todo-inp');
+  const text=inp.value.trim();if(!text)return;
+  const a=_getTodos(_todoDate);a.push({text,done:false});_saveTodos(_todoDate,a);
+  inp.value='';renderTodo();
+}
+function _todoToggle(i){
+  const a=_getTodos(_todoDate);a[i].done=!a[i].done;_saveTodos(_todoDate,a);renderTodo();
+}
+function _todoDel(i){
+  const a=_getTodos(_todoDate);a.splice(i,1);_saveTodos(_todoDate,a);renderTodo();
+}
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 renderSBSubjects();
