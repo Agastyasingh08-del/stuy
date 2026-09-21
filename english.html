@@ -156,6 +156,52 @@ textarea.build-input:focus,input.build-input:focus{border-color:var(--accent)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* QUOTE REVISION */
+.qrev-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;align-items:center}
+.qrev-filter-btn{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:.77rem;font-weight:700;cursor:pointer;transition:.12s}
+.qrev-filter-btn:hover,.qrev-filter-btn.active{border-color:var(--accent);color:var(--accent2);background:#7c6af715}
+.qrev-mode-wrap{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-left:auto}
+.qrev-mode-btn{padding:6px 14px;background:none;border:none;color:var(--muted);font-size:.8rem;font-weight:700;cursor:pointer;transition:.12s}
+.qrev-mode-btn.active{background:var(--accent);color:#fff}
+.qrev-count{font-size:.78rem;color:var(--muted);padding:4px 0}
+.qcard{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;transition:.15s}
+.qcard:hover{border-color:var(--accent)}
+.qcard-head{padding:16px 20px;cursor:pointer;display:flex;align-items:flex-start;gap:12px}
+.qcard-quote{font-style:italic;font-size:.95rem;line-height:1.65;flex:1;color:var(--text)}
+.qcard-meta{font-size:.75rem;color:var(--muted);margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.qcard-char-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.qcard-arrow{color:var(--muted);font-size:.85rem;flex-shrink:0;transition:.2s;margin-top:2px}
+.qcard.open .qcard-arrow{transform:rotate(90deg)}
+.qcard-body{display:none;padding:0 20px 20px;border-top:1px solid var(--border)}
+.qcard.open .qcard-body{display:block}
+.qcard-analysis{margin:14px 0}
+.qa-section{margin-bottom:12px}
+.qa-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2);margin-bottom:4px}
+.qa-text{font-size:.87rem;line-height:1.65;color:var(--text)}
+.qcard-ai-area{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.qcard-ai-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:.87rem;font-family:inherit;outline:none;resize:vertical;min-height:70px;transition:.15s}
+.qcard-ai-input:focus{border-color:var(--accent)}
+.qcard-ai-result{border-radius:10px;padding:14px 16px;margin-top:10px;font-size:.86rem;line-height:1.65;white-space:pre-wrap;display:none}
+.qcard-ai-result.good{background:#10b98118;border:1.5px solid var(--green)}
+.qcard-ai-result.ok{background:#f59e0b18;border:1.5px solid var(--amber)}
+.qcard-ai-result.bad{background:#ef444418;border:1.5px solid var(--red)}
+
+/* FLASHCARD MODE */
+.fc-overlay-qrev{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column}
+.fc-qrev-topbar{padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.fc-qrev-prog-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.fc-qrev-prog{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.fc-qrev-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;gap:18px;overflow-y:auto}
+.fc-qrev-card{background:var(--surface);border:2px solid var(--border);border-radius:18px;padding:36px 40px;max-width:660px;width:100%;text-align:center;cursor:pointer;transition:.15s;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.fc-qrev-card:hover{border-color:var(--accent)}
+.fc-qrev-q{font-style:italic;font-size:1.15rem;font-weight:600;line-height:1.6;margin-bottom:10px}
+.fc-qrev-hint{font-size:.75rem;color:var(--muted)}
+.fc-qrev-answer{text-align:left;max-width:660px;width:100%;background:var(--surface2);border-radius:14px;padding:20px;display:none}
+.fc-qrev-answer.show{display:block}
+.fc-qrev-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.fc-qrev-rate{padding:9px 22px;border-radius:10px;border:2px solid;cursor:pointer;font-weight:700;font-size:.88rem;transition:.12s}
+.fc-qrev-rate:hover{opacity:.85}
 </style>
 </head>
 <body>
@@ -178,6 +224,7 @@ textarea.build-input:focus,input.build-input:focus{border-color:var(--accent)}
     <div class="nav-item" onclick="showSection('characters')" id="nav-characters"><span class="ni">🎭</span> Characters</div>
     <div class="nav-item" onclick="showSection('themes')" id="nav-themes"><span class="ni">💡</span> Themes</div>
     <div class="nav-item" onclick="showSection('quotes')" id="nav-quotes"><span class="ni">💬</span> Key Quotes</div>
+    <div class="nav-item" onclick="showSection('quoterev')" id="nav-quoterev"><span class="ni">🎯</span> Quote Revision</div>
 
     <div class="nav-section">Essay Skills</div>
     <div class="nav-item" onclick="showSection('paragraphs')" id="nav-paragraphs"><span class="ni">✍️</span> Exemplar Paragraphs</div>
@@ -501,9 +548,9 @@ function showSection(id){
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
   const ni=document.getElementById('nav-'+id);
   if(ni) ni.classList.add('active');
-  const titles={home:'Home',context:'Context & Form',plot:'Plot Summary',characters:'Characters',themes:'Themes',quotes:'Key Quotes',paragraphs:'Exemplar Paragraphs',builder:'Essay Builder',prompts:'Prompt Bank'};
+  const titles={home:'Home',context:'Context & Form',plot:'Plot Summary',characters:'Characters',themes:'Themes',quotes:'Key Quotes',quoterev:'Quote Revision',paragraphs:'Exemplar Paragraphs',builder:'Essay Builder',prompts:'Prompt Bank'};
   document.getElementById('page-title').textContent=titles[id]||id;
-  const fn={home:renderHome,context:renderContext,plot:renderPlot,characters:renderCharacters,themes:renderThemes,quotes:renderQuotes,paragraphs:renderParagraphs,builder:renderBuilder,prompts:renderPrompts};
+  const fn={home:renderHome,context:renderContext,plot:renderPlot,characters:renderCharacters,themes:renderThemes,quotes:renderQuotes,quoterev:renderQuoteRevision,paragraphs:renderParagraphs,builder:renderBuilder,prompts:renderPrompts};
   if(fn[id]) fn[id]();
 }
 
@@ -680,42 +727,469 @@ function renderThemes(){
 }
 
 // ── QUOTES ────────────────────────────────────────────────────────────────────
+const ALL_QUOTES = [
+  {id:'q1',char:'Orsino',col:'#a78bfa',act:'1.1',q:`"If music be the food of love, play on, / Give me excess of it."`,
+    meaning:`Orsino opens the play by comparing love to appetite — music feeds desire, and he demands excess rather than satisfaction. This immediately establishes him as self-indulgent and performative in his suffering.`,
+    technique:`Extended metaphor (love as food/appetite); imperative mood ("play on"); the word "excess" signals imbalance rather than genuine feeling.`,
+    themes_analysis:`Establishes the play's central concern with love as performance rather than authentic emotion. Orsino luxuriates in loving, not in the beloved herself.`,
+    essay_use:`Use to argue that Shakespeare presents love as a form of self-indulgent theatre, especially when contrasted with Viola's silent, suppressed love.`,
+    themes:['love','identity']},
+  {id:'q2',char:'Orsino',col:'#a78bfa',act:'1.1',q:`"So full of shapes is fancy, / That it alone is high fantastical."`,
+    meaning:`Orsino muses that love (fancy) is so rich in imagination that it surpasses all other mental states — love is the supreme creative/delusional force.`,
+    technique:`Superlative ("high fantastical"); "fancy" (Elizabethan term for love/imagination) blurs the boundary between love and delusion.`,
+    themes_analysis:`Positions love as closer to fantasy than reality; anticipates the play's exploration of self-delusion through Malvolio and Olivia.`,
+    essay_use:`Opens an argument about self-delusion — all the major characters are, in some sense, "high fantastical."`,
+    themes:['love','deception']},
+  {id:'q3',char:'Orsino',col:'#a78bfa',act:'2.4',q:`"For women are as roses, whose fair flower, / Being once displayed, doth fall that very hour."`,
+    meaning:`Orsino claims women's beauty is transient — once they bloom, they immediately decay. This is a patriarchal reduction of women to their physical appearance.`,
+    technique:`Simile (women as roses); carpe diem undertone; ironically, Viola sitting beside him disproves his claim entirely through her inner strength.`,
+    themes_analysis:`Exposes Orsino's limited, objectifying view of women and love, which the audience sees through because they know Viola is anything but a fading rose.`,
+    essay_use:`Pivotal for arguments about gender — Viola's constancy directly contradicts Orsino's assumptions about female inconstancy.`,
+    themes:['love','identity']},
+  {id:'q4',char:'Orsino',col:'#a78bfa',act:'2.4',q:`"There is no woman's sides / Can bide the beating of so strong a passion / As love doth give my heart."`,
+    meaning:`Orsino claims no woman can feel love as intensely as he does — a self-aggrandising assertion of masculine emotional supremacy.`,
+    technique:`Hyperbole; dramatic irony (the disguised Viola opposite him loves just as deeply, if not more); dismissal of female emotional capacity.`,
+    themes_analysis:`Shakespeare uses Orsino's arrogance to expose the irony at the heart of the play: the woman beside him has more genuine love than he is capable of recognising.`,
+    essay_use:`Excellent for arguments about dramatic irony, gender assumptions, or the gap between Orsino's self-perception and reality.`,
+    themes:['love','identity','deception']},
+  {id:'q5',char:'Viola',col:'#34d399',act:'3.1',q:`"I am not what I am."`,
+    meaning:`Viola's paradoxical self-definition — she simultaneously asserts and denies an authentic self. She exists as both Cesario and Viola, as both herself and a performance.`,
+    technique:`Paradox; inverts the Socratic "I am what I am"; the brevity of the line gives it an aphoristic, almost philosophical weight.`,
+    themes_analysis:`Central to the play's exploration of identity as performance rather than essence. Shakespeare suggests no character is simply "what they are" — all perform roles.`,
+    essay_use:`Arguably the play's key line on identity. Works in almost any essay as a crystallisation of the theme.`,
+    themes:['identity','deception']},
+  {id:'q6',char:'Viola',col:'#34d399',act:'2.4',q:`"She never told her love, / But let concealment, like a worm i\' the bud, / Feed on her damask cheek."`,
+    meaning:`Viola describes a hypothetical "sister" who suppressed her love until it consumed her from within — she is speaking of herself obliquely, unable to declare her love for Orsino.`,
+    technique:`Extended metaphor (concealment as destructive worm); the word "damask" (pale pink/deep red) evokes both beauty and decay; displacement of self — she speaks in third person.`,
+    themes_analysis:`Contrasts sharply with Orsino's excessive self-expression: while he performs love loudly, Viola suffers it in silence. Raises questions about which is the more authentic love.`,
+    essay_use:`Use to contrast with Orsino's self-indulgent declarations, or to explore how identity is suppressed by social/gender constraints.`,
+    themes:['love','identity']},
+  {id:'q7',char:'Viola',col:'#34d399',act:'1.5',q:`"Make me a willow cabin at your gate, / And call upon my soul within the house."`,
+    meaning:`Describing how Orsino would woo Olivia, Viola (as Cesario) speaks with such passionate intensity that it seems to come from her own heart — she is voicing her own love for Orsino through the fiction of his suit.`,
+    technique:`Imagery of the willow (traditional symbol of grief in love); "soul within the house" suggests Olivia/Orsino occupies Viola\'s inner self; the speech exceeds its fictional brief.`,
+    themes_analysis:`The most striking instance of the play\'s double-voiced language: Viola speaks for Orsino but reveals herself, turning the performative into the sincere.`,
+    essay_use:`Perfect for arguments about the paradox of sincerity within deception, or how performance can become a vehicle for authentic expression.`,
+    themes:['love','identity','deception']},
+  {id:'q8',char:'Viola',col:'#34d399',act:'2.4',q:`"I am all the daughters of my father\'s house, / And all the brothers too."`,
+    meaning:`Viola's oblique reference to herself and Sebastian — she is both daughter (herself) and potentially brother (Sebastian, who she fears dead). A moment of acute grief disguised in riddle.`,
+    technique:`Paradox; the compression of multiple identities into one; the word "all" suggests mourning.`,
+    themes_analysis:`Illuminates identity's multiplicity — Viola contains within herself both selves lost (Sebastian, her own femininity as Cesario). Also a rare moment where grief surfaces through the performance.`,
+    essay_use:`Use for arguments about identity loss, grief, or the extraordinary compression Shakespeare achieves in Viola\'s language.`,
+    themes:['identity']},
+  {id:'q9',char:'Viola',col:'#34d399',act:'5.1',q:`"And I most jocund, apt, and willingly / To do you rest, a thousand deaths would die."`,
+    meaning:`Viola declares she would die a thousand deaths for Orsino — a declaration of her absolute devotion, spoken as a man, in a play where "dying" also carries sexual double meaning.`,
+    technique:`Hyperbole; triple adverbs ("jocund, apt, and willingly") conveying eagerness; dramatic irony (she declares love in disguise).`,
+    themes_analysis:`The intensity of Viola\'s devotion contrasts with Orsino\'s performed passion — hers is the more genuine love, expressed precisely when threatened.`,
+    essay_use:`Strong closer for essays on love or identity — she is most fully herself in this moment of near-sacrifice.`,
+    themes:['love','identity']},
+  {id:'q10',char:'Olivia',col:'#f9a8d4',act:'1.5',q:`"O, you are sick of self-love, Malvolio, and taste with a distempered appetite."`,
+    meaning:`Olivia rebukes Malvolio for his vanity and self-regard — but the irony is that Olivia herself is "sick of self-love" in her theatrical mourning for her brother.`,
+    technique:`Disease metaphor ("sick", "distempered"); dramatic irony; "appetite" echoes Orsino\'s opening food-of-love metaphor.`,
+    themes_analysis:`Shakespeare sets up a pattern of self-diagnosis that applies to the diagnoser. Olivia\'s words double back on herself — all the play\'s lovers are sick with self-love.`,
+    essay_use:`Powerful for essays on self-deception or irony — Olivia cannot see what she accurately identifies in Malvolio.`,
+    themes:['love','deception','identity']},
+  {id:'q11',char:'Olivia',col:'#f9a8d4',act:'1.5',q:`"Fate, show thy force; ourselves we do not owe."`,
+    meaning:`Having fallen for Cesario, Olivia surrenders her rational will to fate — she accepts that she is not the owner of herself when love strikes.`,
+    technique:`Apostrophe (addressing Fate); the legal term "owe" (own) suggests identity as property; the line marks her loss of self-sovereignty.`,
+    themes_analysis:`Fate becomes the alibi for irrational desire — Olivia abandons agency. Contrasts with the play\'s suggestion that characters who claim fate\'s compulsion are often simply avoiding accountability.`,
+    essay_use:`Use for arguments about love and rationality, or how characters use fate to excuse their own desires.`,
+    themes:['love','deception']},
+  {id:'q12',char:'Olivia',col:'#f9a8d4',act:'1.5',q:`"I will give out divers schedules of my beauty: it shall be inventoried, and every particle and utensil labelled."`,
+    meaning:`Olivia sarcastically describes herself as a commodity, listing her features like an inventory — mocking Orsino\'s reductive, itemising gaze.`,
+    technique:`Extended commercial metaphor (inventory, schedules, utensil); bathos (comparing beauty to household items); satirical wit.`,
+    themes_analysis:`Olivia turns the Petrarchan blazon (inventory of female beauty) into satire, positioning herself as more than the sum of her features — she refuses objectification even while being objectified.`,
+    essay_use:`Strong for essays on gender and agency — Olivia uses wit to subvert the male gaze, even within a scene where Orsino\'s messenger is pursuing her.`,
+    themes:['identity','love']},
+  {id:'q13',char:'Olivia',col:'#f9a8d4',act:'3.1',q:`"O what a deal of scorn looks beautiful / In the contempt and anger of his lip!"`,
+    meaning:`Olivia finds Cesario\'s refusal and anger beautiful — she is attracted by the very signs of rejection, suggesting how far her love has overridden reason.`,
+    technique:`Paradox (scorn looks beautiful); the word "deal" (large amount) suggests excess; oxymoron ("contempt and anger" as attractive qualities).`,
+    themes_analysis:`Love's irrationality is at its most acute here — Olivia is entranced by the rejection itself, echoing the play\'s broader point that desire is always slightly absurd.`,
+    essay_use:`Use alongside Orsino\'s opening speech to build an argument that the play presents desire as fundamentally irrational.`,
+    themes:['love','deception']},
+  {id:'q14',char:'Malvolio',col:'#fbbf24',act:'2.5',q:`"Some are born great, some achieve greatness, and some have greatness thrust upon \'em."`,
+    meaning:`Malvolio reads the forged letter and believes it prophesies his rise. The three-part structure flatters every aspiration — Malvolio assumes the third category applies to him.`,
+    technique:`Tricolon (rule of three); the letter\'s rhetoric weaponises Malvolio\'s own ambitions; the irony is that "greatness thrust upon" him is actually humiliation.`,
+    themes_analysis:`Exposes class anxiety and social aspiration — Malvolio\'s fatal flaw is his desire to transcend his station. Shakespeare uses the audience\'s superior knowledge to make the humiliation both funny and uncomfortable.`,
+    essay_use:`Central for essays on class, self-delusion, or the cruelty within comedy.`,
+    themes:['class','deception']},
+  {id:'q15',char:'Malvolio',col:'#fbbf24',act:'2.5',q:`"To be Count Malvolio!"`,
+    meaning:`Malvolio fantasises openly about marrying Olivia and becoming a Count — the stage direction shows him lost in reverie while the conspirators watch from hiding.`,
+    technique:`Exclamation; the theatrical staging (Malvolio performing his fantasy while being watched) creates a play-within-a-play; his self-delusion is entirely on display.`,
+    themes_analysis:`The scene is structured as theatrical spectacle — Malvolio is the unwitting actor in a play the others are directing. This mirrors the play\'s broader concern with performance and observation.`,
+    essay_use:`Useful for structural arguments about the play\'s self-referential theatricality, or for class-aspiration arguments.`,
+    themes:['class','deception','identity']},
+  {id:'q16',char:'Malvolio',col:'#fbbf24',act:'2.5',q:`"She did commend my yellow stockings of late, she did praise my leg being cross-gartered."`,
+    meaning:`Malvolio misremembers past interactions to confirm his fantasy — he retroactively rewrites his relationship with Olivia.`,
+    technique:`Repetition ("she did"); false memory constructed to confirm desire; dramatic irony (the audience knows Olivia hates yellow stockings).`,
+    themes_analysis:`A perfect illustration of motivated reasoning — Malvolio sees only what confirms his wishes. Self-deception is shown as a kind of active, creative process.`,
+    essay_use:`Use to argue that all the characters in Twelfth Night are, to varying degrees, unreliable narrators of their own emotional lives.`,
+    themes:['deception','identity']},
+  {id:'q17',char:'Malvolio',col:'#fbbf24',act:'5.1',q:`"I\'ll be revenged on the whole pack of you."`,
+    meaning:`Malvolio\'s final line — he exits in anger, refusing the play\'s invitation to reconciliation. His revenge is unresolved; the comedy\'s happy ending is shadowed by his departure.`,
+    technique:`Direct address to the full stage (and audience); "pack" reduces the nobles to animals; the threat is real — Malvolio\'s suffering has not been comic to him.`,
+    themes_analysis:`Malvolio\'s exit is Shakespeare\'s clearest signal that this comedy contains genuine cruelty. He refuses to be folded into the festive conclusion — and his refusal is dramatically credible.`,
+    essay_use:`Essential for essays on the limits of comedy or the play\'s dark undertow — Malvolio\'s exit is the moment the genre cracks.`,
+    themes:['class','deception']},
+  {id:'q18',char:'Sir Toby',col:'#60a5fa',act:'2.3',q:`"Dost thou think, because thou art virtuous, there shall be no more cakes and ale?"`,
+    meaning:`Sir Toby challenges Malvolio\'s Puritanical sobriety — pleasure, excess, and festivity will not be abolished simply because some disapprove. One of the play\'s most defiant lines.`,
+    technique:`Rhetorical question; "cakes and ale" as metonymy for festive pleasure; the second-person attack is direct and contemptuous.`,
+    themes_analysis:`The culture war between Puritan self-denial (Malvolio) and festive licence (Toby/Feste/Andrew) is central to the play\'s Twelfth Night context — the feast\'s last night before Lent.`,
+    essay_use:`Key for essays on class, festivity, or the play\'s historical context. The Puritan-Cavalier tension was live in Shakespeare\'s England.`,
+    themes:['class']},
+  {id:'q19',char:'Sir Toby',col:'#60a5fa',act:'2.5',q:`"I could marry this wench for this device."`,
+    meaning:`Toby expresses admiration for Maria\'s plan to deceive Malvolio — he is genuinely impressed by her wit and cunning. He eventually does marry her (offstage).`,
+    technique:`Colloquial diction ("wench"); the impulsive declaration reveals genuine respect beneath Toby\'s bluster.`,
+    themes_analysis:`One of the play\'s few examples of love growing from intellectual respect — their marriage rewards Maria\'s agency. Contrasts with Orsino\'s decorative love.`,
+    essay_use:`Use to explore gender and agency — Maria is arguably the most effective manipulator in the play and is rewarded for it.`,
+    themes:['love','class','deception']},
+  {id:'q20',char:'Feste',col:'#f97316',act:'3.1',q:`"Foolery, sir, does walk about the orb like the sun; it shines everywhere."`,
+    meaning:`Feste argues that folly is universal — it is not confined to the professional fool but illuminates every corner of human life. Everyone in this play is, in some sense, a fool.`,
+    technique:`Cosmic simile (foolery as the sun); the word "orb" elevates the claim; the licensed fool claims authority to see what others cannot.`,
+    themes_analysis:`Feste\'s role is to expose the folly of the supposedly sane characters — this line is his philosophical justification for doing so.`,
+    essay_use:`Strong for essays on Feste\'s role, or for arguing that the play uses the fool figure to expose truths the main characters cannot see.`,
+    themes:['deception','identity']},
+  {id:'q21',char:'Feste',col:'#f97316',act:'1.5',q:`"The better for my foes, and the worse for my friends."`,
+    meaning:`Feste paradoxically says his foes treat him better (by telling him the truth) than his friends (who flatter him with comfortable lies). He values honest critique over false praise.`,
+    technique:`Paradox; chiasmus (friends/foes reversed); the philosophical point is serious beneath the wit.`,
+    themes_analysis:`Feste\'s paradoxical wisdom: truth-telling and deception are inverted in Illyria, where "friends" deceive and those who expose you serve you better.`,
+    essay_use:`Use to explore the play\'s inversion of honesty and deception, or Feste\'s unusual relationship to truth.`,
+    themes:['deception','identity']},
+  {id:'q22',char:'Feste',col:'#f97316',act:'5.1',q:`"The whirligig of time brings in his revenges."`,
+    meaning:`Feste comments on Malvolio\'s exposure and downfall — time, like a spinning top, brings everyone to their due reckoning eventually.`,
+    technique:`Metaphor of the whirligig (child\'s spinning toy/time\'s rotation); personification of time as agent of justice.`,
+    themes_analysis:`Time is neither benign nor neutral in this play — it is a force that reveals, unmasks, and punishes. Feste\'s line gives the play\'s cruelty a cosmic justification.`,
+    essay_use:`Key for essays on time, justice, or the play\'s moral framework — is Malvolio\'s humiliation deserved? Feste suggests the universe thinks so.`,
+    themes:['time','class']},
+  {id:'q23',char:'Feste',col:'#f97316',act:'5.1',q:`"The rain it raineth every day."`,
+    meaning:`The final line of Feste\'s closing song. The festive world of Illyria dissolves; real life (cold, wet, ordinary) reasserts itself. The audience must return to their world too.`,
+    technique:`Simple diction; ballad metre; the repetition across the song\'s stanzas; metatheatrical (the audience is being dismissed from the play\'s dream).`,
+    themes_analysis:`Shakespeare refuses a wholly festive ending — the song insists that the "rain" of ordinary life, disappointment, and time\'s passage cannot be permanently excluded.`,
+    essay_use:`Brilliant conclusion for essays on comedy, time, or the play\'s relationship to reality — use to argue that Twelfth Night is always aware of its own limits.`,
+    themes:['time']},
+  {id:'q24',char:'Feste',col:'#f97316',act:'2.3',q:`"Youth\'s a stuff will not endure."`,
+    meaning:`In the middle of a rowdy night scene, Feste quietly observes that youth does not last. The brevity and simplicity of the line cuts through the festive noise.`,
+    technique:`Personification (youth as material); the word "stuff" is deliberately plain, making the idea more poignant; placement in a comic scene maximises the tonal contrast.`,
+    themes_analysis:`One of several moments where Shakespeare inserts mortality into festivity — carpe diem is both a celebration and a warning.`,
+    essay_use:`Use for time or festivity arguments — the play is always aware of time\'s passage even at its most joyful.`,
+    themes:['time']},
+  {id:'q25',char:'Feste',col:'#f97316',act:'4.2',q:`"There is no darkness but ignorance."`,
+    meaning:`Feste, disguised as Sir Topas, taunts the imprisoned Malvolio with a philosophical barb — the only real prison is the mind\'s ignorance. Also applies to all of Illyria\'s deluded lovers.`,
+    technique:`Epigrammatic form; paradox (darkness = ignorance, not physical imprisonment); the dramatic irony is that Feste himself is disguised as a clergyman.`,
+    themes_analysis:`This line functions as the play\'s moral spine — all the characters suffer from a form of ignorance (of themselves, of others). Malvolio\'s literal dark room mirrors their psychological states.`,
+    essay_use:`Outstanding for essays on self-knowledge, deception, or identity — arguably the play\'s most compressed thematic statement.`,
+    themes:['deception','identity']},
+  {id:'q26',char:'Sir Andrew',col:'#93c5fd',act:'2.3',q:`"I was adored once too."`,
+    meaning:`A single, throwaway line in the middle of a rowdy scene — Sir Andrew reveals, quietly, that he was once loved. It passes almost unnoticed and is never revisited.`,
+    technique:`Past tense ("was"); the adverb "once" signals loss; the word "too" positions himself alongside others who are currently adored.`,
+    themes_analysis:`The most quietly devastating line in the play — Sir Andrew\'s pathos is the more powerful for being unnoticed. Shakespeare uses him to show how the comic figure can bear genuine grief.`,
+    essay_use:`Extraordinary for nuanced essays — Andrew\'s single line does more for the play\'s emotional complexity than pages of Orsino\'s complaint.`,
+    themes:['love','class']},
+  {id:'q27',char:'Antonio',col:'#e2e8f0',act:'3.4',q:`"I do adore thee so / That danger shall seem sport, and I will go."`,
+    meaning:`Antonio declares he will follow Sebastian into danger despite the risk of arrest in Illyria, purely out of devotion.`,
+    technique:`Hyperbole; the word "adore" suggests religious devotion; "sport" trivialises genuine danger.`,
+    themes_analysis:`Antonio\'s love is the play\'s most selfless and arguably most sincere — yet he is entirely excluded from the happy ending. His devotion is neither recognised nor rewarded.`,
+    essay_use:`Use alongside the romantic resolutions to argue that the play\'s comic ending conceals exclusions — not everyone is folded into Illyria\'s happiness.`,
+    themes:['love']},
+  {id:'q28',char:'Antonio',col:'#e2e8f0',act:'5.1',q:`"His life I gave him, and did thereto add / My love without retention or restraint."`,
+    meaning:`Antonio rebukes "Sebastian" (actually Viola/Cesario) for apparent betrayal — he gave Sebastian everything, love without reservation, and believes himself abandoned.`,
+    technique:`The verb "gave" positions love as sacrifice; "retention or restraint" are negated to emphasise absolute devotion; the speech is one of the play\'s most sincere.`,
+    themes_analysis:`Antonio\'s love is unique in the play for being unperformed and uncalculating — which makes his exclusion from the ending more pointed. Some critics read homoerotic devotion here.`,
+    essay_use:`Essential for arguing that the play\'s resolution is not fully comic — Antonio\'s suffering is real and unresolved.`,
+    themes:['love']},
+  {id:'q29',char:'Sebastian',col:'#7dd3fc',act:'4.1',q:`"What relish is in this? How runs the stream? / Or I am mad, or else this is a dream."`,
+    meaning:`Sebastian, accosted by Olivia (who mistakes him for Cesario), wonders whether he is dreaming or mad — yet chooses to embrace the "dream" rather than question it.`,
+    technique:`Rhetorical questions; the word "relish" (taste/flavour) echoes the play\'s food-of-love motif; the conditional ("or I am mad, or else") offers only two options.`,
+    themes_analysis:`Sebastian\'s response to confusion is passive acceptance — he steps into a role prepared for him without resistance. This is the play\'s most efficient comment on the constructed nature of identity: you can simply walk into someone else\'s story.`,
+    essay_use:`Use for identity or deception arguments — Sebastian\'s uncritical acceptance of Olivia\'s love is both funny and philosophically interesting.`,
+    themes:['deception','love','identity']},
+  {id:'q30',char:'Sebastian',col:'#7dd3fc',act:'5.1',q:`"So comes it, lady, you have been mistook: / But nature to her bias drew in that."`,
+    meaning:`Sebastian explains to Olivia that she loved the wrong person — but "nature" drew her to the right path despite the error. He embraces the happy accident.`,
+    technique:`The word "bias" (from bowls — natural curve of the ball); nature\'s "bias" suggests there is something inherently right in the outcome despite the wrong means.`,
+    themes_analysis:`Shakespeare uses Sebastian to naturalise the comic resolution — the errors of identity were, in retrospect, nature\'s way of achieving the right outcome. A conservative reading of the comedy\'s logic.`,
+    essay_use:`Use for essays on comic structure or fate — but also to probe what "nature" means here and who is excluded from its "bias."`,
+    themes:['love','identity']},
+  {id:'q31',char:'Duke/Orsino',col:'#a78bfa',act:'5.1',q:`"Cesario, come; / For so you shall be while you are a man; / But when in other habits you are seen, / Orsino\'s mistress, and his fancy\'s queen."`,
+    meaning:`Orsino accepts Viola as his romantic partner but cannot yet call her by her real name — she remains "Cesario" until she is re-dressed as a woman.`,
+    technique:`Conditional ("while you are a man"); the word "fancy\'s queen" reduces Viola to a possession of his imagination; his final act is to rename her rather than accept her full identity.`,
+    themes_analysis:`The resolution is formally happy but Orsino\'s language remains controlling — he defines Viola\'s identity in relation to his "fancy." The play refuses complete resolution of the gender questions it raised.`,
+    essay_use:`Crucial for essays arguing the comic resolution is incomplete or ideologically conservative — Orsino still cannot fully see Viola.`,
+    themes:['love','identity']},
+  {id:'q32',char:'Viola',col:'#34d399',act:'2.2',q:`"O time, thou must untangle this, not I! / It is too hard a knot for me to untie."`,
+    meaning:`Realising that both Orsino and Olivia are in love with Cesario, Viola surrenders the problem to time — only time, not her own action, can resolve the tangle.`,
+    technique:`Apostrophe (addressing Time); "knot" metaphor for the plot\'s tangle; her passivity contrasts with Maria\'s active plotting.`,
+    themes_analysis:`Viola\'s relationship to time is essentially passive — she waits, suffers, and hopes. This connects to the play\'s broader meditation on patience and time\'s capacity for resolution.`,
+    essay_use:`Perfect for essays on time as a structural device in the play — Viola literally hands the plot to time.`,
+    themes:['time','identity']},
+  {id:'q33',char:'Feste',col:'#f97316',act:'1.5',q:`"I wear not motley in my brain."`,
+    meaning:`Feste insists his fool\'s costume does not mean his mind is foolish — he is wise beneath the surface, and his folly is a professional choice, not a condition.`,
+    technique:`Synecdoche (motley = fool\'s costume = foolishness); the line asserts the gap between appearance and identity central to the play.`,
+    themes_analysis:`Feste\'s self-defence anticipates the play\'s recurrent motif: what you wear is not what you are. He is, ironically, the most self-aware character in Illyria.`,
+    essay_use:`Strong for essays on identity, appearance, or Feste\'s role — use to argue that the professional fool is Shakespeare\'s vehicle for truth.`,
+    themes:['identity','deception']},
+  {id:'q34',char:'Olivia',col:'#f9a8d4',act:'1.5',q:`"A sister! you are she."`,
+    meaning:`Olivia, meeting Sebastian whom she mistakes for Cesario, immediately claims him as if he were already hers — the final "she" echoes across gender (Viola was also partly "she").`,
+    technique:`Exclamation; "she" (ambiguous in context); the brevity of the recognition scene emphasises the arbitrary, constructed nature of the resolution.`,
+    themes_analysis:`The romantic resolution depends entirely on mistaken identity — Olivia loves a face, and Shakespeare is quite open about how little individual selfhood drives the play\'s happy endings.`,
+    essay_use:`Use to probe how superficial the comic resolution is, or how the play reveals that romantic love operates on identity rather than essence.`,
+    themes:['love','identity','deception']},
+  {id:'q35',char:'Malvolio',col:'#fbbf24',act:'4.2',q:`"I am no more mad than you are."`,
+    meaning:`Malvolio, imprisoned and declared mad, insists on his sanity to the disguised Feste — a dramatic irony since his behaviour (cross-gartering, smiling) made him appear mad to Olivia.`,
+    technique:`Direct assertion; dramatic irony (Feste is disguised as a priest); the claim of sanity in conditions designed to drive madness has a Kafkaesque quality.`,
+    themes_analysis:`The dark heart of the sub-plot: Malvolio is not mad, and everyone knows it. His imprisonment is cruelty dressed as comedy, and his insistence on sanity is the most rational thing in the scene.`,
+    essay_use:`Crucial for essays on the cruelty within comedy — Malvolio\'s suffering tests the limits of what the genre can contain.`,
+    themes:['deception','class','identity']},
+  {id:'q36',char:'Orsino',col:'#a78bfa',act:'1.1',q:`"Away before me to sweet beds of flowers: / Love-thoughts lie rich when canopied with bowers."`,
+    meaning:`Orsino concludes his opening scene retreating into floral, sensory luxury — love exists for him as an aesthetic experience, to be savoured in beautiful surroundings.`,
+    technique:`Synaesthesia (thought + sensation); the rhyming couplet creates closure; "canopied" suggests theatrical staging of emotion.`,
+    themes_analysis:`Orsino\'s love is always framed by aesthetic pleasure — his suffering is beautiful, staged, comfortable. It never costs him anything.`,
+    essay_use:`Use to contrast Orsino\'s comfortable love-performance with Viola\'s painful, costly love — the difference in stakes defines their characters.`,
+    themes:['love']},
+];
+
+let _qrevFilter={char:'all',theme:'all'};
+let _qrevMode='browse';
+let _qrevFC={deck:[],idx:0,shown:false};
+
 function renderQuotes(){
-  const all=[
-    {char:'Orsino',act:'1.1',q:`"If music be the food of love, play on, / Give me excess of it."`,note:`Opening lines; love as appetite and excess; Petrarchan self-indulgence.`,themes:['love']},
-    {char:'Orsino',act:'2.4',q:`"For women are as roses, whose fair flower, / Being once displayed, doth fall that very hour."`,note:`Objectification and the transience of female beauty; patriarchal assumptions Viola silently refutes.`,themes:['love','identity']},
-    {char:'Viola',act:'3.1',q:`"I am not what I am."`,note:`Paradoxical self-definition; identity as performance; cf. Iago.`,themes:['identity','deception']},
-    {char:'Viola',act:'2.4',q:`"She never told her love, / But let concealment, like a worm i' the bud, / Feed on her damask cheek."`,note:`Viola speaking of herself obliquely; emotional suppression; contrast with Orsino's excess.`,themes:['love','identity']},
-    {char:'Viola',act:'1.5',q:`"Make me a willow cabin at your gate, / And call upon my soul within the house."`,note:`Viola's passion breaking through the Cesario performance; ventriloquising genuine love.`,themes:['love','identity']},
-    {char:'Viola',act:'2.4',q:`"I am all the daughters of my father's house, / And all the brothers too."`,note:`Grief, multiplicity of self, anticipation of Sebastian's survival.`,themes:['identity']},
-    {char:'Olivia',act:'1.5',q:`"O, you are sick of self-love, Malvolio, and taste with a distempered appetite."`,note:`Ironic self-diagnosis; she has her own form of self-indulgent performance.`,themes:['love','deception']},
-    {char:'Olivia',act:'1.5',q:`"Fate, show thy force; ourselves we do not owe."`,note:`Surrender to irrational love; loss of rational autonomy.`,themes:['love','deception']},
-    {char:'Malvolio',act:'2.5',q:`"Some are born great, some achieve greatness, and some have greatness thrust upon 'em."`,note:`The forged letter's most famous line; Malvolio's social ambitions weaponised against him.`,themes:['class','deception']},
-    {char:'Malvolio',act:'5.1',q:`"I'll be revenged on the whole pack of you."`,note:`Final exit; unresolved anger; refusal of comic reconciliation; complicates the happy ending.`,themes:['class']},
-    {char:'Sir Toby',act:'2.3',q:`"Dost thou think, because thou art virtuous, there shall be no more cakes and ale?"`,note:`Defence of festivity; culture war between Puritan sobriety and traditional revelry.`,themes:['class']},
-    {char:'Feste',act:'3.1',q:`"Foolery, sir, does walk about the orb like the sun; it shines everywhere."`,note:`Folly as universal — not restricted to the official fool.`,themes:['deception','time']},
-    {char:'Feste',act:'5.1',q:`"The rain it raineth every day."`,note:`Closing song; festive world ends; real life (rain, winter) waits outside.`,themes:['time']},
-    {char:'Feste',act:'5.1',q:`"The whirligig of time brings in his revenges."`,note:`Time as agent of justice; comic and ominous; especially relevant to Malvolio's exit.`,themes:['time','class']},
-    {char:'Feste',act:'2.3',q:`"Youth's a stuff will not endure."`,note:`Carpe diem; mortality beneath the festive surface.`,themes:['time']},
-    {char:'Sir Andrew',act:'2.3',q:`"I was adored once too."`,note:`Most poignant line — passing, unnoticed, yet revealing genuine pathos beneath comic role.`,themes:['love','class']},
-    {char:'Antonio',act:'5.1',q:`"His life I gave him, and did thereto add / My love without retention or restraint."`,note:`Selfless devotion; possible homoerotic reading; Antonio is excluded from the comic resolution.`,themes:['love']},
-    {char:'Sebastian',act:'4.1',q:`"What relish is in this? How runs the stream? / Or I am mad, or else this is a dream."`,note:`Sebastian's bewilderment — he accepts the dream rather than questioning it.`,themes:['deception','love']},
-  ];
-  let html=`<h2>Key Quotes</h2><p style="color:var(--muted);margin-bottom:16px">All essential quotes with context and analysis. Sorted by character.</p>`;
   const grouped={};
-  all.forEach(q=>{if(!grouped[q.char])grouped[q.char]=[];grouped[q.char].push(q);});
+  ALL_QUOTES.forEach(q=>{if(!grouped[q.char])grouped[q.char]=[];grouped[q.char].push(q);});
+  let html=`<h2>Key Quotes</h2><p style="color:var(--muted);margin-bottom:16px">All essential quotes with context and analysis. Click <strong>🎯 Quote Revision</strong> in the sidebar to use the full revision mode with flashcards and AI.</p>`;
   Object.entries(grouped).forEach(([char,qs])=>{
     const c=Object.values(CHARACTERS).find(c=>c.name.includes(char));
-    html+=`<h3 style="color:${c?c.colour:'var(--accent2)'}">${c?c.emoji:''} ${char}</h3>`;
+    html+=`<h3 style="color:${qs[0].col}">${char}</h3>`;
     qs.forEach(q=>{
-      html+=`<div class="quote-box">
-        ${q.q}
-        <div class="quote-attr">Act ${q.act} &nbsp;·&nbsp; ${q.note}</div>
+      html+=`<div class="quote-box">${q.q}
+        <div class="quote-attr">Act ${q.act} &nbsp;·&nbsp; ${q.meaning.split('.')[0]}.</div>
         <div style="margin-top:6px">${q.themes.map(t=>`<span class="tag tag-theme">${t}</span>`).join('')}</div>
       </div>`;
     });
   });
   document.getElementById('content').innerHTML=html;
+}
+
+// ── QUOTE REVISION ─────────────────────────────────────────────────────────────
+function renderQuoteRevision(){
+  const chars=['all',...[...new Set(ALL_QUOTES.map(q=>q.char))]];
+  const themes=['all','love','identity','deception','class','time'];
+  const filtered=ALL_QUOTES.filter(q=>(
+    (_qrevFilter.char==='all'||q.char===_qrevFilter.char)&&
+    (_qrevFilter.theme==='all'||q.themes.includes(_qrevFilter.theme))
+  ));
+
+  let html=`<h2>🎯 Quote Revision</h2>
+  <p style="color:var(--muted);margin-bottom:18px">
+    ${ALL_QUOTES.length} quotes with full analysis. Browse with expandable cards, or hit <strong>Flashcard Mode</strong> to drill memorisation. AI analysis available on every quote.
+  </p>
+  <div class="qrev-toolbar">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+      <span style="font-size:.75rem;color:var(--muted);font-weight:700">CHARACTER:</span>
+      ${chars.map(c=>`<button class="qrev-filter-btn${_qrevFilter.char===c?' active':''}" onclick="_qrevSetChar('${c}')">${c==='all'?'All':c}</button>`).join('')}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px">
+      <span style="font-size:.75rem;color:var(--muted);font-weight:700">THEME:</span>
+      ${themes.map(t=>`<button class="qrev-filter-btn${_qrevFilter.theme===t?' active':''}" onclick="_qrevSetTheme('${t}')">${t==='all'?'All themes':t}</button>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+      <span class="qrev-count">${filtered.length} quote${filtered.length!==1?'s':''} shown</span>
+      <button class="btn btn-primary btn-sm" onclick="_startQrevFC()">🃏 Flashcard Mode (${filtered.length})</button>
+    </div>
+  </div>`;
+
+  filtered.forEach(q=>{
+    html+=`<div class="qcard" id="qcard-${q.id}">
+      <div class="qcard-head" onclick="_toggleQcard('${q.id}')">
+        <div class="qcard-char-dot" style="background:${q.col}"></div>
+        <div style="flex:1">
+          <div class="qcard-quote">${q.q}</div>
+          <div class="qcard-meta">
+            <span style="color:${q.col};font-weight:700">${q.char}</span>
+            <span>Act ${q.act}</span>
+            ${q.themes.map(t=>`<span class="tag tag-theme">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div class="qcard-arrow">▶</div>
+      </div>
+      <div class="qcard-body">
+        <div class="qcard-analysis">
+          <div class="qa-section">
+            <div class="qa-label">📖 Meaning & Context</div>
+            <div class="qa-text">${q.meaning}</div>
+          </div>
+          <div class="qa-section">
+            <div class="qa-label">🔬 Technique & Language</div>
+            <div class="qa-text">${q.technique}</div>
+          </div>
+          <div class="qa-section">
+            <div class="qa-label">💡 Thematic Analysis</div>
+            <div class="qa-text">${q.themes_analysis}</div>
+          </div>
+          <div class="qa-section">
+            <div class="qa-label">✍️ Essay Use</div>
+            <div class="qa-text">${q.essay_use}</div>
+          </div>
+        </div>
+        <div class="qcard-ai-area">
+          <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:8px">🤖 AI ANALYSIS — ask anything about this quote</div>
+          <textarea class="qcard-ai-input" id="ai-inp-${q.id}" placeholder="e.g. How would I use this in an essay about identity? What techniques should I focus on? Write me a model analysis sentence..." rows="3"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="_qrevAI('${q.id}')">🤖 Ask AI</button>
+            <button class="btn btn-sm" onclick="_qrevAsk('${q.id}','Write a model analysis sentence using this quote for a VCE essay')">📝 Model sentence</button>
+            <button class="btn btn-sm" onclick="_qrevAsk('${q.id}','What are the 3 most important techniques in this quote and their effects?')">🔬 Key techniques</button>
+            <button class="btn btn-sm" onclick="_qrevAsk('${q.id}','Connect this quote to two other quotes from the play')">🔗 Connect quotes</button>
+          </div>
+          <div class="qcard-ai-result" id="ai-res-${q.id}"></div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  if(filtered.length===0) html+=`<div style="text-align:center;color:var(--muted);padding:40px">No quotes match these filters.</div>`;
+  document.getElementById('content').innerHTML=html;
+}
+
+function _toggleQcard(id){
+  const el=document.getElementById('qcard-'+id);
+  el.classList.toggle('open');
+}
+function _qrevSetChar(c){_qrevFilter.char=c;renderQuoteRevision();}
+function _qrevSetTheme(t){_qrevFilter.theme=t;renderQuoteRevision();}
+
+async function _qrevAI(id){
+  const inp=document.getElementById('ai-inp-'+id);
+  const q=ALL_QUOTES.find(x=>x.id===id);
+  const question=inp.value.trim();
+  if(!question){inp.focus();return;}
+  await _qrevCallAI(id,q,question);
+}
+async function _qrevAsk(id,question){
+  document.getElementById('ai-inp-'+id).value=question;
+  const q=ALL_QUOTES.find(x=>x.id===id);
+  await _qrevCallAI(id,q,question);
+}
+async function _qrevCallAI(id,q,question){
+  const res=document.getElementById('ai-res-'+id);
+  res.style.display='block';res.className='qcard-ai-result ok';
+  res.textContent='⏳ Thinking...';
+  const prompt=`You are a VCE English teacher expert in Twelfth Night.
+
+Quote: ${q.q}
+Character: ${q.char}, Act ${q.act}
+Themes: ${q.themes.join(', ')}
+
+Student question: ${question}
+
+Provide a focused, exam-relevant response. Be concise but thorough. Use specific textual evidence and literary terminology.`;
+  try{
+    const text=await callClaude(prompt,500);
+    res.className='qcard-ai-result good';
+    res.textContent=text;
+  }catch(e){
+    res.className='qcard-ai-result bad';
+    res.textContent='❌ '+e.message;
+  }
+}
+
+// FLASHCARD MODE
+function _startQrevFC(){
+  const filtered=ALL_QUOTES.filter(q=>(
+    (_qrevFilter.char==='all'||q.char===_qrevFilter.char)&&
+    (_qrevFilter.theme==='all'||q.themes.includes(_qrevFilter.theme))
+  ));
+  if(!filtered.length)return;
+  _qrevFC={deck:[...filtered].sort(()=>Math.random()-.5),idx:0,shown:false};
+  _renderQrevFC();
+}
+function _renderQrevFC(){
+  const {deck,idx,shown}=_qrevFC;
+  if(idx>=deck.length){
+    document.body.insertAdjacentHTML('beforeend',`<div class="fc-overlay-qrev" id="qrev-fc-overlay">
+      <div class="fc-qrev-topbar">
+        <button class="btn btn-sm" onclick="_closeQrevFC()">✕ Exit</button>
+        <div style="flex:1;text-align:center;font-weight:700">Session Complete!</div>
+      </div>
+      <div class="fc-qrev-body" style="text-align:center">
+        <div style="font-size:3rem;margin-bottom:16px">🎉</div>
+        <h3>You reviewed all ${deck.length} quotes!</h3>
+        <p style="color:var(--muted);margin-top:8px">Great work. Keep revising to build recall for the exam.</p>
+        <div style="display:flex;gap:10px;margin-top:24px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="_closeQrevFC();_startQrevFC()">🔄 Again</button>
+          <button class="btn" onclick="_closeQrevFC()">✕ Exit</button>
+        </div>
+      </div>
+    </div>`);
+    return;
+  }
+  const q=deck[idx];
+  const pct=Math.round(idx/deck.length*100);
+  const existing=document.getElementById('qrev-fc-overlay');
+  if(existing)existing.remove();
+  document.body.insertAdjacentHTML('beforeend',`<div class="fc-overlay-qrev" id="qrev-fc-overlay">
+    <div class="fc-qrev-topbar">
+      <button class="btn btn-sm" onclick="_closeQrevFC()">✕ Exit</button>
+      <div class="fc-qrev-prog-wrap"><div class="fc-qrev-prog" style="width:${pct}%"></div></div>
+      <span style="font-size:.8rem;color:var(--muted)">${idx+1} / ${deck.length}</span>
+      <span style="font-size:.78rem;color:${q.col};font-weight:700">${q.char}</span>
+    </div>
+    <div class="fc-qrev-body">
+      <div style="font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Who said this? / What does it mean?</div>
+      <div class="fc-qrev-card" onclick="_showQrevAnswer()">
+        <div class="fc-qrev-q">${q.q}</div>
+        <div class="fc-qrev-hint" id="qrev-hint">${shown?'':'Click to reveal full analysis'}</div>
+      </div>
+      <div class="fc-qrev-answer${shown?' show':''}" id="qrev-answer">
+        <div style="margin-bottom:10px"><span style="color:${q.col};font-weight:800">${q.char}</span> &nbsp;·&nbsp; <span style="color:var(--muted)">Act ${q.act}</span> &nbsp;·&nbsp; ${q.themes.map(t=>`<span class="tag tag-theme">${t}</span>`).join('')}</div>
+        <div style="margin-bottom:8px"><strong style="font-size:.73rem;color:var(--accent2);text-transform:uppercase">Meaning</strong><br><span style="font-size:.87rem">${q.meaning}</span></div>
+        <div style="margin-bottom:8px"><strong style="font-size:.73rem;color:var(--accent2);text-transform:uppercase">Technique</strong><br><span style="font-size:.87rem">${q.technique}</span></div>
+        <div style="margin-bottom:8px"><strong style="font-size:.73rem;color:var(--accent2);text-transform:uppercase">Essay Use</strong><br><span style="font-size:.87rem">${q.essay_use}</span></div>
+      </div>
+      ${shown?`<div class="fc-qrev-btns">
+        <span style="font-size:.78rem;color:var(--muted);align-self:center">How well did you know it?</span>
+        <button class="fc-qrev-rate" style="border-color:#ef4444;color:#ef4444" onclick="_qrevRate('again')">😵 Didn\'t know</button>
+        <button class="fc-qrev-rate" style="border-color:#f59e0b;color:#f59e0b" onclick="_qrevRate('hard')">😬 Partial</button>
+        <button class="fc-qrev-rate" style="border-color:#3b82f6;color:#3b82f6" onclick="_qrevRate('good')">🙂 Got it</button>
+        <button class="fc-qrev-rate" style="border-color:#10b981;color:#10b981" onclick="_qrevRate('easy')">😄 Perfect</button>
+      </div>`:`<button class="btn btn-sm" onclick="_showQrevAnswer()">👁 Show Analysis</button>`}
+      <div id="qrev-ai-area" style="width:100%;max-width:660px">
+        <textarea class="qcard-ai-input" id="qrev-fc-ai-inp" placeholder="Ask AI about this quote... or click a quick prompt below" rows="2"></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" onclick="_qrevFCAI('${q.id}')">🤖 Ask AI</button>
+          <button class="btn btn-sm" onclick="_qrevFCAsk('${q.id}','Write a model analysis sentence for a VCE essay')">📝 Model sentence</button>
+          <button class="btn btn-sm" onclick="_qrevFCAsk('${q.id}','What are the key techniques and their effects?')">🔬 Techniques</button>
+        </div>
+        <div id="qrev-fc-ai-res" style="display:none;margin-top:10px" class="qcard-ai-result ok"></div>
+      </div>
+    </div>
+  </div>`);
+}
+function _showQrevAnswer(){
+  _qrevFC.shown=true;
+  document.getElementById('qrev-answer').classList.add('show');
+  document.getElementById('qrev-hint').textContent='';
+  // Re-render to show rating buttons
+  _renderQrevFC();
+}
+function _qrevRate(r){
+  _qrevFC.idx++;
+  _qrevFC.shown=false;
+  _renderQrevFC();
+}
+function _closeQrevFC(){
+  const el=document.getElementById('qrev-fc-overlay');
+  if(el)el.remove();
+}
+async function _qrevFCAI(qid){
+  const q=ALL_QUOTES.find(x=>x.id===qid);
+  const inp=document.getElementById('qrev-fc-ai-inp');
+  const question=inp.value.trim()||'Explain this quote\'s significance for VCE essays';
+  const res=document.getElementById('qrev-fc-ai-res');
+  res.style.display='block';res.className='qcard-ai-result ok';res.textContent='⏳ Thinking...';
+  const prompt=`VCE English Twelfth Night teacher. Quote: ${q.q} (${q.char}, Act ${q.act}). Student question: ${question}. Give a focused, exam-relevant response using literary terminology.`;
+  try{const text=await callClaude(prompt,400);res.className='qcard-ai-result good';res.textContent=text;}
+  catch(e){res.className='qcard-ai-result bad';res.textContent='❌ '+e.message;}
+}
+async function _qrevFCAsk(qid,question){
+  document.getElementById('qrev-fc-ai-inp').value=question;
+  await _qrevFCAI(qid);
 }
 
 // ── EXEMPLAR PARAGRAPHS ───────────────────────────────────────────────────────
