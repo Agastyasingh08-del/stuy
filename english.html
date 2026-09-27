@@ -1133,13 +1133,13 @@ function _renderQrevFC(){
   </div>`;
   const modeLabel=mode==='recall'?'✍️ Quote Recall':'🃏 Analysis';
   if(mode==='recall'){
-    // Show character + act + themes → recall the quote
     const rateButtons=shown?`<div class="fc-qrev-btns" style="flex-wrap:wrap;justify-content:center">
-      <button class="fc-qrev-rate" style="border-color:#ef4444;color:#ef4444" onclick="_qrevRate('again')">😵 Didn\'t know</button>
-      <button class="fc-qrev-rate" style="border-color:#f59e0b;color:#f59e0b" onclick="_qrevRate('hard')">😬 Partial</button>
-      <button class="fc-qrev-rate" style="border-color:#3b82f6;color:#3b82f6" onclick="_qrevRate('good')">🙂 Got it</button>
-      <button class="fc-qrev-rate" style="border-color:#10b981;color:#10b981" onclick="_qrevRate('easy')">😄 Perfect</button>
-    </div>`:`<button class="btn btn-sm" onclick="_showQrevAnswer()">👁 Reveal Quote</button>`;
+      <button class="fc-qrev-rate" style="border-color:#ef4444;color:#ef4444" onclick="_qrevRate('again')">😵 Wrong</button>
+      <button class="fc-qrev-rate" style="border-color:#f59e0b;color:#f59e0b" onclick="_qrevRate('hard')">😬 Close</button>
+      <button class="fc-qrev-rate" style="border-color:#3b82f6;color:#3b82f6" onclick="_qrevRate('good')">🙂 Mostly right</button>
+      <button class="fc-qrev-rate" style="border-color:#10b981;color:#10b981" onclick="_qrevRate('easy')">😄 Nailed it</button>
+    </div>`:`<button class="btn btn-sm btn-primary" onclick="_qrevCheckTyped('${q.id}')">✅ Compare</button>`;
+    const savedTyped=_qrevFC.typed||'';
     document.body.insertAdjacentHTML('beforeend',`<div class="fc-overlay-qrev" id="qrev-fc-overlay">
       <div class="fc-qrev-topbar">
         <button class="btn btn-sm" onclick="_closeQrevFC()">✕ Exit</button>
@@ -1148,16 +1148,14 @@ function _renderQrevFC(){
         <span style="font-size:.75rem;color:var(--accent2);font-weight:700">${modeLabel}</span>
       </div>
       <div class="fc-qrev-body">
-        <div style="font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">What is the quote?</div>
-        <div class="fc-qrev-card" onclick="_showQrevAnswer()" style="cursor:pointer">
-          <div style="font-size:1.1rem;font-weight:800;color:${q.col};margin-bottom:6px">${q.char}</div>
-          <div style="font-size:.85rem;color:var(--muted);margin-bottom:8px">Act ${q.act} &nbsp;·&nbsp; ${q.themes.join(', ')}</div>
+        <div class="fc-qrev-card" style="cursor:default;margin-bottom:12px">
+          <div style="font-size:1.1rem;font-weight:800;color:${q.col};margin-bottom:4px">${q.char}</div>
+          <div style="font-size:.85rem;color:var(--muted);margin-bottom:6px">Act ${q.act} &nbsp;·&nbsp; ${q.themes.join(', ')}</div>
           <div style="font-size:.82rem;color:var(--muted2);font-style:italic">${q.meaning.split('.')[0]}…</div>
-          <div class="fc-qrev-hint" id="qrev-hint">${shown?'':'Click to reveal the quote'}</div>
         </div>
-        <div class="fc-qrev-answer${shown?' show':''}" id="qrev-answer" style="text-align:center;font-size:1.05rem;font-style:italic;line-height:1.6;padding:24px">
-          "${q.q}"
-        </div>
+        <textarea id="qrev-type-inp" class="qcard-ai-input" rows="3" placeholder="Type the quote from memory…" style="font-style:italic;font-size:1rem" oninput="_qrevFC.typed=this.value">${savedTyped}</textarea>
+        <div id="qrev-compare-out" style="width:100%;max-width:660px;margin-top:10px"></div>
+        <div class="fc-qrev-answer${shown?' show':''}" id="qrev-answer" style="display:none"></div>
         ${navRow.replace('RATE_SLOT', rateButtons)}
       </div>
     </div>`);
@@ -1206,14 +1204,62 @@ function _showQrevAnswer(){
   _qrevFC.shown=true;
   _renderQrevFC();
 }
+function _qrevCheckTyped(qid){
+  const q=ALL_QUOTES.find(x=>x.id===qid);
+  const inp=document.getElementById('qrev-type-inp');
+  const typed=(inp?inp.value:'').trim();
+  _qrevFC.typed=typed;
+  const out=document.getElementById('qrev-compare-out');
+  if(!out)return;
+  // word-level diff
+  const norm=s=>s.toLowerCase().replace(/[""''.,!?;:]/g,'').trim();
+  const typedWords=typed.split(/\s+/).filter(Boolean);
+  const realWords=q.q.split(/\s+/).filter(Boolean);
+  // build matched set from typed
+  const usedReal=new Set();
+  const matchedIdx=typedWords.map(tw=>{
+    for(let i=0;i<realWords.length;i++){
+      if(!usedReal.has(i)&&norm(realWords[i])===norm(tw)){usedReal.add(i);return i;}
+    }
+    return -1;
+  });
+  const typedHtml=typedWords.map((w,i)=>
+    matchedIdx[i]>=0
+      ?`<span style="background:#16a34a33;color:#16a34a;border-radius:4px;padding:0 3px">${w}</span>`
+      :`<span style="background:#ef444433;color:#ef4444;border-radius:4px;padding:0 3px;text-decoration:line-through">${w}</span>`
+  ).join(' ');
+  const realHtml=realWords.map((w,i)=>
+    usedReal.has(i)
+      ?`<span style="background:#16a34a33;color:#16a34a;border-radius:4px;padding:0 3px">${w}</span>`
+      :`<span style="background:#f59e0b33;color:#d97706;border-radius:4px;padding:0 3px">${w}</span>`
+  ).join(' ');
+  const pct=typedWords.length?Math.round(usedReal.size/realWords.length*100):0;
+  out.innerHTML=`
+    <div style="background:var(--surface2);border-radius:12px;padding:16px;font-size:.9rem;line-height:1.8">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Your attempt <span style="color:${pct>=80?'#16a34a':pct>=50?'#d97706':'#ef4444'};font-size:.85rem">${pct}% matched</span></div>
+      <div style="margin-bottom:12px;font-style:italic">${typedHtml||'<span style="color:var(--muted)">(nothing typed)</span>'}</div>
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Actual quote</div>
+      <div style="font-style:italic">${realHtml}</div>
+    </div>`;
+  _qrevFC.shown=true;
+  // show rate buttons
+  _renderQrevFC();
+  // restore compare output after re-render
+  const out2=document.getElementById('qrev-compare-out');
+  if(out2)out2.innerHTML=out.innerHTML;
+  const inp2=document.getElementById('qrev-type-inp');
+  if(inp2)inp2.value=typed;
+}
 function _qrevRate(r){
   _qrevFC.idx++;
   _qrevFC.shown=false;
+  _qrevFC.typed='';
   _renderQrevFC();
 }
 function _qrevNav(dir){
   const next=_qrevFC.idx+dir;
   if(next<0||next>=_qrevFC.deck.length)return;
+  _qrevFC.typed='';
   _qrevFC.idx=next;
   _qrevFC.shown=false;
   _renderQrevFC();
