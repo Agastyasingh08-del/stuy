@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Literary Techniques – Flashcard Revision</title>
+<style>
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--surface3:#2a2f45;
+  --border:#2e3450;--text:#e8eaf6;--muted:#7c85b3;--muted2:#4a5280;
+  --accent:#7c6af7;--accent2:#f472b6;--accent3:#34d399;--accent4:#fbbf24;
+  --accent5:#60a5fa;
+  --cat-lang:#7c6af7;--cat-rhet:#f472b6;--cat-struct:#34d399;
+  --cat-arg:#fbbf24;--cat-narr:#60a5fa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+
+/* LAYOUT */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0}
+.sidebar-logo{padding:0 18px 16px;font-size:1.1rem;font-weight:800;letter-spacing:-.02em;border-bottom:1px solid var(--border);margin-bottom:12px}
+.sidebar-logo span{color:var(--accent)}
+.nav-item{padding:9px 18px;cursor:pointer;border-radius:0;display:flex;align-items:center;gap:9px;font-size:.88rem;color:var(--muted);transition:.12s;border-left:3px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface2);color:var(--text);border-left-color:var(--accent)}
+.nav-section{padding:6px 18px 4px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);margin-top:6px}
+.main{flex:1;overflow-y:auto;padding:28px}
+
+/* CARDS GRID */
+.page-title{font-size:1.55rem;font-weight:800;margin-bottom:6px}
+.page-sub{color:var(--muted);font-size:.9rem;margin-bottom:20px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.btn{padding:8px 16px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.85rem;font-weight:600;transition:.12s}
+.btn:hover{background:var(--surface3)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.88;background:var(--accent)}
+.btn-sm{padding:5px 11px;font-size:.78rem}
+.filter-btn{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.78rem;font-weight:600;transition:.12s}
+.filter-btn.active{color:#fff;border-color:currentColor}
+.filter-btn[data-cat="all"].active{border-color:var(--accent);color:var(--accent)}
+.filter-btn[data-cat="language"].active{border-color:var(--cat-lang);color:var(--cat-lang)}
+.filter-btn[data-cat="rhetoric"].active{border-color:var(--cat-rhet);color:var(--cat-rhet)}
+.filter-btn[data-cat="structure"].active{border-color:var(--cat-struct);color:var(--cat-struct)}
+.filter-btn[data-cat="argument"].active{border-color:var(--cat-arg);color:var(--cat-arg)}
+.filter-btn[data-cat="narrative"].active{border-color:var(--cat-narr);color:var(--cat-narr)}
+.count-badge{font-size:.75rem;color:var(--muted);margin-left:4px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+
+/* BROWSE CARD */
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:.15s}
+.tc:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tc-head{padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.tc-name{font-size:1rem;font-weight:800;line-height:1.2}
+.tc-cat{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.tc-body{padding:0 16px 14px;display:none}
+.tc-body.open{display:block}
+.tc-def{font-size:.87rem;line-height:1.55;color:var(--muted);margin-bottom:10px}
+.tc-section{margin-bottom:10px}
+.tc-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted2);margin-bottom:3px}
+.tc-content{font-size:.84rem;line-height:1.5}
+.tc-example{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:8px 12px;font-style:italic;font-size:.83rem;line-height:1.5;margin-top:4px}
+.tc-effect{color:var(--accent3);font-size:.84rem}
+
+/* FLASHCARD OVERLAY */
+.fc-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;overflow:hidden}
+.fc-topbar{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.fc-prog-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.fc-prog{height:100%;background:var(--accent);transition:width .3s}
+.fc-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 20px;gap:16px}
+.fc-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;max-width:680px;padding:28px;cursor:pointer;transition:.15s;text-align:center}
+.fc-card:hover{border-color:var(--accent)}
+.fc-q{font-size:1.4rem;font-weight:800;line-height:1.3;margin-bottom:10px}
+.fc-hint{font-size:.8rem;color:var(--muted);margin-top:6px}
+.fc-answer{width:100%;max-width:680px;background:var(--surface2);border-radius:14px;padding:20px;display:none;text-align:left}
+.fc-answer.show{display:block}
+.fc-rate-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:100%;max-width:680px}
+.fc-rate-btn{padding:9px 20px;border-radius:10px;border:2px solid;cursor:pointer;font-weight:700;font-size:.85rem;transition:.12s}
+.fc-rate-btn:hover{opacity:.85}
+.fc-type-area{width:100%;max-width:680px}
+.fc-type-inp{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px;font-size:.95rem;font-style:italic;resize:vertical;min-height:70px}
+.fc-type-inp:focus{outline:none;border-color:var(--accent)}
+.fc-compare{width:100%;max-width:680px;background:var(--surface2);border-radius:12px;padding:16px;font-size:.88rem;line-height:1.8}
+.nav-arrows{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+
+/* MODE SELECT */
+.mode-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:8px}
+.mode-card{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:.15s;text-align:center}
+.mode-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.mode-card-icon{font-size:2rem;margin-bottom:8px}
+.mode-card-name{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.mode-card-desc{font-size:.76rem;color:var(--muted)}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.stat-tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.stat-num{font-size:1.6rem;font-weight:800;color:var(--accent)}
+.stat-label{font-size:.72rem;color:var(--muted);margin-top:2px}
+
+@media(max-width:600px){
+  .sidebar{display:none}
+  .main{padding:16px}
+  .cards-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">📚 <span>Lit</span>Techniques</div>
+    <div class="nav-section">Views</div>
+    <div class="nav-item active" data-view="browse" onclick="setView('browse')"><span>🗂</span> Browse All</div>
+    <div class="nav-item" data-view="flashcards" onclick="setView('flashcards')"><span>🃏</span> Flashcards</div>
+    <div class="nav-item" data-view="stats" onclick="setView('stats')"><span>📊</span> Progress</div>
+    <div class="nav-section" style="margin-top:16px">Categories</div>
+    <div class="nav-item" data-view="browse" onclick="setView('browse');setCat('language')"><span style="color:var(--cat-lang)">●</span> Language</div>
+    <div class="nav-item" data-view="browse" onclick="setView('browse');setCat('rhetoric')"><span style="color:var(--cat-rhet)">●</span> Rhetoric</div>
+    <div class="nav-item" data-view="browse" onclick="setView('browse');setCat('structure')"><span style="color:var(--cat-struct)">●</span> Structure</div>
+    <div class="nav-item" data-view="browse" onclick="setView('browse');setCat('argument')"><span style="color:var(--cat-arg)">●</span> Argument</div>
+    <div class="nav-item" data-view="browse" onclick="setView('browse');setCat('narrative')"><span style="color:var(--cat-narr)">●</span> Narrative</div>
+    <div style="margin-top:auto;padding:12px 18px;border-top:1px solid var(--border)">
+      <a href="index.html" style="font-size:.8rem;color:var(--muted)">← StudyHub</a>
+    </div>
+  </div>
+  <div class="main" id="main-content"></div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const TECHNIQUES = [
+  // LANGUAGE
+  {id:'metaphor',cat:'language',name:'Metaphor',
+   def:'A direct comparison between two unlike things without using "like" or "as", asserting one thing IS another.',
+   effect:'Creates vivid imagery; forces the reader to see something familiar in a new light; can convey complex ideas quickly.',
+   example:'"Life is a rollercoaster — full of dizzying highs and stomach-dropping lows."',
+   essay:'Identify the two things compared, the connotations transferred, and the emotional/ideological effect on the audience.'},
+  {id:'simile',cat:'language',name:'Simile',
+   def:'A comparison using "like" or "as" to highlight a shared quality between two unlike things.',
+   effect:'Makes abstract ideas concrete; creates accessible imagery; gentler than metaphor, inviting comparison rather than asserting it.',
+   example:'"He fought like a caged animal — desperate, savage, with nothing to lose."',
+   essay:'Note what quality is being highlighted by the comparison and why the author chose that particular vehicle.'},
+  {id:'personification',cat:'language',name:'Personification',
+   def:'Attributing human qualities, emotions, or actions to non-human things.',
+   effect:'Creates empathy; makes abstract concepts tangible; invites the reader to emotionally engage with the non-human subject.',
+   example:'"The wind howled its grief through the empty streets."',
+   essay:'Consider what human emotion/behaviour is projected and what ideological stance this positions the reader to adopt.'},
+  {id:'hyperbole',cat:'language',name:'Hyperbole',
+   def:'Deliberate, extreme exaggeration for emphasis or comic effect, not meant to be taken literally.',
+   effect:'Amplifies emotion; can create humour or outrage; signals the intensity of feeling behind a statement.',
+   example:'"I\'ve told you a million times — clean your room!"',
+   essay:'Identify what emotion is being amplified and whether the exaggeration serves to persuade, entertain, or critique.'},
+  {id:'understatement',cat:'language',name:'Understatement',
+   def:'Deliberately describing something as less significant than it is, often for ironic or comic effect.',
+   effect:'Creates irony; forces readers to fill in the gap themselves; can signal sophistication or dark humour.',
+   example:'"The Titanic had a bit of a rough crossing."',
+   essay:'Analyse the gap between what is said and what is meant; consider how this positions the reader.'},
+  {id:'alliteration',cat:'language',name:'Alliteration',
+   def:'The repetition of the same consonant sound at the start of closely connected words.',
+   effect:'Creates rhythm and musicality; makes phrases memorable; can reinforce mood (hard sounds = aggression, soft = calm).',
+   example:'"The fair breeze blew, the white foam flew, the furrow followed free." — Coleridge',
+   essay:'Identify the sound and its connotations; explain how the sonic quality reinforces the meaning.'},
+  {id:'assonance',cat:'language',name:'Assonance',
+   def:'The repetition of vowel sounds within nearby words.',
+   effect:'Creates internal rhyme and musicality; long vowels slow the pace (melancholy/reflection), short vowels quicken it.',
+   example:'"Hear the mellow wedding bells." — Poe (the "e" sound creates a flowing, musical effect)',
+   essay:'Name the vowel sound, its tonal quality, and the emotional atmosphere it creates.'},
+  {id:'onomatopoeia',cat:'language',name:'Onomatopoeia',
+   def:'Words that phonetically imitate the sound they describe.',
+   effect:'Makes writing visceral and immediate; draws the reader physically into the scene.',
+   example:'"The bees buzzed and hummed while the creek burbled below."',
+   essay:'Explain how the sound of the word recreates the experience and what sensory effect this has on the reader.'},
+  {id:'imagery',cat:'language',name:'Imagery',
+   def:'Descriptive language that appeals to the five senses (visual, auditory, olfactory, tactile, gustatory).',
+   effect:'Makes writing vivid and immersive; positions the reader inside the experience; evokes emotional responses.',
+   example:'"The stench of rotting wood and damp earth filled the cellar, thick and suffocating." (olfactory + tactile)',
+   essay:'Identify which sense is invoked, what emotions/associations are triggered, and how this serves the author\'s purpose.'},
+  {id:'symbolism',cat:'language',name:'Symbolism',
+   def:'Using an object, person, place, or event to represent a broader idea or concept beyond its literal meaning.',
+   effect:'Adds depth; allows the author to communicate complex themes subtly; rewards close reading.',
+   example:'The green light in The Great Gatsby symbolises Gatsby\'s unattainable dreams and the illusion of the American Dream.',
+   essay:'Name the symbol and what it represents; trace how its meaning develops across the text.'},
+  {id:'irony_verbal',cat:'language',name:'Verbal Irony',
+   def:'Saying the opposite of what you mean, where the intended meaning contrasts with the literal meaning.',
+   effect:'Creates wit and distance; invites reader complicity; can be used to mock or critique without direct attack.',
+   example:'"Oh, wonderful — another Monday morning," she muttered, staring at the alarm clock.',
+   essay:'Note the gap between literal and intended meaning and what attitude this reveals about the speaker.'},
+  {id:'irony_dramatic',cat:'language',name:'Dramatic Irony',
+   def:'When the audience knows something that one or more characters do not.',
+   effect:'Creates tension, suspense, or dark comedy; positions the audience as superior observers; builds emotional investment.',
+   example:'In Romeo and Juliet, the audience knows Juliet is alive when Romeo believes she is dead.',
+   essay:'Explain what the audience knows vs the character, and how this gap creates tension or pathos.'},
+  {id:'sarcasm',cat:'language',name:'Sarcasm',
+   def:'A sharp, bitter form of irony used to mock or wound, often through cutting praise.',
+   effect:'Signals contempt; creates an adversarial tone; can alienate as well as entertain depending on audience.',
+   example:'"Sure, because your plan worked SO well last time," he said, arms folded.',
+   essay:'Distinguish sarcasm from gentler irony; analyse the power dynamic and emotional charge it creates.'},
+  {id:'oxymoron',cat:'language',name:'Oxymoron',
+   def:'Placing two contradictory terms side by side to create a paradoxical effect.',
+   effect:'Highlights contradiction and complexity; can capture ambivalence or paradox in a character or idea.',
+   example:'"Parting is such sweet sorrow." — Shakespeare; "deafening silence"; "living death"',
+   essay:'Identify the two opposing concepts and the tension or insight their juxtaposition creates.'},
+  {id:'paradox',cat:'language',name:'Paradox',
+   def:'A statement that seems self-contradictory but contains a deeper truth upon reflection.',
+   effect:'Provokes thought; subverts expectations; reveals complexity beneath apparent simplicity.',
+   example:'"I must be cruel only to be kind." — Hamlet; "The more you know, the more you realise you don\'t know."',
+   essay:'Explain how the contradiction resolves into a deeper meaning and what this reveals about the theme or character.'},
+  {id:'euphemism',cat:'language',name:'Euphemism',
+   def:'A mild or indirect expression used in place of one that might seem harsh or blunt.',
+   effect:'Can sanitise, obscure, or soften reality; reveals what a society finds uncomfortable; often used in political language.',
+   example:'"Collateral damage" instead of "civilian deaths"; "passed away" instead of "died"',
+   essay:'Consider what is being concealed and why — euphemisms often reveal ideological assumptions.'},
+  {id:'dysphemism',cat:'language',name:'Dysphemism',
+   def:'Using a harsh or offensive word where a neutral or positive one would do.',
+   effect:'Creates shock; signals contempt or anger; destabilises the reader; often used in satire.',
+   example:'Calling a politician a "puppet" instead of "representative"; "croak" instead of "die"',
+   essay:'Note what attitude the harsh word reveals and how it seeks to position the reader against the subject.'},
+  {id:'juxtaposition',cat:'language',name:'Juxtaposition',
+   def:'Placing two contrasting ideas, characters, images, or situations side by side to highlight differences.',
+   effect:'Emphasises contrast; invites the reader to draw comparisons; can make a moral or political argument implicitly.',
+   example:'"It was the best of times, it was the worst of times." — Dickens',
+   essay:'Name what is being contrasted and what the juxtaposition implies about each — often a value judgement.'},
+  {id:'connotation',cat:'language',name:'Connotation',
+   def:'The associations and emotional overtones a word carries beyond its dictionary definition.',
+   effect:'Shapes the reader\'s attitude without explicit statement; "home" vs "house" carry different emotional weight.',
+   example:'"A childlike wonder" (positive) vs "childish behaviour" (negative) — same root, opposite connotations.',
+   essay:'Distinguish between denotation (literal meaning) and connotation; explain what attitude the word choice signals.'},
+  {id:'diction',cat:'language',name:'Diction (Word Choice)',
+   def:'The deliberate selection of specific words to achieve a particular effect, tone, or characterisation.',
+   effect:'Establishes register, tone, and character voice; signals class, education, and ideology.',
+   example:'George Orwell\'s plain diction in 1984 mirrors the stripped-back, oppressive world of Oceania.',
+   essay:'Note the register (formal/colloquial/technical) and what it reveals about voice, power, or intent.'},
+  {id:'tone',cat:'language',name:'Tone',
+   def:'The author\'s attitude toward the subject or audience, conveyed through word choice and style.',
+   effect:'Positions the reader to respond in a particular emotional way; can be ironic, earnest, satirical, elegiac, etc.',
+   example:'Swift\'s tone in "A Modest Proposal" is mock-rational — presenting a monstrous idea in reasonable language.',
+   essay:'Name the tone, the linguistic features that create it, and how it positions the reader toward the subject.'},
+  {id:'colloquialism',cat:'language',name:'Colloquialism',
+   def:'Informal, everyday language and expressions typical of casual conversation.',
+   effect:'Creates authenticity and relatability; establishes character voice; can signal class or cultural identity.',
+   example:'"Gonna," "reckon," "chucked a sickie" — these create an Australian vernacular voice.',
+   essay:'Consider whether the colloquialism builds rapport, characterises a speaker, or signals an ideological stance.'},
+  {id:'emotive',cat:'language',name:'Emotive Language',
+   def:'Words deliberately chosen to provoke an emotional response in the reader.',
+   effect:'Bypasses rational analysis; creates visceral engagement; can manipulate as well as inspire.',
+   example:'"Innocent children are being slaughtered" vs "people are dying" — "slaughtered" and "innocent" are emotive.',
+   essay:'Identify the emotion being targeted (fear, outrage, sympathy) and how this serves the author\'s persuasive purpose.'},
+  {id:'loaded',cat:'language',name:'Loaded Language',
+   def:'Words or phrases that carry strong connotations implying a particular evaluative stance.',
+   effect:'Subtly steers the reader\'s attitude; embeds a value judgement within apparently factual language.',
+   example:'"Freedom fighters" vs "terrorists"; "pro-life" vs "anti-abortion" — the label implies a position.',
+   essay:'Identify the implicit value judgement and consider what perspective is naturalised or delegitimised.'},
+
+  // RHETORIC
+  {id:'ethos',cat:'rhetoric',name:'Ethos',
+   def:'An appeal to the speaker\'s credibility, authority, or moral character to persuade the audience.',
+   effect:'Builds trust; positions the author as qualified to speak on the subject; can be established through expertise, experience, or values.',
+   example:'"As a doctor of 20 years, I can tell you that this policy will cost lives."',
+   essay:'Identify how credibility is established (qualifications, shared values, personal experience) and its persuasive function.'},
+  {id:'pathos',cat:'rhetoric',name:'Pathos',
+   def:'An appeal to the audience\'s emotions to persuade or move them.',
+   effect:'Creates empathy, fear, outrage, or sorrow; makes abstract issues personal and urgent.',
+   example:'"Think of your children — is this the world you want them to inherit?"',
+   essay:'Name the specific emotion targeted and the techniques used to evoke it; consider whether it manipulates or legitimately engages.'},
+  {id:'logos',cat:'rhetoric',name:'Logos',
+   def:'An appeal to logic, reason, and evidence to persuade the audience.',
+   effect:'Establishes rational credibility; harder to dismiss than emotional appeals; can be used selectively to mislead.',
+   example:'"Studies show that 73% of students who revised daily improved by at least one grade band."',
+   essay:'Assess the quality of the evidence and whether the logical argument is valid or relies on selective data.'},
+  {id:'kairos',cat:'rhetoric',name:'Kairos',
+   def:'An appeal to the timeliness or relevance of the argument — "the right moment" to act or decide.',
+   effect:'Creates urgency; frames inaction as irresponsible; exploits current events or crises.',
+   example:'"With elections just weeks away, we cannot afford to wait. The time for change is NOW."',
+   essay:'Identify the sense of urgency and consider whether the timing is genuinely relevant or artificially manufactured.'},
+  {id:'anaphora',cat:'rhetoric',name:'Anaphora',
+   def:'The repetition of a word or phrase at the beginning of successive clauses or sentences.',
+   effect:'Creates rhythm and momentum; emphasises the repeated idea; builds emotional intensity.',
+   example:'"We shall fight on the beaches, we shall fight on the landing grounds, we shall fight in the fields…" — Churchill',
+   essay:'Identify what is repeated and how the accumulation of clauses builds to an emotional or argumentative climax.'},
+  {id:'epistrophe',cat:'rhetoric',name:'Epistrophe',
+   def:'The repetition of a word or phrase at the end of successive clauses.',
+   effect:'Creates a hammering, conclusive effect; the final word gains weight through repetition.',
+   example:'"…government of the people, by the people, for the people." — Lincoln',
+   essay:'Note how ending on the same word drives home the central idea and its rhetorical weight.'},
+  {id:'tricolon',cat:'rhetoric',name:'Tricolon (Rule of Three)',
+   def:'A series of three parallel words, phrases, or clauses, which feels natural and complete to a listener.',
+   effect:'Rhythm feels satisfying and complete; the third item often lands with most impact; creates memorability.',
+   example:'"Veni, vidi, vici" (I came, I saw, I conquered); "Life, liberty, and the pursuit of happiness"',
+   essay:'Identify the three elements, their rhythm, and whether the third item delivers a twist, climax, or summation.'},
+  {id:'antithesis',cat:'rhetoric',name:'Antithesis',
+   def:'Placing opposing ideas in parallel grammatical structures within a sentence to highlight contrast.',
+   effect:'Creates a sense of balance; makes the contrast vivid and memorable; implies a clear-cut choice or opposition.',
+   example:'"Ask not what your country can do for you — ask what you can do for your country." — JFK',
+   essay:'Identify the contrasting ideas and the parallel structure; explain what binary is being constructed and its ideological implications.'},
+  {id:'rhetorical_q',cat:'rhetoric',name:'Rhetorical Question',
+   def:'A question asked for effect rather than to elicit an answer — the answer is assumed or implied.',
+   effect:'Engages the audience; positions them to agree with the implied answer; can challenge or provoke.',
+   example:'"If not us, who? If not now, when?" — Reagan',
+   essay:'Identify the implied answer and how the question form creates more engagement than a direct statement would.'},
+  {id:'parallelism',cat:'rhetoric',name:'Parallelism',
+   def:'Using the same grammatical structure for multiple elements to create balance and rhythm.',
+   effect:'Makes arguments feel logical and organised; creates a sense of equivalence between parallel items.',
+   example:'"She loved running, swimming, and cycling." / "Easy to learn, hard to master, impossible to forget."',
+   essay:'Identify the parallel grammatical units and consider how the structural equivalence implies logical equivalence.'},
+  {id:'allusion',cat:'rhetoric',name:'Allusion',
+   def:'An indirect reference to a well-known person, event, place, or text.',
+   effect:'Creates resonance and depth; flatters the reader\'s knowledge; transfers associations from the source to the subject.',
+   example:'"This contract is our generation\'s Versailles — a peace that plants the seeds of the next war."',
+   essay:'Identify what is being alluded to and what associations are transferred; consider whether the allusion is fair or misleading.'},
+  {id:'inclusive',cat:'rhetoric',name:'Inclusive Language',
+   def:'Using "we", "our", "us" to create a sense of shared identity between speaker and audience.',
+   effect:'Builds solidarity; positions speaker and audience on the same side; can obscure real differences of interest.',
+   example:'"Together we can build the future our children deserve."',
+   essay:'Consider whether the inclusive "we" genuinely represents a unified group or is used to co-opt the audience.'},
+  {id:'exclusive',cat:'rhetoric',name:'Exclusive Language',
+   def:'Using "they", "them", "those people" to construct an out-group, implicitly contrasting them with "us".',
+   effect:'Creates an in-group/out-group dynamic; can stoke fear or hostility; central to scapegoating.',
+   example:'"They don\'t share our values. They don\'t respect our way of life."',
+   essay:'Identify who "they" refers to and how the exclusion constructs a threat or enemy for rhetorical purposes.'},
+  {id:'direct_address',cat:'rhetoric',name:'Direct Address',
+   def:'Speaking directly to the audience using the second person ("you").',
+   effect:'Creates intimacy and urgency; makes the reader feel personally implicated or responsible.',
+   example:'"You have the power to change this. You can make a difference today."',
+   essay:'Consider how direct address positions the reader and what it demands of them emotionally or practically.'},
+  {id:'imperative',cat:'rhetoric',name:'Imperative',
+   def:'Using command forms to instruct, urge, or direct the reader/listener.',
+   effect:'Creates authority and urgency; removes ambiguity about what action is required; can feel empowering or oppressive.',
+   example:'"Join us. Stand up. Make your voice heard."',
+   essay:'Identify the action commanded and consider whether the imperative empowers or pressures the audience.'},
+  {id:'statistics',cat:'rhetoric',name:'Statistics & Data',
+   def:'Using numerical evidence, percentages, or studies to support an argument.',
+   effect:'Appears objective and authoritative; can be selectively used to mislead; lends scientific credibility.',
+   example:'"Youth suicide rates have risen 40% in the past decade — this crisis demands action now."',
+   essay:'Assess whether the statistics are contextualised; consider what they do not tell us as well as what they do.'},
+  {id:'anecdote',cat:'rhetoric',name:'Anecdote',
+   def:'A brief personal story or specific example used to illustrate a broader point.',
+   effect:'Humanises an abstract issue; makes statistics personal; builds empathy.',
+   example:'"I met a woman named Maria, who worked three jobs and still couldn\'t pay her rent. Her story is not unique."',
+   essay:'Note how the individual story is used to represent a systemic issue; consider whether it is representative or cherry-picked.'},
+  {id:'expert',cat:'rhetoric',name:'Expert Opinion',
+   def:'Citing the views of a recognised authority or specialist to lend credibility to an argument.',
+   effect:'Transfers the expert\'s credibility to the argument; can be used selectively; assumes the audience respects the authority.',
+   example:'"According to Nobel laureate economist Paul Krugman, the policy will increase inequality."',
+   essay:'Identify the expert\'s credentials and consider whether their expertise is relevant to the specific claim being made.'},
+
+  // STRUCTURE
+  {id:'foreshadowing',cat:'structure',name:'Foreshadowing',
+   def:'Hinting at events that will occur later in the narrative.',
+   effect:'Creates suspense and dramatic irony; rewards re-readers; suggests fate or inevitability.',
+   example:'In Of Mice and Men, Lennie accidentally kills his puppy, foreshadowing the later death of Curley\'s wife.',
+   essay:'Identify the hint and what it foreshadows; consider whether it creates dread, inevitability, or hope.'},
+  {id:'flashback',cat:'structure',name:'Flashback (Analepsis)',
+   def:'A scene set at an earlier time than the narrative present, interrupting the chronological flow.',
+   effect:'Reveals backstory and motivation; creates comparison between past and present; can create sympathy.',
+   example:'In The Kite Runner, frequent flashbacks to Amir\'s childhood establish the guilt he carries into adulthood.',
+   essay:'Explain what the flashback reveals about character or theme and why the author chose this structural placement.'},
+  {id:'flash_forward',cat:'structure',name:'Flash-forward (Prolepsis)',
+   def:'A scene set at a later time than the narrative present, breaking the chronological sequence.',
+   effect:'Creates dramatic irony; shapes how the reader views current events knowing future outcomes.',
+   example:'Breaking Bad begins with a flash-forward to Walter White alone in a diner, creating immediate tension.',
+   essay:'Consider how knowledge of the future event shapes the reader\'s interpretation of what comes before it.'},
+  {id:'in_medias_res',cat:'structure',name:'In Medias Res',
+   def:'Beginning the narrative in the middle of the action, rather than at the chronological beginning.',
+   effect:'Creates immediate engagement; drops the reader into conflict; backstory is revealed gradually.',
+   example:'Homer\'s Iliad begins in the middle of the Trojan War; Hamlet opens just before a ghost appears.',
+   essay:'Identify what the reader is denied by not beginning at the start and how this shapes interpretation and engagement.'},
+  {id:'circular',cat:'structure',name:'Circular Structure',
+   def:'A narrative that ends in the same place or situation it began, often with an altered understanding.',
+   effect:'Suggests inevitability, entrapment, or transformation; the ending recontextualises the opening.',
+   example:'The Great Gatsby ends near where it began — but the dream is now definitively dead.',
+   essay:'Compare opening and closing to identify what has changed in the reader\'s understanding if not in the circumstances.'},
+  {id:'frame',cat:'structure',name:'Frame Narrative',
+   def:'A story-within-a-story structure where an outer narrative frames an inner one.',
+   effect:'Creates narrative distance; raises questions of reliability; allows multiple perspectives.',
+   example:'Wuthering Heights uses Lockwood\'s journal and Nelly Dean\'s account to frame Heathcliff\'s story.',
+   essay:'Consider how the frame affects reliability and what perspective is privileged or marginalised by the structure.'},
+  {id:'montage',cat:'structure',name:'Montage / Juxtaposed Scenes',
+   def:'Placing scenes or images in sequence to create meaning through their contrast or connection.',
+   effect:'Creates implicit argument through association; forces the reader/viewer to make connections.',
+   example:'A film cutting between a lavish dinner party and a homeless person in the street creates implicit social critique.',
+   essay:'Identify what the juxtaposition implies without stating — what argument is made through structure alone.'},
+  {id:'pacing',cat:'structure',name:'Pacing',
+   def:'The speed at which a narrative moves, controlled through sentence length, scene length, and detail.',
+   effect:'Short sentences accelerate pace (tension, action); long sentences slow it (reflection, grief); controls emotional intensity.',
+   example:'"She ran. Heart hammering. No time to think. Just run." vs a long, reflective paragraph about a summer afternoon.',
+   essay:'Identify how the author controls pace and what emotional effect the faster or slower rhythm creates at that moment.'},
+  {id:'cliffhanger',cat:'structure',name:'Cliffhanger',
+   def:'Ending a chapter, scene, or episode at a moment of high tension or unresolved conflict.',
+   effect:'Compels the reader to continue; creates suspense; raises the emotional stakes.',
+   example:'Each chapter of a thriller ending just as a new threat is revealed.',
+   essay:'Identify what question is left unanswered and how the unresolved tension shapes the reader\'s engagement.'},
+  {id:'motif',cat:'structure',name:'Motif',
+   def:'A recurring image, symbol, or idea that develops thematic significance across a text.',
+   effect:'Builds meaning through repetition; creates structural coherence; rewards attentive reading.',
+   example:'The mockingbird in To Kill a Mockingbird recurs as a motif for innocence destroyed by prejudice.',
+   essay:'Trace the motif across the text, noting how its meaning accumulates or shifts with each recurrence.'},
+
+  // ARGUMENT / PERSUASION
+  {id:'straw_man',cat:'argument',name:'Straw Man',
+   def:'Misrepresenting an opponent\'s argument to make it easier to attack.',
+   effect:'Appears to refute an argument without engaging with it honestly; can mislead audiences unfamiliar with the original position.',
+   example:'"My opponent wants to reduce defence spending — he wants to leave our country defenceless."',
+   essay:'Identify the original position and how it has been distorted; consider what the straw man reveals about the arguer\'s position.'},
+  {id:'ad_hominem',cat:'argument',name:'Ad Hominem',
+   def:'Attacking the person making an argument rather than the argument itself.',
+   effect:'Distracts from the substance of debate; delegitimises the opponent personally; fallacious but often effective.',
+   example:'"You can\'t trust his economic plan — he\'s never run a business in his life."',
+   essay:'Distinguish the attack on the person from engagement with their argument; note this is a logical fallacy.'},
+  {id:'false_dichotomy',cat:'argument',name:'False Dichotomy',
+   def:'Presenting only two options when more exist, to force the audience into a binary choice.',
+   effect:'Eliminates nuance; creates pressure to choose "our side"; often used to demonise the middle ground.',
+   example:'"You\'re either with us or against us."',
+   essay:'Identify what options are excluded and why the binary serves the arguer\'s purpose.'},
+  {id:'slippery_slope',cat:'argument',name:'Slippery Slope',
+   def:'Claiming that one small step will lead inevitably to extreme consequences, without evidence for the chain of events.',
+   effect:'Generates fear; can prevent reasonable reform; sometimes legitimate if causal links are demonstrated.',
+   example:'"If we allow same-sex marriage, next people will want to marry animals."',
+   essay:'Evaluate whether the claimed chain of causation is plausible or speculative; identify the fear being generated.'},
+  {id:'bandwagon',cat:'argument',name:'Bandwagon Appeal',
+   def:'Arguing that something is correct or desirable because many people believe or do it (appeal to popularity).',
+   effect:'Creates social pressure to conform; exploits the human desire to belong.',
+   example:'"Nine out of ten Australians support this policy — don\'t be left behind."',
+   essay:'Note that popularity is not evidence of correctness; identify the social pressure being applied.'},
+  {id:'appeal_nature',cat:'argument',name:'Appeal to Nature',
+   def:'Arguing that something is good because it is "natural" or bad because it is "unnatural".',
+   effect:'Exploits positive connotations of nature; ignores that many natural things are harmful.',
+   example:'"This supplement is completely natural, so it\'s perfectly safe."',
+   essay:'Question whether "natural" is being defined consistently and whether naturalness is relevant to the claim.'},
+  {id:'appeal_tradition',cat:'argument',name:'Appeal to Tradition',
+   def:'Arguing that something is correct because it has always been done that way.',
+   effect:'Resists change by giving historical practice moral authority; ignores that traditions can be wrong.',
+   example:'"Marriage has always been between a man and a woman — that\'s how it has always worked."',
+   essay:'Ask whether the tradition is actually justified or merely longstanding; consider who benefits from maintaining it.'},
+  {id:'concession',cat:'argument',name:'Concession & Rebuttal',
+   def:'Acknowledging the opposing view\'s merits before demonstrating why your own argument is superior.',
+   effect:'Builds credibility and reasonableness; shows awareness of complexity; strengthens the final position.',
+   example:'"While it is true that renewable energy is costly to establish, the long-term savings and environmental benefits far outweigh initial investment."',
+   essay:'Identify what is conceded and how the rebuttal is framed; note how concession builds rather than undermines the argument.'},
+  {id:'counterargument',cat:'argument',name:'Counter-argument',
+   def:'Directly addressing and refuting the opposing position within your own argument.',
+   effect:'Demonstrates intellectual rigour; prevents the opposing view from going unchallenged; strengthens the overall case.',
+   example:'"Critics argue that the policy is unaffordable. In fact, the projected savings over ten years more than offset the initial cost."',
+   essay:'Evaluate the strength of both the counter-argument and the refutation — does the author fairly represent and genuinely defeat the opposing view?'},
+  {id:'circular_arg',cat:'argument',name:'Circular Argument',
+   def:'Using the conclusion as a premise to support itself — the argument goes in a circle.',
+   effect:'Appears logical but provides no actual evidence; relies on the audience accepting the premise without scrutiny.',
+   example:'"The Bible is true because it says so in the Bible."',
+   essay:'Identify the circular logic and explain what independent evidence is needed to break the circularity.'},
+  {id:'generalization',cat:'argument',name:'Hasty Generalisation',
+   def:'Drawing a broad conclusion from a small or unrepresentative sample.',
+   effect:'Appears to offer evidence-based reasoning while actually relying on anecdote or limited data.',
+   example:'"I met two rude Parisians once — the French are terribly arrogant."',
+   essay:'Identify the sample size and whether it justifies the generalisation; note what counterexamples might exist.'},
+
+  // NARRATIVE
+  {id:'first_person',cat:'narrative',name:'First Person Narration',
+   def:'The narrator uses "I" and is a character in the story, giving direct access to their thoughts.',
+   effect:'Creates intimacy and subjectivity; the reader is positioned closely with the narrator; reliability may be questioned.',
+   example:'The Great Gatsby\'s Nick Carraway narrates in first person — but how reliable is he?',
+   essay:'Consider what the first-person voice reveals and conceals; interrogate the narrator\'s reliability and biases.'},
+  {id:'third_limited',cat:'narrative',name:'Third Person Limited',
+   def:'Narrates in third person ("he/she/they") but is restricted to one character\'s perspective.',
+   effect:'Creates empathy with one character while maintaining narrative distance; other characters remain somewhat opaque.',
+   example:'Harry Potter is written in third-person limited — we only know what Harry knows.',
+   essay:'Note whose perspective is privileged and how this limits or shapes the reader\'s understanding of events.'},
+  {id:'third_omniscient',cat:'narrative',name:'Third Person Omniscient',
+   def:'The narrator knows the thoughts and feelings of all characters and can move freely in time and space.',
+   effect:'Allows broad social commentary; can reveal dramatic irony; creates a godlike authorial presence.',
+   example:'Tolstoy\'s War and Peace uses omniscient narration to move between aristocratic drawing rooms and battlefields.',
+   essay:'Consider how the omniscient perspective enables the author to construct a particular worldview or social critique.'},
+  {id:'unreliable',cat:'narrative',name:'Unreliable Narrator',
+   def:'A narrator whose credibility is compromised by limited knowledge, bias, or psychological instability.',
+   effect:'Forces the reader to read between the lines; creates interpretive complexity; destabilises "truth" within the narrative.',
+   example:'Stevens in The Remains of the Day gradually reveals his own self-deception without acknowledging it.',
+   essay:'Identify the signals of unreliability (contradiction, omission, self-justification) and what the "true" story might be.'},
+  {id:'stream',cat:'narrative',name:'Stream of Consciousness',
+   def:'A narrative technique that attempts to capture the continuous, associative flow of a character\'s thoughts.',
+   effect:'Creates psychological intimacy; mimics the non-linear nature of thought; can disorient or immerse the reader.',
+   example:'Virginia Woolf\'s Mrs Dalloway and James Joyce\'s Ulysses use interior monologue and associative leaps.',
+   essay:'Identify how the technique replicates thought and what it reveals about the character\'s psychological state.'},
+  {id:'free_indirect',cat:'narrative',name:'Free Indirect Discourse',
+   def:'A blend of third-person narration and first-person thought — the character\'s voice infiltrates the narrator\'s.',
+   effect:'Creates intimacy without formal "she thought" markers; allows ironic distance between author and character.',
+   example:'"It was a truth universally acknowledged…" — the irony of Austen\'s voice blends with Elizabeth\'s perspective.',
+   essay:'Identify where the character\'s voice bleeds into narration; consider whether it creates sympathy or ironic distance.'},
+  {id:'setting',cat:'narrative',name:'Setting as Symbol',
+   def:'Using the physical environment to reflect, contrast, or comment on character and theme.',
+   effect:'Externalises internal states; establishes mood; can make ideological arguments through landscape.',
+   example:'The fog in Bleak House mirrors the obscurity and delay of the legal system; the moors in Wuthering Heights reflect wildness and passion.',
+   essay:'Describe the setting\'s features and trace how they parallel or contrast with character/theme.'},
+  {id:'pathetic_fallacy',cat:'narrative',name:'Pathetic Fallacy',
+   def:'Attributing human emotions to natural phenomena or the environment.',
+   effect:'Creates atmospheric resonance; signals a character\'s emotional state through external weather or landscape.',
+   example:'"The storm raged as Lear\'s madness deepened." — Shakespeare\'s King Lear',
+   essay:'Identify the weather/nature detail and what human emotion it externalises; consider whether nature is controlling or reflecting character.'},
+  {id:'foil',cat:'narrative',name:'Foil',
+   def:'A character whose contrasting traits highlight the qualities of another character.',
+   effect:'Throws the protagonist\'s traits into sharp relief; can offer implicit moral commentary.',
+   example:'Laertes serves as a foil to Hamlet — both seek revenge for their fathers, but Laertes acts decisively where Hamlet deliberates.',
+   essay:'Identify the contrasting traits and explain what the foil reveals about the protagonist\'s character or the text\'s themes.'},
+  {id:'tragic_flaw',cat:'narrative',name:'Tragic Flaw (Hamartia)',
+   def:'The fatal character flaw or error in judgement that leads to a tragic hero\'s downfall.',
+   effect:'Creates sympathy and inevitability; the audience watches the flaw lead inexorably to catastrophe.',
+   example:'Macbeth\'s ambition, Othello\'s jealousy, Hamlet\'s indecision — each is a hamartia.',
+   essay:'Identify the flaw, trace how it drives key decisions, and analyse how it generates both sympathy and moral commentary.'},
+];
+
+const CAT_COLORS = {
+  language:'var(--cat-lang)',
+  rhetoric:'var(--cat-rhet)',
+  structure:'var(--cat-struct)',
+  argument:'var(--cat-arg)',
+  narrative:'var(--cat-narr)',
+};
+const CAT_LABELS = {
+  language:'Language',rhetoric:'Rhetoric',
+  structure:'Structure',argument:'Argument',narrative:'Narrative',
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let _view='browse';
+let _cat='all';
+let _open=new Set();
+let _fc={deck:[],idx:0,shown:false,mode:'name',typed:'',modeLabel:''};
+// progress: {[id]: 'again'|'hard'|'good'|'easy'}
+let _progress = JSON.parse(localStorage.getItem('lt_progress')||'{}');
+
+function saveProgress(){localStorage.setItem('lt_progress',JSON.stringify(_progress));}
+function filtered(){return TECHNIQUES.filter(t=>_cat==='all'||t.cat===_cat);}
+
+// ─── ROUTING ──────────────────────────────────────────────────────────────────
+function setView(v){
+  _view=v;
+  document.querySelectorAll('.nav-item[data-view]').forEach(el=>{
+    el.classList.toggle('active', el.dataset.view===v && !el.onclick?.toString().includes('setCat'));
+  });
+  render();
+}
+function setCat(c){
+  _cat=c;
+  render();
+}
+
+function render(){
+  const el=document.getElementById('main-content');
+  if(_view==='browse')el.innerHTML=renderBrowse();
+  else if(_view==='flashcards')el.innerHTML=renderFCMenu();
+  else if(_view==='stats')el.innerHTML=renderStats();
+}
+
+// ─── BROWSE ────────────────────────────────────────────────────────────────────
+function renderBrowse(){
+  const cats=['all','language','rhetoric','structure','argument','narrative'];
+  const list=filtered();
+  const filterBtns=cats.map(c=>`
+    <button class="filter-btn ${_cat===c?'active':''}" data-cat="${c}" onclick="setCat('${c}')">
+      ${c==='all'?'All':CAT_LABELS[c]}
+    </button>`).join('');
+  const cards=list.map(t=>{
+    const isOpen=_open.has(t.id);
+    return `<div class="tc" onclick="toggleCard('${t.id}')">
+      <div class="tc-head">
+        <div class="tc-name">${t.name}</div>
+        <span class="tc-cat" style="background:${CAT_COLORS[t.cat]}22;color:${CAT_COLORS[t.cat]}">${CAT_LABELS[t.cat]}</span>
+      </div>
+      <div class="tc-body ${isOpen?'open':''}">
+        <div class="tc-def">${t.def}</div>
+        <div class="tc-section">
+          <div class="tc-label">Effect</div>
+          <div class="tc-effect">${t.effect}</div>
+        </div>
+        <div class="tc-section">
+          <div class="tc-label">Example</div>
+          <div class="tc-example">${t.example}</div>
+        </div>
+        <div class="tc-section">
+          <div class="tc-label">Essay Analysis Tip</div>
+          <div class="tc-content" style="color:var(--muted)">${t.essay}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="page-title">Literary Techniques</div>
+    <div class="page-sub">${TECHNIQUES.length} techniques across Language, Rhetoric, Structure, Argument & Narrative</div>
+    <div class="toolbar">
+      ${filterBtns}
+      <span class="count-badge">${list.length} shown</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="startFC('name')">🃏 Flashcards (${list.length})</button>
+    </div>
+    <div class="cards-grid">${cards}</div>`;
+}
+
+function toggleCard(id){
+  if(_open.has(id))_open.delete(id);else _open.add(id);
+  render();
+}
+
+// ─── FC MENU ──────────────────────────────────────────────────────────────────
+function renderFCMenu(){
+  const list=filtered();
+  const cats=['all','language','rhetoric','structure','argument','narrative'];
+  const filterBtns=cats.map(c=>`
+    <button class="filter-btn ${_cat===c?'active':''}" data-cat="${c}" onclick="setCat('${c}')">
+      ${c==='all'?'All':CAT_LABELS[c]}
+    </button>`).join('');
+  return `
+    <div class="page-title">Flashcard Modes</div>
+    <div class="page-sub">Choose a mode and category, then start drilling.</div>
+    <div class="toolbar" style="margin-bottom:20px">${filterBtns}</div>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="startFC('name')">
+        <div class="mode-card-icon">❓</div>
+        <div class="mode-card-name">Name → Definition</div>
+        <div class="mode-card-desc">See the technique name — recall its definition and effect</div>
+      </div>
+      <div class="mode-card" onclick="startFC('def')">
+        <div class="mode-card-icon">📖</div>
+        <div class="mode-card-name">Definition → Name</div>
+        <div class="mode-card-desc">See the definition — recall what technique it describes</div>
+      </div>
+      <div class="mode-card" onclick="startFC('example')">
+        <div class="mode-card-icon">✍️</div>
+        <div class="mode-card-name">Example → Name</div>
+        <div class="mode-card-desc">See an example — identify the technique being used</div>
+      </div>
+      <div class="mode-card" onclick="startFC('type')">
+        <div class="mode-card-icon">⌨️</div>
+        <div class="mode-card-name">Type the Definition</div>
+        <div class="mode-card-desc">See the name — type the definition from memory and compare</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;color:var(--muted);font-size:.85rem">${list.length} technique${list.length!==1?'s':''} in current filter</div>`;
+}
+
+// ─── FLASHCARD ENGINE ─────────────────────────────────────────────────────────
+function startFC(mode){
+  const deck=[...filtered()].sort(()=>Math.random()-.5);
+  if(!deck.length)return;
+  const labels={name:'Name → Definition',def:'Definition → Name',example:'Example → Name',type:'Type the Definition'};
+  _fc={deck,idx:0,shown:false,mode,typed:'',modeLabel:labels[mode]||mode};
+  renderFCOverlay();
+}
+
+function renderFCOverlay(){
+  document.getElementById('fc-overlay')?.remove();
+  const {deck,idx,shown,mode,typed,modeLabel}=_fc;
+  if(idx>=deck.length){
+    const done=deck.filter(t=>_progress[t.id]==='easy'||_progress[t.id]==='good').length;
+    document.body.insertAdjacentHTML('beforeend',`<div class="fc-overlay" id="fc-overlay">
+      <div class="fc-topbar">
+        <button class="btn btn-sm" onclick="closeFC()">✕ Exit</button>
+        <div style="flex:1;text-align:center;font-weight:700">Session Complete!</div>
+      </div>
+      <div class="fc-body" style="justify-content:center;text-align:center">
+        <div style="font-size:3rem;margin-bottom:12px">🎉</div>
+        <h2>You drilled all ${deck.length} techniques!</h2>
+        <p style="color:var(--muted);margin-top:8px">${done} marked Good or Easy this session.</p>
+        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center">
+          <button class="btn btn-primary" onclick="closeFC();startFC('${mode}')">🔄 Again</button>
+          <button class="btn" onclick="closeFC()">✕ Exit</button>
+        </div>
+      </div>
+    </div>`);
+    return;
+  }
+  const t=deck[idx];
+  const pct=Math.round(idx/deck.length*100);
+  const catColor=CAT_COLORS[t.cat];
+  const nav=`<div class="nav-arrows">
+    <button class="btn btn-sm" onclick="fcNav(-1)" ${idx===0?'disabled':''}>← Prev</button>
+    NAV_SLOT
+    <button class="btn btn-sm" onclick="fcNav(1)" ${idx>=deck.length-1?'disabled':''}>Next →</button>
+  </div>`;
+  const rateRow=`<div class="fc-rate-row">
+    <button class="fc-rate-btn" style="border-color:#ef4444;color:#ef4444" onclick="fcRate('again')">😵 Didn't know</button>
+    <button class="fc-rate-btn" style="border-color:#f59e0b;color:#f59e0b" onclick="fcRate('hard')">😬 Partial</button>
+    <button class="fc-rate-btn" style="border-color:#3b82f6;color:#3b82f6" onclick="fcRate('good')">🙂 Got it</button>
+    <button class="fc-rate-btn" style="border-color:#10b981;color:#10b981" onclick="fcRate('easy')">😄 Nailed it</button>
+  </div>`;
+
+  let questionHTML='', answerHTML='', ctaHTML='';
+
+  if(mode==='name'){
+    questionHTML=`<div class="fc-q" style="font-size:1.6rem">${t.name}</div>
+      <span class="tc-cat" style="background:${catColor}22;color:${catColor};display:inline-block;margin-top:6px">${CAT_LABELS[t.cat]}</span>
+      <div class="fc-hint">${shown?'':'Click card to reveal'}</div>`;
+    answerHTML=`<div style="margin-bottom:10px;font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--muted2)">Definition</div>
+      <div style="margin-bottom:12px;line-height:1.55">${t.def}</div>
+      <div style="margin-bottom:6px;font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--muted2)">Effect</div>
+      <div style="color:var(--accent3);margin-bottom:12px;line-height:1.5">${t.effect}</div>
+      <div style="font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--muted2);margin-bottom:6px">Example</div>
+      <div style="font-style:italic;background:var(--surface3);padding:10px 14px;border-radius:8px;line-height:1.5">${t.example}</div>`;
+    ctaHTML=shown?rateRow:`<button class="btn btn-primary" onclick="showFCAnswer()">👁 Reveal</button>`;
+  } else if(mode==='def'){
+    questionHTML=`<div style="font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:10px">What technique is this?</div>
+      <div style="font-size:1rem;line-height:1.6;color:var(--muted)">${t.def}</div>
+      <div class="fc-hint" style="margin-top:10px">${shown?'':'Click to reveal'}</div>`;
+    answerHTML=`<div style="font-size:1.5rem;font-weight:800;color:${catColor};margin-bottom:8px">${t.name}</div>
+      <div style="color:var(--muted);font-size:.85rem;margin-bottom:10px">${CAT_LABELS[t.cat]}</div>
+      <div style="color:var(--accent3);line-height:1.5;font-size:.88rem">${t.effect}</div>`;
+    ctaHTML=shown?rateRow:`<button class="btn btn-primary" onclick="showFCAnswer()">👁 Reveal</button>`;
+  } else if(mode==='example'){
+    questionHTML=`<div style="font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:10px">What technique is used here?</div>
+      <div style="font-style:italic;font-size:1.05rem;line-height:1.6;background:var(--surface3);padding:14px 18px;border-radius:10px;border-left:3px solid ${catColor}">${t.example}</div>
+      <div class="fc-hint" style="margin-top:10px">${shown?'':'Click to reveal'}</div>`;
+    answerHTML=`<div style="font-size:1.4rem;font-weight:800;color:${catColor};margin-bottom:8px">${t.name}</div>
+      <div style="color:var(--muted);font-size:.85rem;margin-bottom:10px">${CAT_LABELS[t.cat]}</div>
+      <div style="line-height:1.55;font-size:.88rem;margin-bottom:8px">${t.def}</div>
+      <div style="color:var(--accent3);line-height:1.5;font-size:.88rem">${t.effect}</div>`;
+    ctaHTML=shown?rateRow:`<button class="btn btn-primary" onclick="showFCAnswer()">👁 Reveal</button>`;
+  } else if(mode==='type'){
+    questionHTML=`<div style="font-size:1.4rem;font-weight:800;margin-bottom:6px">${t.name}</div>
+      <span class="tc-cat" style="background:${catColor}22;color:${catColor};display:inline-block;margin-bottom:12px">${CAT_LABELS[t.cat]}</span>
+      <div style="font-size:.8rem;color:var(--muted)">Type the definition from memory:</div>`;
+    answerHTML=`<div style="font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--muted2);margin-bottom:6px">Actual Definition</div>
+      <div style="line-height:1.55;margin-bottom:10px">${t.def}</div>
+      <div style="font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--muted2);margin-bottom:4px">Effect</div>
+      <div style="color:var(--accent3);font-size:.88rem">${t.effect}</div>`;
+    const cmpDiv=shown?`<div id="fc-cmp-out"></div>`:''
+    ctaHTML=shown?rateRow:`<button class="btn btn-primary" onclick="fcCheckTyped('${t.id}')">✅ Compare</button>`;
+    document.body.insertAdjacentHTML('beforeend',`<div class="fc-overlay" id="fc-overlay">
+      <div class="fc-topbar">
+        <button class="btn btn-sm" onclick="closeFC()">✕ Exit</button>
+        <div class="fc-prog-wrap"><div class="fc-prog" style="width:${pct}%"></div></div>
+        <span style="font-size:.8rem;color:var(--muted)">${idx+1} / ${deck.length}</span>
+        <span style="font-size:.72rem;color:var(--accent2);font-weight:700">${modeLabel}</span>
+      </div>
+      <div class="fc-body">
+        <div class="fc-card" style="cursor:default">${questionHTML}</div>
+        <div class="fc-type-area">
+          <textarea class="fc-type-inp" id="fc-type-inp" rows="4" placeholder="Type the definition here…" oninput="_fc.typed=this.value">${typed}</textarea>
+        </div>
+        ${cmpDiv}
+        <div class="fc-answer ${shown?'show':''}" id="fc-answer">${answerHTML}</div>
+        ${nav.replace('NAV_SLOT', ctaHTML)}
+      </div>
+    </div>`);
+    return;
+  }
+
+  document.body.insertAdjacentHTML('beforeend',`<div class="fc-overlay" id="fc-overlay">
+    <div class="fc-topbar">
+      <button class="btn btn-sm" onclick="closeFC()">✕ Exit</button>
+      <div class="fc-prog-wrap"><div class="fc-prog" style="width:${pct}%"></div></div>
+      <span style="font-size:.8rem;color:var(--muted)">${idx+1} / ${deck.length}</span>
+      <span style="font-size:.72rem;color:var(--accent2);font-weight:700">${modeLabel}</span>
+    </div>
+    <div class="fc-body">
+      <div class="fc-card" onclick="showFCAnswer()">${questionHTML}</div>
+      <div class="fc-answer ${shown?'show':''}" id="fc-answer">${answerHTML}</div>
+      ${nav.replace('NAV_SLOT', ctaHTML)}
+    </div>
+  </div>`);
+}
+
+function showFCAnswer(){
+  _fc.shown=true;
+  renderFCOverlay();
+}
+function fcRate(r){
+  _progress[_fc.deck[_fc.idx].id]=r;
+  saveProgress();
+  _fc.idx++;_fc.shown=false;_fc.typed='';
+  renderFCOverlay();
+}
+function fcNav(d){
+  const n=_fc.idx+d;
+  if(n<0||n>=_fc.deck.length)return;
+  _fc.idx=n;_fc.shown=false;_fc.typed='';
+  renderFCOverlay();
+}
+function closeFC(){document.getElementById('fc-overlay')?.remove();}
+
+function fcCheckTyped(tid){
+  const t=TECHNIQUES.find(x=>x.id===tid);
+  const inp=document.getElementById('fc-type-inp');
+  const typed=(inp?inp.value:'').trim();
+  _fc.typed=typed;
+  const norm=s=>s.toLowerCase().replace(/[""''.,!?;:()\-]/g,'').trim();
+  const tw=typed.split(/\s+/).filter(Boolean);
+  const rw=t.def.split(/\s+/).filter(Boolean);
+  const used=new Set();
+  const mi=tw.map(w=>{for(let i=0;i<rw.length;i++){if(!used.has(i)&&norm(rw[i])===norm(w)){used.add(i);return i;}}return -1;});
+  const pct=rw.length?Math.round(used.size/rw.length*100):0;
+  const tHtml=tw.map((w,i)=>mi[i]>=0
+    ?`<span style="background:#16a34a33;color:#16a34a;border-radius:3px;padding:0 2px">${w}</span>`
+    :`<span style="background:#ef444433;color:#ef4444;border-radius:3px;padding:0 2px;text-decoration:line-through">${w}</span>`
+  ).join(' ');
+  const rHtml=rw.map((w,i)=>used.has(i)
+    ?`<span style="background:#16a34a33;color:#16a34a;border-radius:3px;padding:0 2px">${w}</span>`
+    :`<span style="background:#f59e0b33;color:#d97706;border-radius:3px;padding:0 2px">${w}</span>`
+  ).join(' ');
+  const cmp=document.getElementById('fc-cmp-out');
+  const html=`<div class="fc-compare">
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Your attempt <span style="color:${pct>=70?'#16a34a':pct>=40?'#d97706':'#ef4444'}">${pct}% matched</span></div>
+    <div style="margin-bottom:10px;line-height:1.8">${tHtml||'<span style="color:var(--muted)">(nothing typed)</span>'}</div>
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Actual definition</div>
+    <div style="line-height:1.8">${rHtml}</div>
+  </div>`;
+  if(cmp){cmp.innerHTML=html;}
+  _fc.shown=true;
+  renderFCOverlay();
+  const cmp2=document.getElementById('fc-cmp-out');
+  if(cmp2)cmp2.innerHTML=html;
+  const inp2=document.getElementById('fc-type-inp');
+  if(inp2)inp2.value=typed;
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function renderStats(){
+  const total=TECHNIQUES.length;
+  const seen=Object.keys(_progress).length;
+  const easy=Object.values(_progress).filter(v=>v==='easy').length;
+  const good=Object.values(_progress).filter(v=>v==='good').length;
+  const hard=Object.values(_progress).filter(v=>v==='hard').length;
+  const again=Object.values(_progress).filter(v=>v==='again').length;
+  const bycat={};
+  TECHNIQUES.forEach(t=>{
+    if(!bycat[t.cat])bycat[t.cat]={total:0,known:0};
+    bycat[t.cat].total++;
+    const r=_progress[t.id];
+    if(r==='easy'||r==='good')bycat[t.cat].known++;
+  });
+  const catRows=Object.entries(bycat).map(([c,d])=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="width:90px;font-size:.85rem;color:${CAT_COLORS[c]};font-weight:700">${CAT_LABELS[c]}</span>
+      <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+        <div style="width:${Math.round(d.known/d.total*100)}%;height:100%;background:${CAT_COLORS[c]};border-radius:4px"></div>
+      </div>
+      <span style="font-size:.8rem;color:var(--muted);width:60px;text-align:right">${d.known}/${d.total}</span>
+    </div>`).join('');
+  return `
+    <div class="page-title">Progress</div>
+    <div class="page-sub">Based on your most recent rating for each technique.</div>
+    <div class="stats-grid">
+      <div class="stat-tile"><div class="stat-num">${total}</div><div class="stat-label">Total Techniques</div></div>
+      <div class="stat-tile"><div class="stat-num">${seen}</div><div class="stat-label">Attempted</div></div>
+      <div class="stat-tile"><div class="stat-num" style="color:#10b981">${easy}</div><div class="stat-label">Nailed It 😄</div></div>
+      <div class="stat-tile"><div class="stat-num" style="color:#3b82f6">${good}</div><div class="stat-label">Got It 🙂</div></div>
+      <div class="stat-tile"><div class="stat-num" style="color:#f59e0b">${hard}</div><div class="stat-label">Partial 😬</div></div>
+      <div class="stat-tile"><div class="stat-num" style="color:#ef4444">${again}</div><div class="stat-label">Didn't Know 😵</div></div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px">
+      <div style="font-weight:700;margin-bottom:12px">By Category</div>
+      ${catRows}
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="if(confirm('Reset all progress?')){_progress={};saveProgress();render()}">🗑 Reset Progress</button>
+    </div>`;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
