@@ -253,6 +253,55 @@ select.fi option{background:var(--surface2);}
 .todo-del:hover{opacity:1;color:var(--red);}
 .todo-empty{text-align:center;color:var(--text-muted);font-size:.85rem;padding:40px 0;}
 
+/* VCE TIMER */
+.vce-timer-wrap{max-width:560px;margin:0 auto;padding:32px 0;}
+.vce-timer-title{font-size:1.4rem;font-weight:800;margin-bottom:4px;}
+.vce-timer-sub{color:var(--text-muted);font-size:.88rem;margin-bottom:28px;}
+.vce-clock{position:relative;width:220px;height:220px;margin:0 auto 28px;}
+.vce-clock svg{transform:rotate(-90deg);}
+.vce-clock-bg{fill:none;stroke:var(--surface2);stroke-width:10;}
+.vce-clock-ring{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .8s linear,stroke .4s;}
+.vce-clock-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.vce-clock-time{font-size:2.4rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
+.vce-clock-phase{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);}
+.vce-phase-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.8rem;font-weight:700;margin-bottom:12px;}
+.vce-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.vce-setting{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.vce-setting label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);display:block;margin-bottom:6px;}
+.vce-setting input[type=number]{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 10px;font-size:1rem;font-weight:700;text-align:center;}
+.vce-setting input[type=number]:focus{outline:none;border-color:var(--accent);}
+.vce-ctrl-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.vce-ctrl{padding:10px 22px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-weight:700;transition:.15s;}
+.vce-phase-row{display:flex;gap:8px;justify-content:center;margin-bottom:20px;}
+.vce-phase-dot{width:10px;height:10px;border-radius:50%;transition:.3s;}
+.vce-log{margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;max-height:160px;overflow-y:auto;}
+.vce-log-item{font-size:.8rem;color:var(--text-muted);padding:3px 0;border-bottom:1px solid var(--border);}
+.vce-log-item:last-child{border-bottom:none;}
+
+/* AI PLANNER */
+.aip-wrap{max-width:700px;margin:0 auto;padding:8px 0;}
+.aip-title{font-size:1.4rem;font-weight:800;margin-bottom:4px;}
+.aip-sub{color:var(--text-muted);font-size:.88rem;margin-bottom:20px;}
+.aip-input-box{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;transition:.15s;}
+.aip-input-box:focus-within{border-color:var(--accent);}
+.aip-textarea{width:100%;background:none;border:none;outline:none;color:var(--text);font-family:inherit;font-size:.93rem;line-height:1.6;resize:vertical;min-height:100px;}
+.aip-textarea::placeholder{color:var(--text-muted);}
+.aip-quick-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.aip-quick{padding:5px 12px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);font-size:.76rem;cursor:pointer;transition:.12s;}
+.aip-quick:hover{background:var(--accent-glow);color:var(--accent2);border-color:var(--accent);}
+.aip-result{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-top:14px;line-height:1.65;font-size:.9rem;}
+.aip-result h3{font-size:1rem;font-weight:700;margin:14px 0 6px;color:var(--accent2);}
+.aip-result h3:first-child{margin-top:0;}
+.aip-result ul,.aip-result ol{padding-left:20px;margin:4px 0 10px;}
+.aip-result li{margin-bottom:4px;}
+.aip-result strong{color:var(--text);}
+.aip-result p{margin-bottom:8px;}
+.aip-result .plan-block{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px;margin:8px 0;}
+.aip-history{margin-top:20px;}
+.aip-hist-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:.12s;}
+.aip-hist-item:hover{border-color:var(--accent);}
+.aip-hist-q{font-size:.82rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.85rem;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideUp .3s ease;display:flex;align-items:center;gap:8px;}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:none;opacity:1;}}
@@ -273,6 +322,8 @@ select.fi option{background:var(--surface2);}
   <div class="nav-item" data-view="todo"><span class="ni">📋</span> To-Do</div>
   <div class="nav-item" data-view="schedule"><span class="ni">📅</span> Schedule</div>
   <div class="nav-item" data-view="stats"><span class="ni">📊</span> Stats</div>
+  <div class="nav-item" data-view="vce-timer"><span class="ni">⏱</span> VCE Timer</div>
+  <div class="nav-item" data-view="ai-planner"><span class="ni">🧠</span> AI Planner</div>
 
   <div class="nav-sect">Study</div>
   <div class="nav-item" data-view="subjects"><span class="ni">📖</span> Subjects</div>
@@ -437,6 +488,12 @@ select.fi option{background:var(--surface2);}
 
     <!-- TO-DO -->
     <div class="view" id="view-todo"><div id="todo-inner"></div></div>
+
+    <!-- VCE TIMER -->
+    <div class="view" id="view-vce-timer"><div id="vce-timer-inner"></div></div>
+
+    <!-- AI PLANNER -->
+    <div class="view" id="view-ai-planner"><div id="ai-planner-inner"></div></div>
 
   </div>
 </div>
@@ -619,6 +676,8 @@ function setView(v){
   else if(v==='ai')renderAI();
   else if(v==='lesson')renderLesson();
   else if(v==='todo')renderTodo();
+  else if(v==='vce-timer')renderVCETimer();
+  else if(v==='ai-planner')renderAIPlanner();
 }
 function setViewRaw(v,title){
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
@@ -2832,6 +2891,237 @@ function _todoToggle(i){
 }
 function _todoDel(i){
   const a=_getTodos(_todoDate);a.splice(i,1);_saveTodos(_todoDate,a);renderTodo();
+}
+
+// ─── VCE TIMER ───────────────────────────────────────────────────────────────
+const _vt = {
+  readMins: 15, writeMins: 45,
+  state: 'idle', // idle | reading | writing | done
+  remaining: 0, total: 0,
+  interval: null,
+  log: []
+};
+function renderVCETimer() {
+  const el = document.getElementById('vce-timer-inner');
+  if (!el) return;
+  const isRunning = _vt.state !== 'idle' && _vt.state !== 'done';
+  const phaseColor = {idle:'var(--accent)',reading:'#60a5fa',writing:'#f472b6',done:'#4ade80'}[_vt.state];
+  const phaseLabel = {idle:'Not started',reading:'📖 Reading Time',writing:'✍️ Writing Time',done:'✅ Done'}[_vt.state];
+  const mins = Math.floor(_vt.remaining / 60);
+  const secs = _vt.remaining % 60;
+  const timeStr = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  const totalSecs = _vt.total || 1;
+  const dashArr = 628; // 2π*r, r=100
+  const dashOff = dashArr * (1 - (_vt.total ? _vt.remaining / _vt.total : 1));
+  const logHtml = _vt.log.length ? _vt.log.slice().reverse().map(l =>
+    `<div class="vce-log-item">${l}</div>`).join('') : '<div class="vce-log-item" style="text-align:center">No activity yet</div>';
+
+  el.innerHTML = `
+    <div class="vce-timer-wrap">
+      <div class="vce-timer-title">⏱ VCE Exam Timer</div>
+      <div class="vce-timer-sub">Simulate reading and writing time for VCE exams.</div>
+
+      <div class="vce-clock">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle class="vce-clock-bg" cx="110" cy="110" r="100"/>
+          <circle class="vce-clock-ring" cx="110" cy="110" r="100"
+            stroke="${phaseColor}"
+            stroke-dasharray="${dashArr}"
+            stroke-dashoffset="${dashOff}"/>
+        </svg>
+        <div class="vce-clock-inner">
+          <div class="vce-clock-time" style="color:${phaseColor}">${timeStr}</div>
+          <div class="vce-clock-phase">${_vt.state==='idle'?'Set up below':_vt.state==='done'?'Complete':_vt.state}</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-bottom:16px">
+        <span class="vce-phase-badge" style="background:${phaseColor}22;color:${phaseColor}">${phaseLabel}</span>
+      </div>
+
+      <div class="vce-settings-grid">
+        <div class="vce-setting">
+          <label>📖 Reading Time (mins)</label>
+          <input type="number" id="vt-read" min="0" max="60" value="${_vt.readMins}" ${isRunning?'disabled':''} onchange="_vt.readMins=parseInt(this.value)||0">
+        </div>
+        <div class="vce-setting">
+          <label>✍️ Writing Time (mins)</label>
+          <input type="number" id="vt-write" min="1" max="240" value="${_vt.writeMins}" ${isRunning?'disabled':''} onchange="_vt.writeMins=parseInt(this.value)||45">
+        </div>
+      </div>
+
+      <div class="vce-ctrl-row">
+        ${_vt.state==='idle' ? `<button class="vce-ctrl btn-primary" onclick="_vtStart()" style="background:var(--accent);color:#fff">▶ Start Exam</button>` : ''}
+        ${_vt.state==='reading' ? `<button class="vce-ctrl" style="background:#f472b622;color:#f472b6;border:1.5px solid #f472b6" onclick="_vtSkipToWrite()">⏩ Skip to Writing</button>` : ''}
+        ${isRunning ? `<button class="vce-ctrl" style="background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)" onclick="_vtReset()">✕ Reset</button>` : ''}
+        ${_vt.state==='done' ? `<button class="vce-ctrl btn-primary" onclick="_vtReset()" style="background:var(--accent);color:#fff">🔄 New Exam</button>` : ''}
+      </div>
+
+      <div class="vce-log"><div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">Activity Log</div>${logHtml}</div>
+    </div>`;
+}
+function _vtStart() {
+  const readSecs = (_vt.readMins||0) * 60;
+  const writeSecs = (_vt.writeMins||45) * 60;
+  _vt.log = [];
+  if (readSecs > 0) {
+    _vt.state = 'reading';
+    _vt.remaining = readSecs;
+    _vt.total = readSecs;
+    _vt.log.push(`${_now()} — Reading time started (${_vt.readMins} min)`);
+    _vt._writeSecs = writeSecs;
+  } else {
+    _vt.state = 'writing';
+    _vt.remaining = writeSecs;
+    _vt.total = writeSecs;
+    _vt.log.push(`${_now()} — Writing time started (${_vt.writeMins} min)`);
+  }
+  _vt.interval = setInterval(_vtTick, 1000);
+  renderVCETimer();
+}
+function _vtTick() {
+  _vt.remaining--;
+  if (_vt.remaining <= 0) {
+    if (_vt.state === 'reading') {
+      clearInterval(_vt.interval);
+      _vt.log.push(`${_now()} — Reading time ended`);
+      new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=').play().catch(()=>{});
+      setTimeout(() => {
+        _vt.state = 'writing';
+        _vt.remaining = _vt._writeSecs;
+        _vt.total = _vt._writeSecs;
+        _vt.log.push(`${_now()} — Writing time started (${_vt.writeMins} min)`);
+        _vt.interval = setInterval(_vtTick, 1000);
+        renderVCETimer();
+      }, 1500);
+    } else {
+      clearInterval(_vt.interval);
+      _vt.state = 'done';
+      _vt.remaining = 0;
+      _vt.log.push(`${_now()} — Exam complete`);
+    }
+  }
+  renderVCETimer();
+}
+function _vtSkipToWrite() {
+  clearInterval(_vt.interval);
+  _vt.log.push(`${_now()} — Skipped to writing time`);
+  _vt.state = 'writing';
+  _vt.remaining = _vt._writeSecs || _vt.writeMins * 60;
+  _vt.total = _vt.remaining;
+  _vt.interval = setInterval(_vtTick, 1000);
+  renderVCETimer();
+}
+function _vtReset() {
+  clearInterval(_vt.interval);
+  _vt.state = 'idle';
+  _vt.remaining = 0;
+  _vt.total = 0;
+  _vt.log = [];
+  renderVCETimer();
+}
+function _now() {
+  return new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ─── AI PLANNER ───────────────────────────────────────────────────────────────
+let _aipHistory = JSON.parse(localStorage.getItem('aip_history') || '[]');
+function renderAIPlanner() {
+  const el = document.getElementById('ai-planner-inner');
+  if (!el) return;
+  const histHtml = _aipHistory.length ? `
+    <div class="aip-history">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px">Recent Plans</div>
+      ${_aipHistory.slice(-5).reverse().map((h,i) => `
+        <div class="aip-hist-item" onclick="_aipLoad(${_aipHistory.length-1-i})">
+          <div class="aip-hist-q">${h.q}</div>
+          <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px">${h.ts}</div>
+        </div>`).join('')}
+    </div>` : '';
+  el.innerHTML = `
+    <div class="aip-wrap">
+      <div class="aip-title">🧠 AI Study Planner</div>
+      <div class="aip-sub">Tell the AI what you need to get done — it'll build you a plan.</div>
+
+      <div class="aip-input-box">
+        <textarea class="aip-textarea" id="aip-inp" placeholder="e.g. I have a Biology SAC in 3 days, need to revise Chapter 5 and 6, and I have 2 hours tonight and 3 hours tomorrow…"></textarea>
+      </div>
+
+      <div class="aip-quick-row">
+        <button class="aip-quick" onclick="_aipQuick('Study plan for my VCE exams this week')">📅 Weekly study plan</button>
+        <button class="aip-quick" onclick="_aipQuick('I have an essay due tomorrow, help me plan my time')">📝 Essay deadline</button>
+        <button class="aip-quick" onclick="_aipQuick('Break my revision into pomodoro sessions today')">🍅 Pomodoro schedule</button>
+        <button class="aip-quick" onclick="_aipQuick('I am stressed and overwhelmed, help me prioritise')">😰 Overwhelmed? Prioritise</button>
+        <button class="aip-quick" onclick="_aipQuick('Create a revision timetable for the next 2 weeks leading up to exams')">📆 Exam timetable</button>
+      </div>
+
+      <button class="btn btn-primary" id="aip-btn" onclick="_aipGenerate()" style="width:100%;justify-content:center;padding:11px">🧠 Generate Plan</button>
+
+      <div id="aip-result-area"></div>
+      ${histHtml}
+    </div>`;
+}
+function _aipQuick(text) {
+  const inp = document.getElementById('aip-inp');
+  if (inp) inp.value = text;
+}
+function _aipLoad(i) {
+  const h = _aipHistory[i];
+  if (!h) return;
+  const inp = document.getElementById('aip-inp');
+  if (inp) inp.value = h.q;
+  const area = document.getElementById('aip-result-area');
+  if (area) area.innerHTML = `<div class="aip-result">${h.result}</div>`;
+}
+async function _aipGenerate() {
+  const inp = document.getElementById('aip-inp');
+  const q = inp?.value.trim();
+  if (!q) { toast('✏️ Type what you need first'); return; }
+  if (!S.settings?.apiKey) {
+    toast('⚠️ Add your API key in Settings first');
+    setView('settings');
+    return;
+  }
+  const btn = document.getElementById('aip-btn');
+  const area = document.getElementById('aip-result-area');
+  if (btn) { btn.textContent = '⏳ Thinking…'; btn.disabled = true; }
+  if (area) area.innerHTML = `<div class="aip-result" style="color:var(--text-muted);text-align:center;padding:20px">Building your plan…</div>`;
+  try {
+    const today = new Date().toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const subjects = S.subjects.map(s => s.name).join(', ') || 'not specified';
+    const system = `You are an expert VCE study coach helping an Australian student plan their study. Today is ${today}. Their subjects are: ${subjects}. Create detailed, actionable study plans with clear time blocks, priorities, and specific tasks. Use markdown formatting: ## for section headers, **bold** for key points, bullet points for tasks. Keep plans realistic and motivating. Include breaks. Structure: overview, day-by-day or session-by-session breakdown, tips.`;
+    const raw = await callClaude(system, [{role:'user', content: q}]);
+    // simple markdown → html
+    const html = raw
+      .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+      .replace(/^## (.+)$/gm,'<h3>$1</h3>')
+      .replace(/^# (.+)$/gm,'<h3>$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/^- (.+)$/gm,'<li>$1</li>')
+      .replace(/(<li>.*<\/li>\n?)+/g, s => `<ul>${s}</ul>`)
+      .replace(/\n\n/g,'</p><p>')
+      .replace(/^(?!<[hul])/gm, '')
+      .replace(/\n/g,'<br>');
+    const resultHtml = `<div class="aip-result">${html}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText(document.querySelector('.aip-result').innerText).then(()=>toast('📋 Copied!'))">📋 Copy</button>
+        <button class="btn btn-ghost btn-sm" onclick="_aipRefine()">🔄 Refine</button>
+      </div>`;
+    if (area) area.innerHTML = resultHtml;
+    const ts = new Date().toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    _aipHistory.push({q, result: `<div class="aip-result">${html}</div>`, ts});
+    if (_aipHistory.length > 20) _aipHistory.shift();
+    localStorage.setItem('aip_history', JSON.stringify(_aipHistory));
+  } catch(e) {
+    if (area) area.innerHTML = `<div class="aip-result" style="color:var(--red)">❌ ${e.message}</div>`;
+  }
+  if (btn) { btn.textContent = '🧠 Generate Plan'; btn.disabled = false; }
+}
+function _aipRefine() {
+  const inp = document.getElementById('aip-inp');
+  if (inp) inp.value = (inp.value || '') + '\n\nPlease refine this plan and make it more detailed.';
+  _aipGenerate();
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
